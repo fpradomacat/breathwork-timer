@@ -1,7 +1,7 @@
 // ── i18n ──────────────────────────────────────────────────────
 const i18n = {
     es: {
-        title:'Breathwork Timer',
+        title:'Breathspace',
         statSession:'Sesión', statCycles:'Ciclos', statLast:'Última',
         inhale:'Inhala', holdFull:'Pausa (Lleno)', exhale:'Exhala', holdEmpty:'Pausa (Vacío)',
         vol:'Vol', start:'Iniciar', stop:'Detener', reset:'Reset',
@@ -10,9 +10,10 @@ const i18n = {
         limitTitle:'Límite de sesión', limitNone:'Sin límite', limitMin:'Minutos', limitCyc:'Ciclos',
         soundPhases:['Inhalar','Pausa (Lleno)','Exhalar','Pausa (Vacío)'],
         limitMsg: (type,val) => type==='minutes' ? `⏱ ${val} min alcanzados` : `🔄 ${val} ciclos completados`,
+        custom: 'Personalizado',
     },
     en: {
-        title:'Breathwork Timer',
+        title:'Breathspace',
         statSession:'Session', statCycles:'Cycles', statLast:'Last',
         inhale:'Inhale', holdFull:'Hold (Full)', exhale:'Exhale', holdEmpty:'Hold (Empty)',
         vol:'Vol', start:'Start', stop:'Stop', reset:'Reset',
@@ -21,11 +22,111 @@ const i18n = {
         limitTitle:'Session limit', limitNone:'No limit', limitMin:'Minutes', limitCyc:'Cycles',
         soundPhases:['Inhale','Hold (Full)','Exhale','Hold (Empty)'],
         limitMsg: (type,val) => type==='minutes' ? `⏱ ${val} min reached` : `🔄 ${val} cycles completed`,
+        custom: 'Custom',
     }
 };
 
 let lang = 'es';
 
+// ── DOM refs ──────────────────────────────────────────────────
+const times = {
+    inhale:   document.getElementById('time-inhale'),
+    holdFull: document.getElementById('time-hold-full'),
+    exhale:   document.getElementById('time-exhale'),
+    holdEmpty:document.getElementById('time-hold-empty'),
+};
+const breathText        = document.getElementById('breath-text');
+const phaseTimerDisplay = document.getElementById('phase-timer');
+const breathingCircle   = document.getElementById('breathing-circle');
+const startBtn          = document.getElementById('start-btn');
+const resetBtn          = document.getElementById('reset-btn');
+const sessionCounter    = document.getElementById('session-counter');
+const cycleCounter      = document.getElementById('cycle-counter');
+const lastSession       = document.getElementById('last-session');
+const techniqueLabel    = document.getElementById('technique-label');
+const volSlider         = document.getElementById('volume-slider');
+
+let isRunning=false, currentPhaseTimeout=null, timerInterval=null, phaseInterval=null;
+let totalSeconds=0, cycles=0;
+
+// ── Technique label ───────────────────────────────────────────
+let activeTechniqueName = 'Box Breathing';
+
+function setTechniqueLabel(name, isCustom = false) {
+    if (!isCustom) activeTechniqueName = name;
+    techniqueLabel.textContent = isCustom ? i18n[lang].custom : name;
+    techniqueLabel.classList.toggle('is-custom', isCustom);
+}
+
+// ── Audio context ─────────────────────────────────────────────
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playTone(freq, duration, vol) {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.type = 'sine'; osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + 0.02);
+    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + duration);
+    osc.start(audioCtx.currentTime); osc.stop(audioCtx.currentTime + duration + 0.05);
+}
+
+function playHoverTick() {
+    const vol = parseFloat(volSlider.value) * 0.06;
+    if (vol <= 0) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.type = 'sine'; osc.frequency.value = 900;
+    gain.gain.setValueAtTime(0, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + 0.008);
+    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.07);
+    osc.start(audioCtx.currentTime); osc.stop(audioCtx.currentTime + 0.08);
+}
+
+function playSelectChime() {
+    const vol = parseFloat(volSlider.value) * 0.22;
+    if (vol <= 0) return;
+    [[520, 0], [660, 0.07], [800, 0.14]].forEach(([freq, delay]) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.type = 'sine'; osc.frequency.value = freq;
+        const t = audioCtx.currentTime + delay;
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(vol, t + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.38);
+        osc.start(t); osc.stop(t + 0.4);
+    });
+}
+
+function playVolumeTone() {
+    clearTimeout(playVolumeTone._t);
+    playVolumeTone._t = setTimeout(() => playTone(440, 0.35, parseFloat(volSlider.value) * 0.3), 80);
+}
+
+function playStopTone() {
+    playTone(280, 1.2, parseFloat(volSlider.value) * 0.4);
+}
+
+volSlider.addEventListener('input', playVolumeTone);
+
+document.getElementById('gear-dropdown').addEventListener('wheel', e => {
+    if (!e.target.classList.contains('gear-vol-slider')) return;
+    e.preventDefault(); e.stopPropagation();
+    let v = parseFloat(volSlider.value) + (e.deltaY < 0 ? 0.1 : -0.1);
+    volSlider.value = Math.min(1, Math.max(0, parseFloat(v.toFixed(1))));
+    playVolumeTone();
+}, { passive: false });
+
+// Hover tick on interactive modal/dropdown elements
+document.addEventListener('mouseover', e => {
+    const el = e.target.closest('.preset-card, .sound-chip, .limit-chip, .ctrl-option, .modal-close');
+    if (el) playHoverTick();
+});
+
+// ── i18n apply ────────────────────────────────────────────────
 function applyLang(l) {
     lang = l;
     const t = i18n[l];
@@ -38,6 +139,8 @@ function applyLang(l) {
         o.classList.toggle('active', o.dataset.value === l));
     if (!isRunning) breathText.textContent = t.ready;
     startBtn.textContent = isRunning ? t.stop : t.start;
+    const isCustom = techniqueLabel.classList.contains('is-custom');
+    setTechniqueLabel(isCustom ? '' : activeTechniqueName, isCustom);
     renderSoundModal();
 }
 
@@ -53,16 +156,13 @@ function toggleDropdown(id) {
 document.addEventListener('click', () =>
     allDropdowns.forEach(d => document.getElementById(d).classList.remove('open')));
 
-// Prevent dropdowns with forms from closing on inner click
 ['session-gear-dropdown','gear-dropdown'].forEach(id =>
     document.getElementById(id).addEventListener('click', e => e.stopPropagation()));
 
-// Lang
 document.getElementById('lang-btn').addEventListener('click', e => { e.stopPropagation(); toggleDropdown('lang-dropdown'); });
 document.querySelectorAll('#lang-dropdown .ctrl-option').forEach(o =>
     o.addEventListener('click', () => { applyLang(o.dataset.value); document.getElementById('lang-dropdown').classList.remove('open'); }));
 
-// Gear (controls) — toggle overflow:visible on controls-panel so dropdown isn't clipped
 const controlsPanel = document.querySelector('.controls-panel');
 function syncControlsPanelOverflow() {
     const gearOpen = document.getElementById('gear-dropdown').classList.contains('open');
@@ -73,13 +173,13 @@ document.getElementById('gear-btn').addEventListener('click', e => {
 });
 document.addEventListener('click', syncControlsPanelOverflow);
 
-// Session gear (stats)
-document.getElementById('session-gear-btn').addEventListener('click', e => { e.stopPropagation(); toggleDropdown('session-gear-dropdown'); });
+document.getElementById('session-gear-btn').addEventListener('click', e => {
+    e.stopPropagation(); toggleDropdown('session-gear-dropdown');
+});
 
 // ── Session limit ─────────────────────────────────────────────
 let limitType = 'none';
 let limitValue = 10;
-
 const limitInput = document.getElementById('limit-value');
 
 document.querySelectorAll('.limit-chip').forEach(chip =>
@@ -110,29 +210,29 @@ limitInput.addEventListener('input', () => limitValue = parseInt(limitInput.valu
 
 function checkLimit() {
     if (limitType === 'none') return false;
-    if (limitType === 'minutes'  && totalSeconds >= limitValue * 60) return true;
-    if (limitType === 'cycles'   && cycles >= limitValue) return true;
+    if (limitType === 'minutes' && totalSeconds >= limitValue * 60) return true;
+    if (limitType === 'cycles'  && cycles >= limitValue) return true;
     return false;
 }
 
 // ── Presets ───────────────────────────────────────────────────
 const PRESETS = [
-    { nameEs:'Box Breathing',      nameEn:'Box Breathing',    timing:[4,4,4,4],
+    { nameEs:'Box Breathing',       nameEn:'Box Breathing',    timing:[4,4,4,4],
       descEs:'Equilibra el sistema nervioso. Usada por fuerzas especiales para mantener la calma bajo presión.',
       descEn:'Balances the nervous system. Used by special forces to stay calm under pressure.' },
-    { nameEs:'4-7-8 Relajante',    nameEn:'4-7-8 Relaxing',   timing:[4,7,8,0],
+    { nameEs:'4-7-8 Relajante',     nameEn:'4-7-8 Relaxing',   timing:[4,7,8,0],
       descEs:'Activa el sistema parasimpático. Ideal para reducir ansiedad y preparar el sueño.',
       descEn:'Activates the parasympathetic system. Ideal for reducing anxiety and preparing for sleep.' },
-    { nameEs:'Wim Hof (ciclo)',     nameEn:'Wim Hof (cycle)',  timing:[2,0,2,0],
+    { nameEs:'Wim Hof (ciclo)',      nameEn:'Wim Hof (cycle)',  timing:[2,0,2,0],
       descEs:'Hiperventilación controlada que eleva el oxígeno y genera energía. Hacé 30 ciclos rápidos.',
       descEn:'Controlled hyperventilation that raises oxygen and generates energy. Do 30 quick cycles.' },
-    { nameEs:'Coherencia Cardíaca', nameEn:'Cardiac Coherence',timing:[5,0,5,0],
+    { nameEs:'Coherencia Cardíaca',  nameEn:'Cardiac Coherence',timing:[5,0,5,0],
       descEs:'Sincroniza el ritmo cardíaco y el sistema nervioso. 5 minutos diarios tienen efecto acumulativo.',
       descEn:'Syncs heart rate and nervous system. 5 minutes daily has a cumulative effect.' },
-    { nameEs:'Energizante',         nameEn:'Energizing',       timing:[6,0,2,0],
+    { nameEs:'Energizante',          nameEn:'Energizing',       timing:[6,0,2,0],
       descEs:'Inhala largo, exhala corto. Aumenta el nivel de activación y concentración.',
       descEn:'Long inhale, short exhale. Increases activation and concentration.' },
-    { nameEs:'Relajación profunda', nameEn:'Deep Relaxation',  timing:[4,0,8,0],
+    { nameEs:'Relajación profunda',  nameEn:'Deep Relaxation',  timing:[4,0,8,0],
       descEs:'Exhala el doble de lo que inhalas. Baja la frecuencia cardíaca y relaja el cuerpo.',
       descEn:'Exhale twice as long as you inhale. Lowers heart rate and relaxes the body.' },
 ];
@@ -153,6 +253,8 @@ function renderPresets() {
         card.addEventListener('click', () => {
             times.inhale.value=i; times.holdFull.value=hf;
             times.exhale.value=e; times.holdEmpty.value=he;
+            setTechniqueLabel(lang==='es'?p.nameEs:p.nameEn);
+            playSelectChime();
             closeModal('modal-presets');
         });
         list.appendChild(card);
@@ -222,38 +324,7 @@ function showToast(msg) {
     toastTimer = setTimeout(() => toastEl.classList.remove('show'), 3500);
 }
 
-// ── Audio context ─────────────────────────────────────────────
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-function playTone(freq, duration, vol) {
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain); gain.connect(audioCtx.destination);
-    osc.type = 'sine'; osc.frequency.value = freq;
-    gain.gain.setValueAtTime(0, audioCtx.currentTime);
-    gain.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + 0.02);
-    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + duration);
-    osc.start(audioCtx.currentTime); osc.stop(audioCtx.currentTime + duration + 0.05);
-}
-
-const volSlider = document.getElementById('volume-slider');
-
-let volToneTimeout = null;
-function playVolumeTone() {
-    clearTimeout(volToneTimeout);
-    volToneTimeout = setTimeout(() => playTone(440, 0.35, parseFloat(volSlider.value) * 0.3), 80);
-}
-volSlider.addEventListener('input', playVolumeTone);
-
-// Wheel on gear dropdown vol slider
-document.getElementById('gear-dropdown').addEventListener('wheel', e => {
-    if (!e.target.classList.contains('gear-vol-slider')) return;
-    e.preventDefault(); e.stopPropagation();
-    let v = parseFloat(volSlider.value) + (e.deltaY < 0 ? 0.1 : -0.1);
-    volSlider.value = Math.min(1, Math.max(0, parseFloat(v.toFixed(1))));
-    playVolumeTone();
-}, { passive: false });
-
+// ── Phase audio ───────────────────────────────────────────────
 function playPhase(pi) {
     const opt = SOUND_OPTIONS[soundConfig[pi]];
     if (!opt || !opt.file) return;
@@ -263,30 +334,7 @@ function playPhase(pi) {
     a.play().catch(() => {});
 }
 
-function playStopTone() {
-    playTone(280, 1.2, parseFloat(volSlider.value) * 0.4);
-}
-
-// ── DOM refs ──────────────────────────────────────────────────
-const times = {
-    inhale:   document.getElementById('time-inhale'),
-    holdFull: document.getElementById('time-hold-full'),
-    exhale:   document.getElementById('time-exhale'),
-    holdEmpty:document.getElementById('time-hold-empty'),
-};
-const breathText        = document.getElementById('breath-text');
-const phaseTimerDisplay = document.getElementById('phase-timer');
-const breathingCircle   = document.getElementById('breathing-circle');
-const startBtn          = document.getElementById('start-btn');
-const resetBtn          = document.getElementById('reset-btn');
-const sessionCounter    = document.getElementById('session-counter');
-const cycleCounter      = document.getElementById('cycle-counter');
-const lastSession       = document.getElementById('last-session');
-
-let isRunning=false, currentPhaseTimeout=null, timerInterval=null, phaseInterval=null;
-let totalSeconds=0, cycles=0;
-
-// ── Input wheels ──────────────────────────────────────────────
+// ── Input wheels + custom label ───────────────────────────────
 Object.values(times).forEach(input => {
     input.addEventListener('wheel', e => {
         if (isRunning) return;
@@ -294,11 +342,13 @@ Object.values(times).forEach(input => {
         let v = parseInt(input.value)||0;
         v += e.deltaY < 0 ? 1 : -1;
         input.value = Math.max(parseInt(input.getAttribute('min'))||0, v);
-    });
+        setTechniqueLabel('', true);
+    }, { passive: false });
     input.addEventListener('keydown', e => {
         if (['Backspace','Tab','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Delete'].includes(e.key)) return;
         if (!/^\d$/.test(e.key)) e.preventDefault();
     });
+    input.addEventListener('input', () => setTechniqueLabel('', true));
     input.addEventListener('blur', () => {
         const min=parseInt(input.getAttribute('min'))||0, v=parseInt(input.value);
         if (isNaN(v)||v<min) input.value=min;
@@ -332,7 +382,6 @@ function setCircleState(state) {
 async function runFlow() {
     if (!isRunning) return;
     const t=i18n[lang];
-
     const tIn=parseInt(times.inhale.value);
     if(tIn>0){
         breathText.innerText=t.inhaling;
@@ -373,7 +422,6 @@ function startTimer() {
     breathText.innerText=''; phaseTimerDisplay.innerText='';
     breathingCircle.style.transition=''; setCircleState('collapsed');
     document.querySelector('.container').classList.add('session');
-
     setTimeout(()=>{
         if(!startBtn.disabled) return;
         isRunning=true; totalSeconds=0; cycles=0;
@@ -415,4 +463,5 @@ resetBtn.onclick = () => {
     if(isRunning) return;
     times.inhale.value=4; times.holdFull.value=4;
     times.exhale.value=4; times.holdEmpty.value=4;
+    setTechniqueLabel('Box Breathing');
 };
