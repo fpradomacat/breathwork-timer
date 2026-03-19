@@ -158,19 +158,16 @@ async function runFlow() {
 }
 
 function startTimer() {
-    // Lock everything during the entry transition
     toggleInputs(true);
     startBtn.disabled = true;
-
     breathText.innerText = "";
     phaseTimerDisplay.innerText = "";
-
-    // Reset transition speed to the CSS default for the entry animation
     breathingCircle.style.transition = '';
     setCircleState('collapsed');
+    document.querySelector('.container').classList.add('session');
 
     setTimeout(() => {
-        if (!startBtn.disabled) return; // aborted somehow
+        if (!startBtn.disabled) return;
         isRunning = true;
         totalSeconds = 0;
         cycles = 0;
@@ -199,7 +196,6 @@ function stopTimer() {
 
     lastSession.innerText = `Última: ${formatTime(totalSeconds)} (${cycles} ciclos)`;
 
-    // Lock during exit transition
     toggleInputs(true);
     startBtn.disabled = true;
     startBtn.innerText = "Iniciar";
@@ -208,9 +204,9 @@ function stopTimer() {
     phaseTimerDisplay.innerText = "";
     breathText.innerText = "";
 
-    // Animate back to idle
     breathingCircle.style.transition = '';
     setCircleState('idle');
+    document.querySelector('.container').classList.remove('session');
 
     setTimeout(() => {
         breathText.innerText = "Listo";
