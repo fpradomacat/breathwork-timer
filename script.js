@@ -30,22 +30,26 @@ let cycles = 0;
 // Lógica de rueda del ratón con bloqueo de seguridad
 Object.values(times).forEach(input => {
     input.addEventListener('wheel', (e) => {
-        // BLOQUEO: Si está corriendo, ignoramos el scroll
         if (isRunning) return;
-
         e.preventDefault();
         let value = parseInt(input.value) || 0;
-        
-        if (e.deltaY < 0) {
-            value++;
-        } else {
-            value--;
-        }
-
-        const min = parseInt(input.min) || 0;
+        if (e.deltaY < 0) value++; else value--;
+        const min = parseInt(input.getAttribute('min')) || 0;
         if (value < min) value = min;
-        
         input.value = value;
+    });
+
+    // Block non-numeric keystrokes
+    input.addEventListener('keydown', (e) => {
+        if (['Backspace','Tab','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Delete'].includes(e.key)) return;
+        if (!/^\d$/.test(e.key)) e.preventDefault();
+    });
+
+    // Clamp on blur
+    input.addEventListener('blur', () => {
+        const min = parseInt(input.getAttribute('min')) || 0;
+        let value = parseInt(input.value);
+        if (isNaN(value) || value < min) input.value = min;
     });
 });
 

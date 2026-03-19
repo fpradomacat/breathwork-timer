@@ -215,9 +215,10 @@ h1 {
 }
 
 #breath-text {
-    color: var(--text-primary);
-    font-size: 0.72rem;
+    color: var(--accent-bright);
+    font-size: 0.85rem;
     letter-spacing: 0.14em;
+    opacity: 0.75;
 }
 
 #phase-timer {
