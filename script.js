@@ -53,8 +53,8 @@ Object.values(times).forEach(input => {
     });
 });
 
-// Mouse wheel on volume slider
-volSlider.addEventListener('wheel', (e) => {
+// Mouse wheel on volume container (whole row, not just the slim slider)
+document.querySelector('.volume-container').addEventListener('wheel', (e) => {
     e.preventDefault();
     let value = parseFloat(volSlider.value);
     value += e.deltaY < 0 ? 0.1 : -0.1;

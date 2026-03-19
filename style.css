@@ -23,7 +23,7 @@ body {
     align-items: center;
     min-height: 100svh;
     margin: 0;
-    padding: 40px 24px;
+    padding: 20px 24px;
     font-family: 'DM Sans', sans-serif;
     color: var(--text-primary);
     background-color: #06030f;
@@ -115,8 +115,8 @@ h1 {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 220px;
-    margin-bottom: 12px;
+    height: 190px;
+    margin-bottom: 20px;
 }
 
 #breathing-circle {
@@ -271,7 +271,11 @@ input::-webkit-inner-spin-button {
     gap: 10px;
     width: 100%;
     margin-bottom: 12px;
-    padding: 0 2px;
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--divider);
+    border-radius: 12px;
+    cursor: pointer;
 }
 
 .volume-container span {
@@ -287,7 +291,8 @@ input::-webkit-inner-spin-button {
     -webkit-appearance: auto;
     appearance: auto;
     cursor: pointer;
-    accent-color: var(--accent);
+    accent-color: rgba(130, 90, 200, 0.35);
+    opacity: 0.5;
     height: 4px;
 }
 
