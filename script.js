@@ -63,6 +63,7 @@ function toggleInputs(disabled) {
         input.disabled = disabled;
     });
     resetBtn.disabled = disabled;
+    document.querySelector('.settings-grid').classList.toggle('locked', disabled);
 }
 
 function formatTime(s) {
