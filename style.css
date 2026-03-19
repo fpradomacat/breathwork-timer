@@ -1,44 +1,65 @@
+/* ── Mobile-first base ─────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
 body {
     display: flex;
     justify-content: center;
-    align-items: center;
-    height: 100vh;
+    align-items: flex-start;          /* don't force full-height centering on small screens */
+    min-height: 100vh;
     background-color: #f0f4f8;
     font-family: sans-serif;
     margin: 0;
+    padding: 16px 0 32px;            /* breathing room top & bottom */
 }
 
+/* ── Layout wrapper ────────────────────────────────────────── */
 .main-layout {
     display: flex;
+    flex-direction: column;          /* stack on mobile */
     align-items: center;
-    gap: 30px;
+    gap: 20px;
+    width: 100%;
 }
 
+/* ── Volume slider ─────────────────────────────────────────── */
 .volume-container {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;             /* horizontal on mobile */
     align-items: center;
-    height: 200px;
+    gap: 10px;
     color: #636e72;
     font-size: 0.75rem;
+    order: 2;                        /* place below the card */
 }
 
 #volume-slider {
-    appearance: slider-vertical;
-    width: 12px;
-    height: 160px;
+    /* horizontal on mobile */
+    appearance: auto;
+    -webkit-appearance: auto;
+    writing-mode: horizontal-tb;
+    width: 120px;
+    height: 20px;
     cursor: pointer;
 }
 
+/* ── Card ──────────────────────────────────────────────────── */
 .container {
     text-align: center;
     background: white;
-    padding: 2.5rem;
+    padding: 1.75rem 1.25rem;        /* tighter padding on small screens */
     border-radius: 20px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    width: 320px;
+    width: calc(100% - 32px);       /* full-width with side margins */
+    max-width: 360px;               /* cap at a comfortable card size */
+    order: 1;
 }
 
+h1 {
+    font-size: 1.4rem;
+    margin: 0 0 14px;
+}
+
+/* ── Stats row ─────────────────────────────────────────────── */
 .stats-row {
     display: flex;
     justify-content: center;
@@ -63,11 +84,12 @@ body {
     height: 1rem;
 }
 
+/* ── Breathing circle ──────────────────────────────────────── */
 #breathing-circle-container {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 200px;
+    height: 180px;                   /* slightly smaller on mobile */
 }
 
 #breathing-circle {
@@ -100,6 +122,7 @@ body {
     height: 0;
 }
 
+/* ── Settings grid ─────────────────────────────────────────── */
 .settings-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -126,16 +149,16 @@ body {
 }
 
 .input-group input {
-    width: 50px;
-    padding: 5px;
+    width: 54px;                     /* slightly wider tap target */
+    padding: 7px 5px;               /* taller for easier tapping */
     border: 1px solid #dfe6e9;
     border-radius: 5px;
     text-align: center;
     font-weight: bold;
+    font-size: 1rem;                 /* prevent iOS auto-zoom (needs ≥16px) */
     transition: all 0.2s;
 }
 
-/* Estado bloqueado visualmente */
 .input-group input:disabled {
     background-color: #f1f2f6;
     color: #b2bec3;
@@ -143,8 +166,10 @@ body {
     border-color: #dfe6e9;
 }
 
-.input-group input:not(:disabled):hover {
+.input-group input:not(:disabled):hover,
+.input-group input:not(:disabled):focus {
     border-color: #0984e3;
+    outline: none;
 }
 
 input::-webkit-outer-spin-button,
@@ -153,20 +178,23 @@ input::-webkit-inner-spin-button {
     margin: 0;
 }
 
+/* ── Buttons ───────────────────────────────────────────────── */
 .button-group {
     display: flex;
     gap: 10px;
 }
 
-button { 
+button {
     flex: 2;
-    padding: 12px 0; 
-    border-radius: 10px; 
-    border: none; 
-    background: #0984e3; 
-    color: white; 
-    font-weight: bold; 
-    cursor: pointer; 
+    padding: 14px 0;                 /* taller touch target */
+    border-radius: 10px;
+    border: none;
+    background: #0984e3;
+    color: white;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
 }
 
 #reset-btn {
@@ -179,4 +207,54 @@ button {
 #reset-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+/* ── Tablet / desktop upgrade (≥ 600 px) ──────────────────── */
+@media (min-width: 600px) {
+    body {
+        align-items: center;         /* vertically center on larger screens */
+        padding: 0;
+    }
+
+    .main-layout {
+        flex-direction: row;         /* side-by-side: slider | card */
+        align-items: center;
+        gap: 30px;
+        width: auto;
+    }
+
+    .volume-container {
+        flex-direction: column;      /* vertical slider restored */
+        height: 200px;
+        order: 0;                    /* back to left side */
+        gap: 0;
+    }
+
+    #volume-slider {
+        /* vertical on desktop */
+        appearance: slider-vertical;
+        -webkit-appearance: slider-vertical;
+        writing-mode: vertical-lr;
+        direction: rtl;
+        width: 12px;
+        height: 160px;
+    }
+
+    .container {
+        width: 320px;
+        padding: 2.5rem;
+    }
+
+    #breathing-circle-container {
+        height: 200px;
+    }
+
+    .input-group input {
+        font-size: 0.875rem;         /* back to compact size on desktop */
+        padding: 5px;
+    }
+
+    button {
+        padding: 12px 0;
+    }
 }
