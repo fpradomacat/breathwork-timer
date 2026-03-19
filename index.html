@@ -8,11 +8,6 @@
 </head>
 <body>
     <div class="main-layout">
-        <div class="volume-container">
-            <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5" >
-            <span>Volumen</span>
-        </div>
-
         <div class="container">
             <h1>Breathwork Timer</h1>
 
@@ -20,9 +15,9 @@
               <div id="session-counter">Sesión: 00:00</div>
               <div id="cycle-counter">Ciclos: 0</div>
             </div>
-    
+
             <div id="last-session">Última: --:-- (0 ciclos)</div>
-            
+
             <div id="breathing-circle-container">
                 <div id="breathing-circle">
                     <span id="breath-text">Listo</span>
@@ -47,6 +42,11 @@
                     <label>Pausa (Vacío)</label>
                     <input type="text" inputmode="numeric" id="time-hold-empty" value="4" min="0">
                 </div>
+            </div>
+
+            <div class="volume-container">
+                <span>Vol</span>
+                <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5">
             </div>
 
             <div class="button-group">
