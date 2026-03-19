@@ -80,13 +80,14 @@ document.getElementById('session-gear-btn').addEventListener('click', e => { e.s
 let limitType = 'none';
 let limitValue = 10;
 
-const limitValueRow = document.getElementById('limit-value-row');
-const limitInput    = document.getElementById('limit-value');
+const limitInput = document.getElementById('limit-value');
 
-document.querySelectorAll('input[name="limit-type"]').forEach(radio =>
-    radio.addEventListener('change', () => {
-        limitType = radio.value;
-        limitValueRow.style.display = limitType === 'none' ? 'none' : 'flex';
+document.querySelectorAll('.limit-chip').forEach(chip =>
+    chip.addEventListener('click', () => {
+        document.querySelectorAll('.limit-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        limitType = chip.dataset.value;
+        limitInput.disabled = limitType === 'none';
     }));
 
 limitInput.addEventListener('keydown', e => {

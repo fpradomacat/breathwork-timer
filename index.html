@@ -44,22 +44,13 @@
                     <div class="ctrl-dropdown dropdown-left" id="session-gear-dropdown">
                         <div class="dropdown-form">
                             <div class="dropdown-form-title" data-i18n="limitTitle">Límite de sesión</div>
-                            <div class="limit-radios">
-                                <label class="limit-radio">
-                                    <input type="radio" name="limit-type" value="none" checked>
-                                    <span data-i18n="limitNone">Sin límite</span>
-                                </label>
-                                <label class="limit-radio">
-                                    <input type="radio" name="limit-type" value="minutes">
-                                    <span data-i18n="limitMin">Minutos</span>
-                                </label>
-                                <label class="limit-radio">
-                                    <input type="radio" name="limit-type" value="cycles">
-                                    <span data-i18n="limitCyc">Ciclos</span>
-                                </label>
+                            <div class="limit-chips">
+                                <button class="limit-chip active" data-value="none" data-i18n="limitNone">Sin límite</button>
+                                <button class="limit-chip" data-value="minutes" data-i18n="limitMin">Minutos</button>
+                                <button class="limit-chip" data-value="cycles" data-i18n="limitCyc">Ciclos</button>
                             </div>
-                            <div id="limit-value-row" style="display:none" class="limit-value-row">
-                                <input type="text" inputmode="numeric" id="limit-value" value="10" min="1">
+                            <div class="limit-value-row">
+                                <input type="text" inputmode="numeric" id="limit-value" value="10" min="1" disabled>
                             </div>
                         </div>
                     </div>
