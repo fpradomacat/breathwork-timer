@@ -79,7 +79,8 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 4px;
+    /* Quitamos gap para controlar el espacio con márgenes */
+    
     color: white;
     font-weight: bold;
     text-transform: uppercase;
@@ -91,6 +92,17 @@ body {
 #phase-timer {
     font-size: 1.6rem;
     font-family: monospace;
+    /* Ajustes críticos para el centrado vertical perfecto */
+    height: 1.6rem;      /* Altura fija igual al tamaño de fuente */
+    line-height: 1;     /* Altura de línea ajustada */
+    margin-top: 5px;    /* Espacio fijo sobre el número */
+    visibility: visible; /* Asegura que el espacio se reserve */
+}
+
+/* Oculta el margen cuando el timer está vacío */
+#phase-timer:empty {
+    margin-top: 0;
+    height: 0;
 }
 
 .settings-grid {

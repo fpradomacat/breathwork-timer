@@ -51,6 +51,7 @@ function startPhaseCountdown(seconds) {
             phaseTimerDisplay.innerText = remaining;
         } else {
             clearInterval(phaseInterval);
+            phaseTimerDisplay.innerText = ""; // Limpia al terminar la fase
         }
     }, 1000);
 }
@@ -139,7 +140,7 @@ function stopTimer() {
     startBtn.innerText = "Iniciar";
     startBtn.style.backgroundColor = "#0984e3";
     breathText.innerText = "Listo";
-    phaseTimerDisplay.innerText = "--";
+    phaseTimerDisplay.innerText = ""; // Limpia el número al detener
     
     breathingCircle.style.transition = "none";
     breathingCircle.style.transform = "scale(0.7)";
