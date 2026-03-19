@@ -157,8 +157,8 @@ h1 {
 
 #breathing-circle {
     position: relative;
-    width: 136px;
-    height: 136px;
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
     display: flex;
     flex-direction: column;
@@ -169,61 +169,40 @@ h1 {
     letter-spacing: 0.12em;
     font-size: 0.75rem;
 
-    /* Glassy fill */
-    background: radial-gradient(circle at 35% 35%,
-        rgba(176,132,245,0.18) 0%,
-        rgba(100,60,200,0.08) 60%,
+    background: radial-gradient(circle at 38% 32%,
+        rgba(210,180,255,0.55) 0%,
+        rgba(150,90,255,0.30) 40%,
+        rgba(90,40,200,0.20)  75%,
         transparent 100%);
-    border: 1px solid rgba(176,132,245,0.2);
 
-    opacity: 0.2;
-    transform: scale(0.68);
+    border: none;
+
+    opacity: 0.18;
+    transform: scale(0.65);
     transition:
-        transform 1s cubic-bezier(0.4, 0, 0.2, 1),
-        opacity   1s cubic-bezier(0.4, 0, 0.2, 1),
-        box-shadow 1s cubic-bezier(0.4, 0, 0.2, 1);
+        transform   1s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity     1s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow  1s cubic-bezier(0.4, 0, 0.2, 1);
 
+    /* Collapsed aura — tight, dim */
     box-shadow:
-        0 0 0px 0px var(--accent-glow),
-        inset 0 1px 0 rgba(255,255,255,0.12);
+        0  0  8px  4px  rgba(176,132,245,0.10),
+        0  0  18px 8px  rgba(140,80,255, 0.07),
+        0  0  32px 14px rgba(100,40,220, 0.04);
 }
 
-/* Outer pulse ring — only visible when active */
-#breathing-circle::before {
-    content: '';
-    position: absolute;
-    inset: -14px;
-    border-radius: 50%;
-    border: 1px solid rgba(176,132,245,0.0);
-    transition: border-color 1s ease, inset 1s cubic-bezier(0.4,0,0.2,1);
-}
+/* No hard rings — aura is all box-shadow */
+#breathing-circle::before,
+#breathing-circle::after { content: none; }
 
-#breathing-circle::after {
-    content: '';
-    position: absolute;
-    inset: -28px;
-    border-radius: 50%;
-    border: 1px solid rgba(176,132,245,0.0);
-    transition: border-color 1.4s ease, inset 1.4s cubic-bezier(0.4,0,0.2,1);
-}
-
-/* Active (expanded) state — driven by JS adding scale/opacity inline,
-   but we also hook into opacity > 0.5 via the .active class on the circle */
 #breathing-circle.active {
+    /* Expanded aura — wide, luminous, soft falloff across 5 layers */
     box-shadow:
-        0 0 40px 8px var(--accent-glow),
-        0 0 80px 20px rgba(130,60,255,0.15),
-        inset 0 1px 0 rgba(255,255,255,0.18);
-}
-
-#breathing-circle.active::before {
-    border-color: rgba(176,132,245,0.25);
-    inset: -18px;
-}
-
-#breathing-circle.active::after {
-    border-color: rgba(176,132,245,0.10);
-    inset: -36px;
+        0  0  12px  6px  rgba(220,190,255,0.45),
+        0  0  30px  16px rgba(176,132,245,0.30),
+        0  0  55px  28px rgba(140,80,255, 0.18),
+        0  0  90px  48px rgba(100,40,220, 0.10),
+        0  0 130px  70px rgba(70,20,180,  0.05);
 }
 
 #breath-text {
@@ -372,13 +351,22 @@ button:hover {
         flex-direction: column;
         justify-content: center;
         align-items: center;
+        /* Height must accommodate the rotated slider's visual height (≈20px)
+           plus its layout width (140px) which becomes the visual height */
         height: 200px;
-        gap: 10px;
+        gap: 0;
     }
 
     #volume-slider {
         transform: rotate(-90deg);
         width: 140px;
+        /* After rotation, the layout box is still 140px wide × ~20px tall.
+           We add margin to push the label down past the visual bottom of the slider */
+        margin-bottom: 48px;
+    }
+
+    .volume-container span {
+        margin-top: 0;
     }
 
     .container {

@@ -49,6 +49,15 @@ Object.values(times).forEach(input => {
     });
 });
 
+// Mouse wheel on volume slider
+volSlider.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    let value = parseFloat(volSlider.value);
+    value += e.deltaY < 0 ? 0.1 : -0.1;
+    value = Math.min(1, Math.max(0, parseFloat(value.toFixed(1))));
+    volSlider.value = value;
+}, { passive: false });
+
 function toggleInputs(disabled) {
     Object.values(times).forEach(input => {
         input.disabled = disabled;
@@ -94,6 +103,7 @@ async function runFlow() {
         breathingCircle.style.transition = `all ${tIn}s ease-in-out`;
         breathingCircle.style.transform = "scale(1.4)";
         breathingCircle.style.opacity = "1";
+        breathingCircle.classList.add('active');
         play(audioIn);
         startPhaseCountdown(tIn);
         await new Promise(r => currentPhaseTimeout = setTimeout(r, tIn * 1000));
@@ -115,6 +125,7 @@ async function runFlow() {
         breathingCircle.style.transition = `all ${tOut}s ease-in-out`;
         breathingCircle.style.transform = "scale(0.7)";
         breathingCircle.style.opacity = "0.15";
+        breathingCircle.classList.remove('active');
         play(audioOut);
         startPhaseCountdown(tOut);
         await new Promise(r => currentPhaseTimeout = setTimeout(r, tOut * 1000));
@@ -143,7 +154,8 @@ function startTimer() {
     toggleInputs(true);
     
     startBtn.innerText = "Detener";
-    startBtn.style.backgroundColor = "#e74c3c";
+    startBtn.style.background = "linear-gradient(135deg, rgba(220,60,80,0.6), rgba(180,30,50,0.5))";
+    startBtn.style.borderColor = "rgba(220,100,100,0.3)";
     sessionCounter.innerText = "Sesión: 00:00";
     cycleCounter.innerText = "Ciclos: 0";
 
@@ -165,13 +177,15 @@ function stopTimer() {
     lastSession.innerText = `Última: ${formatTime(totalSeconds)} (${cycles} ciclos)`;
     
     startBtn.innerText = "Iniciar";
-    startBtn.style.backgroundColor = "#0984e3";
+    startBtn.style.background = "";
+    startBtn.style.borderColor = "";
     breathText.innerText = "Listo";
     phaseTimerDisplay.innerText = "";
     
     breathingCircle.style.transition = "none";
     breathingCircle.style.transform = "scale(0.7)";
     breathingCircle.style.opacity = "0.15";
+    breathingCircle.classList.remove('active');
     
     [audioIn, audioHoldFull, audioOut, audioHoldEmpty].forEach(a => a.pause());
 }
