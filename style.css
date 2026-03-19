@@ -42,17 +42,18 @@ body {
 .stats-row {
     display: flex;
     justify-content: center;
-    gap: 15px;
+    gap: 10px;
     margin-bottom: 5px;
 }
 
 #session-counter, #cycle-counter {
     font-family: monospace;
-    font-size: 1.1rem;
+    font-size: 0.9rem;
     color: #2d3436;
     background: #f0f4f8;
-    padding: 5px 12px;
-    border-radius: 15px;
+    padding: 5px 10px;
+    border-radius: 12px;
+    white-space: nowrap;
 }
 
 #last-session {
@@ -75,12 +76,10 @@ body {
     background-color: #0984e3;
     border-radius: 50%;
     display: flex;
-    /* Ajustes para la cuenta atrás vertical */
     flex-direction: column;
     justify-content: center;
     align-items: center;
     gap: 4px;
-    
     color: white;
     font-weight: bold;
     text-transform: uppercase;
@@ -127,8 +126,13 @@ body {
     font-weight: bold;
 }
 
+.button-group {
+    display: flex;
+    gap: 10px;
+}
+
 button { 
-    width: 100%;
+    flex: 2;
     padding: 12px 0; 
     border-radius: 10px; 
     border: none; 
@@ -136,4 +140,14 @@ button {
     color: white; 
     font-weight: bold; 
     cursor: pointer; 
+}
+
+#reset-btn {
+    flex: 1;
+    background: #dfe6e9;
+    color: #636e72;
+}
+
+#reset-btn:hover {
+    background: #b2bec3;
 }

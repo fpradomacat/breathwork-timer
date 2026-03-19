@@ -6,13 +6,14 @@ const times = {
 };
 
 const breathText = document.getElementById('breath-text');
+const phaseTimerDisplay = document.getElementById('phase-timer');
 const breathingCircle = document.getElementById('breathing-circle');
 const startBtn = document.getElementById('start-btn');
+const resetBtn = document.getElementById('reset-btn');
 const sessionCounter = document.getElementById('session-counter');
 const cycleCounter = document.getElementById('cycle-counter');
 const lastSession = document.getElementById('last-session');
 const volSlider = document.getElementById('volume-slider');
-const phaseTimerDisplay = document.getElementById('phase-timer');
 
 const audioIn = new Audio('inhala.mp3');
 const audioHoldFull = new Audio('pausa_lleno.mp3');
@@ -22,9 +23,9 @@ const audioHoldEmpty = new Audio('pausa_vacio.mp3');
 let isRunning = false;
 let currentPhaseTimeout = null;
 let timerInterval = null;
+let phaseInterval = null;
 let totalSeconds = 0;
 let cycles = 0;
-let phaseInterval = null;
 
 function formatTime(s) {
     const mins = Math.floor(s / 60).toString().padStart(2, '0');
@@ -39,7 +40,6 @@ function play(audio) {
     audio.play().catch(() => {});
 }
 
-// Función para manejar la cuenta atrás visual de la fase
 function startPhaseCountdown(seconds) {
     clearInterval(phaseInterval);
     let remaining = seconds;
@@ -117,12 +117,12 @@ function startTimer() {
     
     startBtn.innerText = "Detener";
     startBtn.style.backgroundColor = "#e74c3c";
-    sessionCounter.innerText = "00:00";
+    sessionCounter.innerText = "Sesión: 00:00";
     cycleCounter.innerText = "Ciclos: 0";
 
     timerInterval = setInterval(() => {
         totalSeconds++;
-        sessionCounter.innerText = formatTime(totalSeconds);
+        sessionCounter.innerText = `Sesión: ${formatTime(totalSeconds)}`;
     }, 1000);
 
     runFlow();
@@ -132,25 +132,28 @@ function stopTimer() {
     isRunning = false;
     clearTimeout(currentPhaseTimeout);
     clearInterval(timerInterval);
+    clearInterval(phaseInterval);
     
-    // Guardar última sesión
     lastSession.innerText = `Última: ${formatTime(totalSeconds)} (${cycles} ciclos)`;
     
     startBtn.innerText = "Iniciar";
     startBtn.style.backgroundColor = "#0984e3";
     breathText.innerText = "Listo";
+    phaseTimerDisplay.innerText = "--";
     
-    // RESET INMEDIATO: Quitamos la transición para que vuelva al origen sin delay
     breathingCircle.style.transition = "none";
     breathingCircle.style.transform = "scale(0.7)";
     breathingCircle.style.opacity = "0.15";
-
-    // Limpiar fase 
-    clearInterval(phaseInterval);
-    phaseTimerDisplay.innerText = "--";
     
-    // Pausar todos los sonidos
     [audioIn, audioHoldFull, audioOut, audioHoldEmpty].forEach(a => a.pause());
 }
 
 startBtn.onclick = () => isRunning ? stopTimer() : startTimer();
+
+resetBtn.onclick = () => {
+    if (isRunning) stopTimer();
+    times.inhale.value = 4;
+    times.holdFull.value = 4;
+    times.exhale.value = 4;
+    times.holdEmpty.value = 4;
+};
