@@ -62,8 +62,16 @@ document.getElementById('lang-btn').addEventListener('click', e => { e.stopPropa
 document.querySelectorAll('#lang-dropdown .ctrl-option').forEach(o =>
     o.addEventListener('click', () => { applyLang(o.dataset.value); document.getElementById('lang-dropdown').classList.remove('open'); }));
 
-// Gear (controls)
-document.getElementById('gear-btn').addEventListener('click', e => { e.stopPropagation(); toggleDropdown('gear-dropdown'); });
+// Gear (controls) — toggle overflow:visible on controls-panel so dropdown isn't clipped
+const controlsPanel = document.querySelector('.controls-panel');
+function syncControlsPanelOverflow() {
+    const gearOpen = document.getElementById('gear-dropdown').classList.contains('open');
+    controlsPanel.classList.toggle('dropdown-open', gearOpen);
+}
+document.getElementById('gear-btn').addEventListener('click', e => {
+    e.stopPropagation(); toggleDropdown('gear-dropdown'); syncControlsPanelOverflow();
+});
+document.addEventListener('click', syncControlsPanelOverflow);
 
 // Session gear (stats)
 document.getElementById('session-gear-btn').addEventListener('click', e => { e.stopPropagation(); toggleDropdown('session-gear-dropdown'); });
@@ -85,6 +93,13 @@ limitInput.addEventListener('keydown', e => {
     if (['Backspace','Tab','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Delete'].includes(e.key)) return;
     if (!/^\d$/.test(e.key)) e.preventDefault();
 });
+limitInput.addEventListener('wheel', e => {
+    e.preventDefault();
+    let v = parseInt(limitInput.value) || 1;
+    v += e.deltaY < 0 ? 1 : -1;
+    limitInput.value = Math.max(1, v);
+    limitValue = parseInt(limitInput.value);
+}, { passive: false });
 limitInput.addEventListener('blur', () => {
     const v = parseInt(limitInput.value);
     limitInput.value = (!v || v < 1) ? 1 : v;

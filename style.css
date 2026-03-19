@@ -183,6 +183,7 @@ h1 {
     transition:max-height var(--transition),opacity var(--transition);
     margin-bottom:10px;
 }
+.controls-panel.dropdown-open { overflow:visible; }
 .container.session .controls-panel { max-height:0; opacity:0; pointer-events:none; }
 
 /* ── Settings grid ── */
@@ -190,7 +191,7 @@ h1 {
     display:grid; grid-template-columns:1fr 1fr; gap:8px;
     padding:12px; background:var(--panel-bg);
     border:1px solid var(--divider); border-radius:16px;
-    position:relative; width:100%;
+    position:relative; width:100%; overflow:visible;
 }
 .settings-grid.locked::after {
     content:''; position:absolute; inset:0; border-radius:16px; cursor:not-allowed;
