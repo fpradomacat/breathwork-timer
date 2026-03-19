@@ -148,9 +148,8 @@ function renderPresets() {
                 <span class="preset-name">${lang==='es'?p.nameEs:p.nameEn}</span>
                 <span class="preset-timing">${i}-${hf}-${e}-${he}</span>
             </div>
-            <p class="preset-desc">${lang==='es'?p.descEs:p.descEn}</p>
-            <button class="preset-apply">${i18n[lang].presetApply}</button>`;
-        card.querySelector('.preset-apply').addEventListener('click', () => {
+            <p class="preset-desc">${lang==='es'?p.descEs:p.descEn}</p>`;
+        card.addEventListener('click', () => {
             times.inhale.value=i; times.holdFull.value=hf;
             times.exhale.value=e; times.holdEmpty.value=he;
             closeModal('modal-presets');
