@@ -27,6 +27,35 @@ let phaseInterval = null;
 let totalSeconds = 0;
 let cycles = 0;
 
+// Lógica de rueda del ratón con bloqueo de seguridad
+Object.values(times).forEach(input => {
+    input.addEventListener('wheel', (e) => {
+        // BLOQUEO: Si está corriendo, ignoramos el scroll
+        if (isRunning) return;
+
+        e.preventDefault();
+        let value = parseInt(input.value) || 0;
+        
+        if (e.deltaY < 0) {
+            value++;
+        } else {
+            value--;
+        }
+
+        const min = parseInt(input.min) || 0;
+        if (value < min) value = min;
+        
+        input.value = value;
+    });
+});
+
+function toggleInputs(disabled) {
+    Object.values(times).forEach(input => {
+        input.disabled = disabled;
+    });
+    resetBtn.disabled = disabled;
+}
+
 function formatTime(s) {
     const mins = Math.floor(s / 60).toString().padStart(2, '0');
     const secs = (s % 60).toString().padStart(2, '0');
@@ -51,7 +80,7 @@ function startPhaseCountdown(seconds) {
             phaseTimerDisplay.innerText = remaining;
         } else {
             clearInterval(phaseInterval);
-            phaseTimerDisplay.innerText = ""; // Limpia al terminar la fase
+            phaseTimerDisplay.innerText = "";
         }
     }, 1000);
 }
@@ -59,7 +88,6 @@ function startPhaseCountdown(seconds) {
 async function runFlow() {
     if (!isRunning) return;
 
-    // 1. INHALA
     const tIn = parseInt(times.inhale.value);
     if (tIn > 0) {
         breathText.innerText = "Inhala";
@@ -71,7 +99,6 @@ async function runFlow() {
         await new Promise(r => currentPhaseTimeout = setTimeout(r, tIn * 1000));
     }
 
-    // 2. PAUSA LLENO
     if (!isRunning) return;
     const tHF = parseInt(times.holdFull.value);
     if (tHF > 0) {
@@ -81,7 +108,6 @@ async function runFlow() {
         await new Promise(r => currentPhaseTimeout = setTimeout(r, tHF * 1000));
     }
 
-    // 3. EXHALA
     if (!isRunning) return;
     const tOut = parseInt(times.exhale.value);
     if (tOut > 0) {
@@ -94,7 +120,6 @@ async function runFlow() {
         await new Promise(r => currentPhaseTimeout = setTimeout(r, tOut * 1000));
     }
 
-    // 4. PAUSA VACÍO
     if (!isRunning) return;
     const tHE = parseInt(times.holdEmpty.value);
     if (tHE > 0) {
@@ -115,6 +140,7 @@ function startTimer() {
     isRunning = true;
     totalSeconds = 0;
     cycles = 0;
+    toggleInputs(true);
     
     startBtn.innerText = "Detener";
     startBtn.style.backgroundColor = "#e74c3c";
@@ -131,6 +157,7 @@ function startTimer() {
 
 function stopTimer() {
     isRunning = false;
+    toggleInputs(false);
     clearTimeout(currentPhaseTimeout);
     clearInterval(timerInterval);
     clearInterval(phaseInterval);
@@ -140,7 +167,7 @@ function stopTimer() {
     startBtn.innerText = "Iniciar";
     startBtn.style.backgroundColor = "#0984e3";
     breathText.innerText = "Listo";
-    phaseTimerDisplay.innerText = ""; // Limpia el número al detener
+    phaseTimerDisplay.innerText = "";
     
     breathingCircle.style.transition = "none";
     breathingCircle.style.transform = "scale(0.7)";
@@ -152,7 +179,7 @@ function stopTimer() {
 startBtn.onclick = () => isRunning ? stopTimer() : startTimer();
 
 resetBtn.onclick = () => {
-    if (isRunning) stopTimer();
+    if (isRunning) return; // Seguridad extra
     times.inhale.value = 4;
     times.holdFull.value = 4;
     times.exhale.value = 4;

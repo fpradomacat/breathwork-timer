@@ -20,7 +20,7 @@ body {
     align-items: center;
     height: 200px;
     color: #636e72;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
 }
 
 #volume-slider {
@@ -79,8 +79,6 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    /* Quitamos gap para controlar el espacio con márgenes */
-    
     color: white;
     font-weight: bold;
     text-transform: uppercase;
@@ -92,14 +90,11 @@ body {
 #phase-timer {
     font-size: 1.6rem;
     font-family: monospace;
-    /* Ajustes críticos para el centrado vertical perfecto */
-    height: 1.6rem;      /* Altura fija igual al tamaño de fuente */
-    line-height: 1;     /* Altura de línea ajustada */
-    margin-top: 5px;    /* Espacio fijo sobre el número */
-    visibility: visible; /* Asegura que el espacio se reserve */
+    height: 1.6rem;
+    line-height: 1;
+    margin-top: 5px;
 }
 
-/* Oculta el margen cuando el timer está vacío */
 #phase-timer:empty {
     margin-top: 0;
     height: 0;
@@ -122,11 +117,12 @@ body {
 }
 
 .input-group label {
-    font-size: 0.6rem;
+    font-size: 0.55rem;
     color: #b2bec3;
     font-weight: bold;
     text-transform: uppercase;
     margin-bottom: 3px;
+    white-space: nowrap;
 }
 
 .input-group input {
@@ -136,6 +132,25 @@ body {
     border-radius: 5px;
     text-align: center;
     font-weight: bold;
+    transition: all 0.2s;
+}
+
+/* Estado bloqueado visualmente */
+.input-group input:disabled {
+    background-color: #f1f2f6;
+    color: #b2bec3;
+    cursor: not-allowed;
+    border-color: #dfe6e9;
+}
+
+.input-group input:not(:disabled):hover {
+    border-color: #0984e3;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 .button-group {
@@ -158,8 +173,10 @@ button {
     flex: 1;
     background: #dfe6e9;
     color: #636e72;
+    transition: all 0.2s;
 }
 
-#reset-btn:hover {
-    background: #b2bec3;
+#reset-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
