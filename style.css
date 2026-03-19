@@ -1,120 +1,245 @@
-/* ── Mobile-first base ─────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap');
+
 *, *::before, *::after { box-sizing: border-box; }
 
+:root {
+    --bg-deep:        #06030f;
+    --bg-mid:         #0d0720;
+    --aurora-1:       #1a0533;
+    --aurora-2:       #0a1628;
+    --aurora-3:       #110a2e;
+    --card-bg:        rgba(255,255,255,0.04);
+    --card-border:    rgba(255,255,255,0.08);
+    --accent:         #b084f5;
+    --accent-bright:  #d4adff;
+    --accent-glow:    rgba(176,132,245,0.35);
+    --accent-dim:     rgba(176,132,245,0.12);
+    --text-primary:   rgba(255,255,255,0.92);
+    --text-secondary: rgba(255,255,255,0.38);
+    --text-muted:     rgba(255,255,255,0.22);
+    --input-bg:       rgba(255,255,255,0.05);
+    --input-border:   rgba(255,255,255,0.1);
+    --pill-bg:        rgba(255,255,255,0.06);
+}
+
+/* ── Background ── */
 body {
     display: flex;
     justify-content: center;
-    align-items: flex-start;          /* don't force full-height centering on small screens */
-    min-height: 100vh;
-    background-color: #f0f4f8;
-    font-family: sans-serif;
+    align-items: center;
+    min-height: 100svh;
     margin: 0;
-    padding: 16px 0 32px;            /* breathing room top & bottom */
+    padding: 24px 0;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text-primary);
+    background-color: var(--bg-deep);
+    background-image:
+        radial-gradient(ellipse 80% 60% at 20% 10%,  rgba(88,28,220,0.22) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 80%,  rgba(147,51,234,0.16) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 40% at 60% 30%,  rgba(30,10,80,0.5)   0%, transparent 70%);
+    overflow-x: hidden;
 }
 
-/* ── Layout wrapper ────────────────────────────────────────── */
+/* Subtle animated nebula layer */
+body::before {
+    content: '';
+    position: fixed;
+    inset: -50%;
+    background:
+        radial-gradient(ellipse 40% 30% at 30% 70%, rgba(120,60,255,0.10) 0%, transparent 60%),
+        radial-gradient(ellipse 35% 25% at 75% 25%, rgba(80,30,180,0.12)  0%, transparent 60%);
+    animation: nebula 18s ease-in-out infinite alternate;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes nebula {
+    0%   { transform: translate(0,    0)    scale(1);    opacity: 0.7; }
+    50%  { transform: translate(2%,  -3%)   scale(1.06); opacity: 1;   }
+    100% { transform: translate(-2%,  2%)   scale(0.97); opacity: 0.8; }
+}
+
+/* ── Layout ── */
 .main-layout {
+    position: relative;
+    z-index: 1;
     display: flex;
-    flex-direction: column;          /* stack on mobile */
+    flex-direction: column;
     align-items: center;
-    gap: 20px;
+    gap: 24px;
     width: 100%;
 }
 
-/* ── Volume slider ─────────────────────────────────────────── */
+/* ── Volume ── */
 .volume-container {
+    order: 2;
     display: flex;
-    flex-direction: row;             /* horizontal on mobile */
+    flex-direction: row;
     align-items: center;
-    gap: 10px;
-    color: #636e72;
-    font-size: 0.75rem;
-    order: 2;                        /* place below the card */
+    gap: 12px;
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
 
 #volume-slider {
-    /* horizontal on mobile */
-    appearance: auto;
     -webkit-appearance: auto;
-    writing-mode: horizontal-tb;
+    appearance: auto;
+    transform: none;
     width: 120px;
-    height: 20px;
     cursor: pointer;
+    accent-color: var(--accent);
 }
 
-/* ── Card ──────────────────────────────────────────────────── */
+/* ── Card ── */
 .container {
-    text-align: center;
-    background: white;
-    padding: 1.75rem 1.25rem;        /* tighter padding on small screens */
-    border-radius: 20px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    width: calc(100% - 32px);       /* full-width with side margins */
-    max-width: 360px;               /* cap at a comfortable card size */
     order: 1;
+    text-align: center;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    padding: 2rem 1.5rem;
+    border-radius: 28px;
+    width: calc(100% - 32px);
+    max-width: 360px;
+    box-shadow:
+        0 0 0 1px rgba(255,255,255,0.04) inset,
+        0 40px 80px rgba(0,0,0,0.6),
+        0 0 60px rgba(100,40,200,0.12);
 }
 
 h1 {
-    font-size: 1.4rem;
-    margin: 0 0 14px;
+    font-size: 1.1rem;
+    font-weight: 300;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin: 0 0 20px;
 }
 
-/* ── Stats row ─────────────────────────────────────────────── */
+/* ── Stats ── */
 .stats-row {
     display: flex;
     justify-content: center;
-    gap: 10px;
-    margin-bottom: 5px;
+    gap: 8px;
+    margin-bottom: 6px;
 }
 
 #session-counter, #cycle-counter {
-    font-family: monospace;
-    font-size: 0.9rem;
-    color: #2d3436;
-    background: #f0f4f8;
-    padding: 5px 10px;
-    border-radius: 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--text-primary);
+    background: var(--pill-bg);
+    border: 1px solid var(--card-border);
+    padding: 5px 12px;
+    border-radius: 100px;
     white-space: nowrap;
+    letter-spacing: 0.04em;
 }
 
 #last-session {
-    font-size: 0.85rem;
-    color: #636e72;
-    margin-bottom: 15px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 16px;
     height: 1rem;
+    letter-spacing: 0.04em;
 }
 
-/* ── Breathing circle ──────────────────────────────────────── */
+/* ── Breathing Circle ── */
 #breathing-circle-container {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 180px;                   /* slightly smaller on mobile */
+    height: 190px;
 }
 
 #breathing-circle {
-    width: 130px;
-    height: 130px;
-    background-color: #0984e3;
+    position: relative;
+    width: 136px;
+    height: 136px;
     border-radius: 50%;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    color: white;
-    font-weight: bold;
+    font-weight: 500;
     text-transform: uppercase;
-    opacity: 0.15;
-    transform: scale(0.7);
-    transition: transform 1s ease-in-out, opacity 1s ease-in-out;
+    letter-spacing: 0.12em;
+    font-size: 0.75rem;
+
+    /* Glassy fill */
+    background: radial-gradient(circle at 35% 35%,
+        rgba(176,132,245,0.18) 0%,
+        rgba(100,60,200,0.08) 60%,
+        transparent 100%);
+    border: 1px solid rgba(176,132,245,0.2);
+
+    opacity: 0.2;
+    transform: scale(0.68);
+    transition:
+        transform 1s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity   1s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 1s cubic-bezier(0.4, 0, 0.2, 1);
+
+    box-shadow:
+        0 0 0px 0px var(--accent-glow),
+        inset 0 1px 0 rgba(255,255,255,0.12);
+}
+
+/* Outer pulse ring — only visible when active */
+#breathing-circle::before {
+    content: '';
+    position: absolute;
+    inset: -14px;
+    border-radius: 50%;
+    border: 1px solid rgba(176,132,245,0.0);
+    transition: border-color 1s ease, inset 1s cubic-bezier(0.4,0,0.2,1);
+}
+
+#breathing-circle::after {
+    content: '';
+    position: absolute;
+    inset: -28px;
+    border-radius: 50%;
+    border: 1px solid rgba(176,132,245,0.0);
+    transition: border-color 1.4s ease, inset 1.4s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* Active (expanded) state — driven by JS adding scale/opacity inline,
+   but we also hook into opacity > 0.5 via the .active class on the circle */
+#breathing-circle.active {
+    box-shadow:
+        0 0 40px 8px var(--accent-glow),
+        0 0 80px 20px rgba(130,60,255,0.15),
+        inset 0 1px 0 rgba(255,255,255,0.18);
+}
+
+#breathing-circle.active::before {
+    border-color: rgba(176,132,245,0.25);
+    inset: -18px;
+}
+
+#breathing-circle.active::after {
+    border-color: rgba(176,132,245,0.10);
+    inset: -36px;
+}
+
+#breath-text {
+    color: var(--text-primary);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
 }
 
 #phase-timer {
-    font-size: 1.6rem;
-    font-family: monospace;
-    height: 1.6rem;
+    font-size: 1.8rem;
+    font-family: 'DM Mono', monospace;
+    font-weight: 300;
+    height: 1.8rem;
     line-height: 1;
-    margin-top: 5px;
+    margin-top: 6px;
+    color: var(--accent-bright);
 }
 
 #phase-timer:empty {
@@ -122,53 +247,57 @@ h1 {
     height: 0;
 }
 
-/* ── Settings grid ─────────────────────────────────────────── */
+/* ── Settings grid ── */
 .settings-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    gap: 8px;
     margin-bottom: 20px;
-    padding: 10px;
-    background: #f9fbff;
-    border-radius: 12px;
+    padding: 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--input-border);
+    border-radius: 16px;
 }
 
 .input-group {
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 4px;
 }
 
 .input-group label {
-    font-size: 0.55rem;
-    color: #b2bec3;
-    font-weight: bold;
+    font-size: 0.52rem;
+    color: var(--text-muted);
+    font-weight: 500;
     text-transform: uppercase;
-    margin-bottom: 3px;
+    letter-spacing: 0.1em;
     white-space: nowrap;
 }
 
 .input-group input {
-    width: 54px;                     /* slightly wider tap target */
-    padding: 7px 5px;               /* taller for easier tapping */
-    border: 1px solid #dfe6e9;
-    border-radius: 5px;
+    width: 54px;
+    padding: 7px 5px;
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 10px;
     text-align: center;
-    font-weight: bold;
-    font-size: 1rem;                 /* prevent iOS auto-zoom (needs ≥16px) */
-    transition: all 0.2s;
+    font-weight: 400;
+    font-size: 1rem;
+    color: var(--text-primary);
+    font-family: 'DM Mono', monospace;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .input-group input:disabled {
-    background-color: #f1f2f6;
-    color: #b2bec3;
+    opacity: 0.3;
     cursor: not-allowed;
-    border-color: #dfe6e9;
 }
 
 .input-group input:not(:disabled):hover,
 .input-group input:not(:disabled):focus {
-    border-color: #0984e3;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-dim);
     outline: none;
 }
 
@@ -178,7 +307,7 @@ input::-webkit-inner-spin-button {
     margin: 0;
 }
 
-/* ── Buttons ───────────────────────────────────────────────── */
+/* ── Buttons ── */
 .button-group {
     display: flex;
     gap: 10px;
@@ -186,75 +315,84 @@ input::-webkit-inner-spin-button {
 
 button {
     flex: 2;
-    padding: 14px 0;                 /* taller touch target */
-    border-radius: 10px;
-    border: none;
-    background: #0984e3;
-    color: white;
-    font-weight: bold;
-    font-size: 1rem;
+    padding: 14px 0;
+    border-radius: 14px;
+    border: 1px solid rgba(176,132,245,0.3);
+    background: linear-gradient(135deg, rgba(130,70,255,0.5), rgba(90,30,200,0.4));
+    color: var(--text-primary);
+    font-weight: 500;
+    font-size: 0.9rem;
+    font-family: 'DM Sans', sans-serif;
+    letter-spacing: 0.06em;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+    transition: box-shadow 0.2s, transform 0.1s;
+    box-shadow: 0 4px 20px rgba(100,40,220,0.3);
+}
+
+button:active {
+    transform: scale(0.97);
+}
+
+button:hover {
+    box-shadow: 0 4px 30px rgba(160,100,255,0.45);
 }
 
 #reset-btn {
     flex: 1;
-    background: #dfe6e9;
-    color: #636e72;
-    transition: all 0.2s;
+    background: rgba(255,255,255,0.06);
+    border-color: var(--input-border);
+    color: var(--text-secondary);
+    box-shadow: none;
+}
+
+#reset-btn:hover {
+    box-shadow: none;
+    background: rgba(255,255,255,0.09);
 }
 
 #reset-btn:disabled {
-    opacity: 0.5;
+    opacity: 0.3;
     cursor: not-allowed;
 }
 
-/* ── Tablet / desktop upgrade (≥ 600 px) ──────────────────── */
+/* ── Desktop (≥ 600px) ── */
 @media (min-width: 600px) {
-    body {
-        align-items: center;         /* vertically center on larger screens */
-        padding: 0;
-    }
+    body { padding: 0; }
 
     .main-layout {
-        flex-direction: row;         /* side-by-side: slider | card */
+        flex-direction: row;
         align-items: center;
-        gap: 30px;
+        gap: 32px;
         width: auto;
     }
 
     .volume-container {
-        flex-direction: column;      /* vertical slider restored */
+        order: 0;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
         height: 200px;
-        order: 0;                    /* back to left side */
-        gap: 0;
+        gap: 10px;
     }
 
     #volume-slider {
-        /* vertical on desktop */
-        appearance: slider-vertical;
-        -webkit-appearance: slider-vertical;
-        writing-mode: vertical-lr;
-        direction: rtl;
-        width: 12px;
-        height: 160px;
+        transform: rotate(-90deg);
+        width: 140px;
     }
 
     .container {
+        order: 1;
         width: 320px;
         padding: 2.5rem;
     }
 
-    #breathing-circle-container {
-        height: 200px;
-    }
+    #breathing-circle-container { height: 200px; }
 
     .input-group input {
-        font-size: 0.875rem;         /* back to compact size on desktop */
+        font-size: 0.875rem;
         padding: 5px;
     }
 
-    button {
-        padding: 12px 0;
-    }
+    button { padding: 12px 0; }
 }
