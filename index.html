@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Breathwork Timer con Animación</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Breathwork Timer</h1>
+        
+        <div id="breathing-circle-container">
+            <div id="breathing-circle"></div>
+        </div>
+
+        <div class="timer-display">
+            <span id="current-time">6</span>s
+        </div>
+        <input type="range" id="time-slider" min="1" max="30" value="6">
+        <button id="start-btn">Iniciar</button>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

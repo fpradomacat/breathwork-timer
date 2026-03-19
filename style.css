@@ -1,0 +1,113 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f0f4f8;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+}
+
+.container {
+    text-align: center;
+    background: white;
+    padding: 2.5rem;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    width: 350px;
+}
+
+h1 {
+    font-size: 1.5rem;
+    color: #2d3436;
+    margin-bottom: 1.5rem;
+}
+
+/* Estilos para el contenedor de la animación */
+#breathing-circle-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 150px;
+    margin-bottom: 1rem;
+}
+
+/* El círculo en sí */
+#breathing-circle {
+    width: 50px;
+    height: 50px;
+    background-color: #0984e3;
+    border-radius: 50%;
+    opacity: 0.3;
+    /* La animación se asigna aquí, pero la duración se controla por JS */
+}
+
+/* Definición de la animación de respiración */
+@keyframes breathe {
+    0% {
+        transform: scale(1);
+        opacity: 0.3;
+    }
+    50% {
+        transform: scale(2.5); /* Se expande */
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1); /* Vuelve al tamaño original */
+        opacity: 0.3;
+    }
+}
+
+.timer-display {
+    font-size: 3rem;
+    color: #2d3436;
+    margin-bottom: 0.5rem;
+}
+
+input[type="range"] {
+    width: 100%;
+    margin-bottom: 1.5rem;
+    cursor: pointer;
+}
+
+button {
+    padding: 0.8rem 2rem;
+    font-size: 1.1rem;
+    cursor: pointer;
+    background-color: #0984e3;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+}
+
+button:hover {
+    background-color: #076aba;
+}
+
+#breathing-circle {
+    width: 150px;
+    height: 150px;
+    background-color: #0984e3;
+    border-radius: 50%;
+    opacity: 0.6;
+    transform: scale(0.5); /* Estado inicial: pequeño */
+    box-shadow: 0 0 20px rgba(9, 132, 227, 0.3);
+}
+
+@keyframes breathe {
+    0% {
+        transform: scale(0.5);
+        opacity: 0.3;
+    }
+    100% {
+        transform: scale(1.5);
+        opacity: 0.9;
+    }
+}
+
+/* Estilo para el botón cuando está en modo "Detener" */
+button {
+    transition: background 0.3s ease;
+    /* ... resto de estilos de botón anteriores ... */
+}
