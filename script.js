@@ -94,16 +94,23 @@ function startPhaseCountdown(seconds) {
     }, 1000);
 }
 
+const TRANSITION_MS = 1200; // matches CSS transition duration
+
+function setCircleState(state) {
+    // state: 'idle' | 'collapsed' | 'active'
+    breathingCircle.classList.remove('idle', 'collapsed', 'active');
+    if (state !== 'idle') breathingCircle.classList.add(state);
+    // 'idle' is the CSS default — no class needed
+}
+
 async function runFlow() {
     if (!isRunning) return;
 
     const tIn = parseInt(times.inhale.value);
     if (tIn > 0) {
         breathText.innerText = "Inhala";
-        breathingCircle.style.transition = `all ${tIn}s ease-in-out`;
-        breathingCircle.style.transform = "scale(1.4)";
-        breathingCircle.style.opacity = "1";
-        breathingCircle.classList.add('active');
+        breathingCircle.style.transition = `transform ${tIn}s cubic-bezier(0.4,0,0.2,1), opacity ${tIn}s cubic-bezier(0.4,0,0.2,1), box-shadow ${tIn}s cubic-bezier(0.4,0,0.2,1)`;
+        setCircleState('active');
         play(audioIn);
         startPhaseCountdown(tIn);
         await new Promise(r => currentPhaseTimeout = setTimeout(r, tIn * 1000));
@@ -122,10 +129,8 @@ async function runFlow() {
     const tOut = parseInt(times.exhale.value);
     if (tOut > 0) {
         breathText.innerText = "Exhala";
-        breathingCircle.style.transition = `all ${tOut}s ease-in-out`;
-        breathingCircle.style.transform = "scale(0.7)";
-        breathingCircle.style.opacity = "0.15";
-        breathingCircle.classList.remove('active');
+        breathingCircle.style.transition = `transform ${tOut}s cubic-bezier(0.4,0,0.2,1), opacity ${tOut}s cubic-bezier(0.4,0,0.2,1), box-shadow ${tOut}s cubic-bezier(0.4,0,0.2,1)`;
+        setCircleState('collapsed');
         play(audioOut);
         startPhaseCountdown(tOut);
         await new Promise(r => currentPhaseTimeout = setTimeout(r, tOut * 1000));
@@ -148,46 +153,66 @@ async function runFlow() {
 }
 
 function startTimer() {
-    isRunning = true;
-    totalSeconds = 0;
-    cycles = 0;
+    // Lock everything during the entry transition
     toggleInputs(true);
-    
-    startBtn.innerText = "Detener";
-    startBtn.style.background = "linear-gradient(135deg, rgba(220,60,80,0.6), rgba(180,30,50,0.5))";
-    startBtn.style.borderColor = "rgba(220,100,100,0.3)";
-    sessionCounter.innerText = "Sesión: 00:00";
-    cycleCounter.innerText = "Ciclos: 0";
+    startBtn.disabled = true;
 
-    timerInterval = setInterval(() => {
-        totalSeconds++;
-        sessionCounter.innerText = `Sesión: ${formatTime(totalSeconds)}`;
-    }, 1000);
+    breathText.innerText = "";
+    phaseTimerDisplay.innerText = "";
 
-    runFlow();
+    // Reset transition speed to the CSS default for the entry animation
+    breathingCircle.style.transition = '';
+    setCircleState('collapsed');
+
+    setTimeout(() => {
+        if (!startBtn.disabled) return; // aborted somehow
+        isRunning = true;
+        totalSeconds = 0;
+        cycles = 0;
+
+        startBtn.disabled = false;
+        startBtn.innerText = "Detener";
+        startBtn.style.background = "linear-gradient(135deg, rgba(220,60,80,0.6), rgba(180,30,50,0.5))";
+        startBtn.style.borderColor = "rgba(220,100,100,0.3)";
+        sessionCounter.innerText = "Sesión: 00:00";
+        cycleCounter.innerText = "Ciclos: 0";
+
+        timerInterval = setInterval(() => {
+            totalSeconds++;
+            sessionCounter.innerText = `Sesión: ${formatTime(totalSeconds)}`;
+        }, 1000);
+
+        runFlow();
+    }, TRANSITION_MS);
 }
 
 function stopTimer() {
     isRunning = false;
-    toggleInputs(false);
     clearTimeout(currentPhaseTimeout);
     clearInterval(timerInterval);
     clearInterval(phaseInterval);
-    
+
     lastSession.innerText = `Última: ${formatTime(totalSeconds)} (${cycles} ciclos)`;
-    
+
+    // Lock during exit transition
+    toggleInputs(true);
+    startBtn.disabled = true;
     startBtn.innerText = "Iniciar";
     startBtn.style.background = "";
     startBtn.style.borderColor = "";
-    breathText.innerText = "Listo";
     phaseTimerDisplay.innerText = "";
-    
-    breathingCircle.style.transition = "none";
-    breathingCircle.style.transform = "scale(0.7)";
-    breathingCircle.style.opacity = "0.15";
-    breathingCircle.classList.remove('active');
-    
-    [audioIn, audioHoldFull, audioOut, audioHoldEmpty].forEach(a => a.pause());
+    breathText.innerText = "";
+
+    // Animate back to idle
+    breathingCircle.style.transition = '';
+    setCircleState('idle');
+
+    setTimeout(() => {
+        breathText.innerText = "Listo";
+        toggleInputs(false);
+        startBtn.disabled = false;
+        [audioIn, audioHoldFull, audioOut, audioHoldEmpty].forEach(a => a.pause());
+    }, TRANSITION_MS);
 }
 
 startBtn.onclick = () => isRunning ? stopTimer() : startTimer();
