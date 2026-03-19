@@ -36,7 +36,7 @@ body {
     padding: 2.5rem;
     border-radius: 20px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    width: 320px; /* Mantenemos tu ancho original */
+    width: 320px;
 }
 
 .stats-row {
@@ -59,6 +59,7 @@ body {
     font-size: 0.85rem;
     color: #636e72;
     margin-bottom: 15px;
+    height: 1rem;
 }
 
 #breathing-circle-container {
@@ -74,20 +75,25 @@ body {
     background-color: #0984e3;
     border-radius: 50%;
     display: flex;
+    /* Ajustes para la cuenta atrás vertical */
+    flex-direction: column;
     justify-content: center;
     align-items: center;
+    gap: 4px;
+    
     color: white;
     font-weight: bold;
     text-transform: uppercase;
-    
-    /* Estado inicial */
     opacity: 0.15;
     transform: scale(0.7);
-    /* El JS controlará el tiempo de transición según el input */
     transition: transform 1s ease-in-out, opacity 1s ease-in-out;
 }
 
-/* Nueva sección de inputs sin romper el layout */
+#phase-timer {
+    font-size: 1.6rem;
+    font-family: monospace;
+}
+
 .settings-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
