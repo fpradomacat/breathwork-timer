@@ -39,6 +39,29 @@ body {
     width: 320px;
 }
 
+.stats-row {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 5px;
+}
+
+#session-counter, #cycle-counter {
+    font-family: monospace;
+    font-size: 1.1rem;
+    color: #2d3436;
+    background: #f0f4f8;
+    padding: 5px 12px;
+    border-radius: 15px;
+}
+
+#last-session {
+    font-size: 0.85rem;
+    color: #636e72;
+    margin-bottom: 15px;
+}
+
+
 #breathing-circle-container {
     display: flex;
     justify-content: center;
