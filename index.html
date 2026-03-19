@@ -9,60 +9,146 @@
 <body>
     <div class="main-layout">
         <div class="container">
-            <h1>Breathwork Timer</h1>
 
-            <div class="stats-row">
-              <div id="session-counter">Sesión: 00:00</div>
-              <div id="cycle-counter">Ciclos: 0</div>
+            <!-- Header: title + lang selector -->
+            <div class="header-row">
+                <h1 data-i18n="title">Breathwork Timer</h1>
+                <div class="lang-wrap">
+                    <button class="ctrl-btn" id="lang-btn">ES</button>
+                    <div class="ctrl-dropdown" id="lang-dropdown">
+                        <button class="ctrl-option active" data-value="es">ES — Español</button>
+                        <button class="ctrl-option" data-value="en">EN — English</button>
+                    </div>
+                </div>
             </div>
 
-            <div id="last-session">Última: --:-- (0 ciclos)</div>
+            <!-- Stats box -->
+            <div class="stats-box">
+                <div class="stat-item">
+                    <span class="stat-label" data-i18n="statSession">Sesión</span>
+                    <span class="stat-value" id="session-counter">00:00</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-label" data-i18n="statCycles">Ciclos</span>
+                    <span class="stat-value" id="cycle-counter">0</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-label" data-i18n="statLast">Última</span>
+                    <span class="stat-value" id="last-session">--</span>
+                </div>
+                <!-- Session limit gear -->
+                <div class="session-gear-wrap">
+                    <button class="ctrl-btn gear-sm" id="session-gear-btn">⚙</button>
+                    <div class="ctrl-dropdown dropdown-left" id="session-gear-dropdown">
+                        <div class="dropdown-form">
+                            <div class="dropdown-form-title" data-i18n="limitTitle">Límite de sesión</div>
+                            <div class="limit-radios">
+                                <label class="limit-radio">
+                                    <input type="radio" name="limit-type" value="none" checked>
+                                    <span data-i18n="limitNone">Sin límite</span>
+                                </label>
+                                <label class="limit-radio">
+                                    <input type="radio" name="limit-type" value="minutes">
+                                    <span data-i18n="limitMin">Minutos</span>
+                                </label>
+                                <label class="limit-radio">
+                                    <input type="radio" name="limit-type" value="cycles">
+                                    <span data-i18n="limitCyc">Ciclos</span>
+                                </label>
+                            </div>
+                            <div id="limit-value-row" style="display:none" class="limit-value-row">
+                                <input type="text" inputmode="numeric" id="limit-value" value="10" min="1">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
+            <!-- Breathing circle -->
             <div id="breathing-circle-container">
                 <div id="breathing-circle">
-                    <span id="breath-text">Listo</span>
+                    <span id="breath-text" data-i18n="ready">Listo</span>
                     <div id="phase-timer"></div>
                 </div>
             </div>
 
+            <!-- Controls panel -->
             <div class="controls-panel">
                 <div class="settings-grid">
+                    <!-- Gear: top-right inside the grid -->
+                    <div class="gear-wrap">
+                        <button class="ctrl-btn gear-sm" id="gear-btn">⚙</button>
+                        <div class="ctrl-dropdown dropdown-up" id="gear-dropdown">
+                            <div class="gear-vol-row">
+                                <span class="gear-vol-label" data-i18n="vol">Vol</span>
+                                <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5" class="gear-vol-slider">
+                            </div>
+                            <div class="ctrl-divider"></div>
+                            <button class="ctrl-option" id="open-presets" data-i18n="menuPresets">🌬 Técnicas</button>
+                            <button class="ctrl-option" id="open-sounds" data-i18n="menuSounds">🔔 Sonidos</button>
+                        </div>
+                    </div>
                     <div class="input-group">
-                        <label>Inhala</label>
+                        <label data-i18n="inhale">Inhala</label>
                         <input type="text" inputmode="numeric" id="time-inhale" value="4" min="1">
                     </div>
                     <div class="input-group">
-                        <label>Pausa (Lleno)</label>
+                        <label data-i18n="holdFull">Pausa (Lleno)</label>
                         <input type="text" inputmode="numeric" id="time-hold-full" value="4" min="0">
                     </div>
                     <div class="input-group">
-                        <label>Exhala</label>
+                        <label data-i18n="exhale">Exhala</label>
                         <input type="text" inputmode="numeric" id="time-exhale" value="4" min="1">
                     </div>
                     <div class="input-group">
-                        <label>Pausa (Vacío)</label>
+                        <label data-i18n="holdEmpty">Pausa (Vacío)</label>
                         <input type="text" inputmode="numeric" id="time-hold-empty" value="4" min="0">
                     </div>
                 </div>
-
-                <div class="volume-container">
-                    <span>Vol</span>
-                    <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5">
-                </div>
             </div>
 
+            <!-- Buttons -->
             <div class="button-group">
-                <button id="start-btn">Iniciar</button>
-                <button id="reset-btn">Reset</button>
+                <button id="start-btn" data-i18n="start">Iniciar</button>
+                <button id="reset-btn" data-i18n="reset">Reset</button>
             </div>
 
+            <!-- Footer -->
             <footer>
                 <a href="https://buymeacoffee.com/soypradito" target="_blank" class="bmc-btn">
                     <span class="bmc-emoji">☕</span> Buy me a coffee
                 </a>
+                <span class="footer-sep">·</span>
+                <a href="https://instagram.com/soypradito" target="_blank" class="author-tag">@soypradito</a>
             </footer>
+
         </div>
     </div>
+
+    <!-- Modal: Presets -->
+    <div class="modal-overlay" id="modal-presets">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title" data-i18n="menuPresets">🌬 Técnicas</span>
+                <button class="modal-close" data-close="modal-presets">✕</button>
+            </div>
+            <div class="modal-body" id="presets-list"></div>
+        </div>
+    </div>
+
+    <!-- Modal: Sounds -->
+    <div class="modal-overlay" id="modal-sounds">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title" data-i18n="menuSounds">🔔 Sonidos</span>
+                <button class="modal-close" data-close="modal-sounds">✕</button>
+            </div>
+            <div class="modal-body" id="sound-grid"></div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>

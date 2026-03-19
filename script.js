@@ -1,227 +1,403 @@
-const times = {
-    inhale: document.getElementById('time-inhale'),
-    holdFull: document.getElementById('time-hold-full'),
-    exhale: document.getElementById('time-exhale'),
-    holdEmpty: document.getElementById('time-hold-empty')
+// ── i18n ──────────────────────────────────────────────────────
+const i18n = {
+    es: {
+        title:'Breathwork Timer',
+        statSession:'Sesión', statCycles:'Ciclos', statLast:'Última',
+        inhale:'Inhala', holdFull:'Pausa (Lleno)', exhale:'Exhala', holdEmpty:'Pausa (Vacío)',
+        vol:'Vol', start:'Iniciar', stop:'Detener', reset:'Reset',
+        ready:'Listo', inhaling:'Inhala', holding:'Mantén', exhaling:'Exhala', waiting:'Espera',
+        menuPresets:'🌬 Técnicas', menuSounds:'🔔 Sonidos', presetApply:'Aplicar',
+        limitTitle:'Límite de sesión', limitNone:'Sin límite', limitMin:'Minutos', limitCyc:'Ciclos',
+        soundPhases:['Inhalar','Pausa (Lleno)','Exhalar','Pausa (Vacío)'],
+        limitMsg: (type,val) => type==='minutes' ? `⏱ ${val} min alcanzados` : `🔄 ${val} ciclos completados`,
+    },
+    en: {
+        title:'Breathwork Timer',
+        statSession:'Session', statCycles:'Cycles', statLast:'Last',
+        inhale:'Inhale', holdFull:'Hold (Full)', exhale:'Exhale', holdEmpty:'Hold (Empty)',
+        vol:'Vol', start:'Start', stop:'Stop', reset:'Reset',
+        ready:'Ready', inhaling:'Inhale', holding:'Hold', exhaling:'Exhale', waiting:'Wait',
+        menuPresets:'🌬 Techniques', menuSounds:'🔔 Sounds', presetApply:'Apply',
+        limitTitle:'Session limit', limitNone:'No limit', limitMin:'Minutes', limitCyc:'Cycles',
+        soundPhases:['Inhale','Hold (Full)','Exhale','Hold (Empty)'],
+        limitMsg: (type,val) => type==='minutes' ? `⏱ ${val} min reached` : `🔄 ${val} cycles completed`,
+    }
 };
 
-const breathText = document.getElementById('breath-text');
-const phaseTimerDisplay = document.getElementById('phase-timer');
-const breathingCircle = document.getElementById('breathing-circle');
-const startBtn = document.getElementById('start-btn');
-const resetBtn = document.getElementById('reset-btn');
-const sessionCounter = document.getElementById('session-counter');
-const cycleCounter = document.getElementById('cycle-counter');
-const lastSession = document.getElementById('last-session');
+let lang = 'es';
+
+function applyLang(l) {
+    lang = l;
+    const t = i18n[l];
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.dataset.i18n;
+        if (t[key] && typeof t[key] === 'string') el.textContent = t[key];
+    });
+    document.getElementById('lang-btn').textContent = l.toUpperCase();
+    document.querySelectorAll('#lang-dropdown .ctrl-option').forEach(o =>
+        o.classList.toggle('active', o.dataset.value === l));
+    if (!isRunning) breathText.textContent = t.ready;
+    startBtn.textContent = isRunning ? t.stop : t.start;
+    renderSoundModal();
+}
+
+// ── Dropdown helper ───────────────────────────────────────────
+const allDropdowns = ['lang-dropdown','gear-dropdown','session-gear-dropdown'];
+
+function toggleDropdown(id) {
+    const isOpen = document.getElementById(id).classList.contains('open');
+    allDropdowns.forEach(d => document.getElementById(d).classList.remove('open'));
+    if (!isOpen) document.getElementById(id).classList.add('open');
+}
+
+document.addEventListener('click', () =>
+    allDropdowns.forEach(d => document.getElementById(d).classList.remove('open')));
+
+// Prevent dropdowns with forms from closing on inner click
+['session-gear-dropdown','gear-dropdown'].forEach(id =>
+    document.getElementById(id).addEventListener('click', e => e.stopPropagation()));
+
+// Lang
+document.getElementById('lang-btn').addEventListener('click', e => { e.stopPropagation(); toggleDropdown('lang-dropdown'); });
+document.querySelectorAll('#lang-dropdown .ctrl-option').forEach(o =>
+    o.addEventListener('click', () => { applyLang(o.dataset.value); document.getElementById('lang-dropdown').classList.remove('open'); }));
+
+// Gear (controls)
+document.getElementById('gear-btn').addEventListener('click', e => { e.stopPropagation(); toggleDropdown('gear-dropdown'); });
+
+// Session gear (stats)
+document.getElementById('session-gear-btn').addEventListener('click', e => { e.stopPropagation(); toggleDropdown('session-gear-dropdown'); });
+
+// ── Session limit ─────────────────────────────────────────────
+let limitType = 'none';
+let limitValue = 10;
+
+const limitValueRow = document.getElementById('limit-value-row');
+const limitInput    = document.getElementById('limit-value');
+
+document.querySelectorAll('input[name="limit-type"]').forEach(radio =>
+    radio.addEventListener('change', () => {
+        limitType = radio.value;
+        limitValueRow.style.display = limitType === 'none' ? 'none' : 'flex';
+    }));
+
+limitInput.addEventListener('keydown', e => {
+    if (['Backspace','Tab','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Delete'].includes(e.key)) return;
+    if (!/^\d$/.test(e.key)) e.preventDefault();
+});
+limitInput.addEventListener('blur', () => {
+    const v = parseInt(limitInput.value);
+    limitInput.value = (!v || v < 1) ? 1 : v;
+    limitValue = parseInt(limitInput.value);
+});
+limitInput.addEventListener('input', () => limitValue = parseInt(limitInput.value) || 1);
+
+function checkLimit() {
+    if (limitType === 'none') return false;
+    if (limitType === 'minutes'  && totalSeconds >= limitValue * 60) return true;
+    if (limitType === 'cycles'   && cycles >= limitValue) return true;
+    return false;
+}
+
+// ── Presets ───────────────────────────────────────────────────
+const PRESETS = [
+    { nameEs:'Box Breathing',      nameEn:'Box Breathing',    timing:[4,4,4,4],
+      descEs:'Equilibra el sistema nervioso. Usada por fuerzas especiales para mantener la calma bajo presión.',
+      descEn:'Balances the nervous system. Used by special forces to stay calm under pressure.' },
+    { nameEs:'4-7-8 Relajante',    nameEn:'4-7-8 Relaxing',   timing:[4,7,8,0],
+      descEs:'Activa el sistema parasimpático. Ideal para reducir ansiedad y preparar el sueño.',
+      descEn:'Activates the parasympathetic system. Ideal for reducing anxiety and preparing for sleep.' },
+    { nameEs:'Wim Hof (ciclo)',     nameEn:'Wim Hof (cycle)',  timing:[2,0,2,0],
+      descEs:'Hiperventilación controlada que eleva el oxígeno y genera energía. Hacé 30 ciclos rápidos.',
+      descEn:'Controlled hyperventilation that raises oxygen and generates energy. Do 30 quick cycles.' },
+    { nameEs:'Coherencia Cardíaca', nameEn:'Cardiac Coherence',timing:[5,0,5,0],
+      descEs:'Sincroniza el ritmo cardíaco y el sistema nervioso. 5 minutos diarios tienen efecto acumulativo.',
+      descEn:'Syncs heart rate and nervous system. 5 minutes daily has a cumulative effect.' },
+    { nameEs:'Energizante',         nameEn:'Energizing',       timing:[6,0,2,0],
+      descEs:'Inhala largo, exhala corto. Aumenta el nivel de activación y concentración.',
+      descEn:'Long inhale, short exhale. Increases activation and concentration.' },
+    { nameEs:'Relajación profunda', nameEn:'Deep Relaxation',  timing:[4,0,8,0],
+      descEs:'Exhala el doble de lo que inhalas. Baja la frecuencia cardíaca y relaja el cuerpo.',
+      descEn:'Exhale twice as long as you inhale. Lowers heart rate and relaxes the body.' },
+];
+
+function renderPresets() {
+    const list = document.getElementById('presets-list');
+    list.innerHTML = '';
+    PRESETS.forEach(p => {
+        const [i,hf,e,he] = p.timing;
+        const card = document.createElement('div');
+        card.className = 'preset-card';
+        card.innerHTML = `
+            <div class="preset-header">
+                <span class="preset-name">${lang==='es'?p.nameEs:p.nameEn}</span>
+                <span class="preset-timing">${i}-${hf}-${e}-${he}</span>
+            </div>
+            <p class="preset-desc">${lang==='es'?p.descEs:p.descEn}</p>
+            <button class="preset-apply">${i18n[lang].presetApply}</button>`;
+        card.querySelector('.preset-apply').addEventListener('click', () => {
+            times.inhale.value=i; times.holdFull.value=hf;
+            times.exhale.value=e; times.holdEmpty.value=he;
+            closeModal('modal-presets');
+        });
+        list.appendChild(card);
+    });
+}
+
+// ── Sounds ────────────────────────────────────────────────────
+const SOUND_OPTIONS = [
+    { labelEs:'Campana',  labelEn:'Bell',    file:'inhala.mp3'      },
+    { labelEs:'Cuenco',   labelEn:'Bowl',    file:'sound_bowl.mp3'  },
+    { labelEs:'Chime',    labelEn:'Chime',   file:'sound_chime.mp3' },
+    { labelEs:'Silencio', labelEn:'Silence', file:null              },
+];
+let soundConfig = [0,0,0,0];
+const phaseAudios = [
+    new Audio('inhala.mp3'), new Audio('pausa_lleno.mp3'),
+    new Audio('exhala.mp3'), new Audio('pausa_vacio.mp3'),
+];
+
+function renderSoundModal() {
+    const grid = document.getElementById('sound-grid');
+    grid.innerHTML = '';
+    i18n[lang].soundPhases.forEach((name, pi) => {
+        const section = document.createElement('div');
+        section.className = 'sound-section';
+        section.innerHTML = `<div class="sound-section-title">${name}</div>`;
+        const opts = document.createElement('div');
+        opts.className = 'sound-options';
+        SOUND_OPTIONS.forEach((opt,oi) => {
+            const chip = document.createElement('button');
+            chip.className = 'sound-chip'+(soundConfig[pi]===oi?' active':'');
+            chip.textContent = lang==='es' ? opt.labelEs : opt.labelEn;
+            chip.addEventListener('click', () => { soundConfig[pi]=oi; renderSoundModal(); });
+            opts.appendChild(chip);
+        });
+        section.appendChild(opts);
+        grid.appendChild(section);
+    });
+}
+
+document.getElementById('open-presets').addEventListener('click', () => {
+    document.getElementById('gear-dropdown').classList.remove('open');
+    renderPresets(); openModal('modal-presets');
+});
+document.getElementById('open-sounds').addEventListener('click', () => {
+    document.getElementById('gear-dropdown').classList.remove('open');
+    renderSoundModal(); openModal('modal-sounds');
+});
+
+// ── Modal helpers ─────────────────────────────────────────────
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-close').forEach(btn =>
+    btn.addEventListener('click', () => closeModal(btn.dataset.close)));
+document.querySelectorAll('.modal-overlay').forEach(el =>
+    el.addEventListener('click', e => { if(e.target===el) closeModal(el.id); }));
+
+// ── Toast ─────────────────────────────────────────────────────
+const toastEl = document.createElement('div');
+toastEl.className = 'limit-toast';
+document.body.appendChild(toastEl);
+let toastTimer;
+function showToast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove('show'), 3500);
+}
+
+// ── Audio context ─────────────────────────────────────────────
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playTone(freq, duration, vol) {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.type = 'sine'; osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + 0.02);
+    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + duration);
+    osc.start(audioCtx.currentTime); osc.stop(audioCtx.currentTime + duration + 0.05);
+}
+
 const volSlider = document.getElementById('volume-slider');
 
-const audioIn = new Audio('inhala.mp3');
-const audioHoldFull = new Audio('pausa_lleno.mp3');
-const audioOut = new Audio('exhala.mp3');
-const audioHoldEmpty = new Audio('pausa_vacio.mp3');
+let volToneTimeout = null;
+function playVolumeTone() {
+    clearTimeout(volToneTimeout);
+    volToneTimeout = setTimeout(() => playTone(440, 0.35, parseFloat(volSlider.value) * 0.3), 80);
+}
+volSlider.addEventListener('input', playVolumeTone);
 
-let isRunning = false;
-let currentPhaseTimeout = null;
-let timerInterval = null;
-let phaseInterval = null;
-let totalSeconds = 0;
-let cycles = 0;
+// Wheel on gear dropdown vol slider
+document.getElementById('gear-dropdown').addEventListener('wheel', e => {
+    if (!e.target.classList.contains('gear-vol-slider')) return;
+    e.preventDefault(); e.stopPropagation();
+    let v = parseFloat(volSlider.value) + (e.deltaY < 0 ? 0.1 : -0.1);
+    volSlider.value = Math.min(1, Math.max(0, parseFloat(v.toFixed(1))));
+    playVolumeTone();
+}, { passive: false });
 
-// Lógica de rueda del ratón con bloqueo de seguridad
+function playPhase(pi) {
+    const opt = SOUND_OPTIONS[soundConfig[pi]];
+    if (!opt || !opt.file) return;
+    const a = phaseAudios[pi];
+    a.pause(); a.currentTime = 0;
+    a.volume = parseFloat(volSlider.value);
+    a.play().catch(() => {});
+}
+
+function playStopTone() {
+    playTone(280, 1.2, parseFloat(volSlider.value) * 0.4);
+}
+
+// ── DOM refs ──────────────────────────────────────────────────
+const times = {
+    inhale:   document.getElementById('time-inhale'),
+    holdFull: document.getElementById('time-hold-full'),
+    exhale:   document.getElementById('time-exhale'),
+    holdEmpty:document.getElementById('time-hold-empty'),
+};
+const breathText        = document.getElementById('breath-text');
+const phaseTimerDisplay = document.getElementById('phase-timer');
+const breathingCircle   = document.getElementById('breathing-circle');
+const startBtn          = document.getElementById('start-btn');
+const resetBtn          = document.getElementById('reset-btn');
+const sessionCounter    = document.getElementById('session-counter');
+const cycleCounter      = document.getElementById('cycle-counter');
+const lastSession       = document.getElementById('last-session');
+
+let isRunning=false, currentPhaseTimeout=null, timerInterval=null, phaseInterval=null;
+let totalSeconds=0, cycles=0;
+
+// ── Input wheels ──────────────────────────────────────────────
 Object.values(times).forEach(input => {
-    input.addEventListener('wheel', (e) => {
+    input.addEventListener('wheel', e => {
         if (isRunning) return;
         e.preventDefault();
-        let value = parseInt(input.value) || 0;
-        if (e.deltaY < 0) value++; else value--;
-        const min = parseInt(input.getAttribute('min')) || 0;
-        if (value < min) value = min;
-        input.value = value;
+        let v = parseInt(input.value)||0;
+        v += e.deltaY < 0 ? 1 : -1;
+        input.value = Math.max(parseInt(input.getAttribute('min'))||0, v);
     });
-
-    // Block non-numeric keystrokes
-    input.addEventListener('keydown', (e) => {
+    input.addEventListener('keydown', e => {
         if (['Backspace','Tab','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Delete'].includes(e.key)) return;
         if (!/^\d$/.test(e.key)) e.preventDefault();
     });
-
-    // Clamp on blur
     input.addEventListener('blur', () => {
-        const min = parseInt(input.getAttribute('min')) || 0;
-        let value = parseInt(input.value);
-        if (isNaN(value) || value < min) input.value = min;
+        const min=parseInt(input.getAttribute('min'))||0, v=parseInt(input.value);
+        if (isNaN(v)||v<min) input.value=min;
     });
 });
 
-// Mouse wheel on volume container (whole row, not just the slim slider)
-document.querySelector('.volume-container').addEventListener('wheel', (e) => {
-    e.preventDefault();
-    let value = parseFloat(volSlider.value);
-    value += e.deltaY < 0 ? 0.1 : -0.1;
-    value = Math.min(1, Math.max(0, parseFloat(value.toFixed(1))));
-    volSlider.value = value;
-}, { passive: false });
-
+// ── Helpers ───────────────────────────────────────────────────
 function toggleInputs(disabled) {
-    Object.values(times).forEach(input => {
-        input.disabled = disabled;
-    });
-    resetBtn.disabled = disabled;
-    document.querySelector('.settings-grid').classList.toggle('locked', disabled);
+    Object.values(times).forEach(i => i.disabled=disabled);
+    resetBtn.disabled=disabled;
+    document.querySelector('.settings-grid').classList.toggle('locked',disabled);
 }
-
 function formatTime(s) {
-    const mins = Math.floor(s / 60).toString().padStart(2, '0');
-    const secs = (s % 60).toString().padStart(2, '0');
-    return `${mins}:${secs}`;
+    return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
 }
-
-function play(audio) {
-    audio.pause();
-    audio.currentTime = 0;
-    audio.volume = volSlider.value;
-    audio.play().catch(() => {});
-}
-
 function startPhaseCountdown(seconds) {
     clearInterval(phaseInterval);
-    let remaining = seconds;
-    phaseTimerDisplay.innerText = remaining;
-
-    phaseInterval = setInterval(() => {
-        remaining--;
-        if (remaining > 0) {
-            phaseTimerDisplay.innerText = remaining;
-        } else {
-            clearInterval(phaseInterval);
-            phaseTimerDisplay.innerText = "";
-        }
-    }, 1000);
+    let rem=seconds; phaseTimerDisplay.innerText=rem;
+    phaseInterval=setInterval(()=>{
+        rem--; phaseTimerDisplay.innerText=rem>0?rem:'';
+        if(rem<=0) clearInterval(phaseInterval);
+    },1000);
 }
-
-const TRANSITION_MS = 1200; // matches CSS transition duration
-
+const TRANSITION_MS=1200;
 function setCircleState(state) {
-    // state: 'idle' | 'collapsed' | 'active'
-    breathingCircle.classList.remove('idle', 'collapsed', 'active');
-    if (state !== 'idle') breathingCircle.classList.add(state);
-    // 'idle' is the CSS default — no class needed
+    breathingCircle.classList.remove('idle','collapsed','active');
+    if(state!=='idle') breathingCircle.classList.add(state);
 }
 
+// ── Flow ──────────────────────────────────────────────────────
 async function runFlow() {
     if (!isRunning) return;
+    const t=i18n[lang];
 
-    const tIn = parseInt(times.inhale.value);
-    if (tIn > 0) {
-        breathText.innerText = "Inhala";
-        breathingCircle.style.transition = `transform ${tIn}s cubic-bezier(0.4,0,0.2,1), opacity ${tIn}s cubic-bezier(0.4,0,0.2,1), box-shadow ${tIn}s cubic-bezier(0.4,0,0.2,1)`;
-        setCircleState('active');
-        play(audioIn);
-        startPhaseCountdown(tIn);
-        await new Promise(r => currentPhaseTimeout = setTimeout(r, tIn * 1000));
+    const tIn=parseInt(times.inhale.value);
+    if(tIn>0){
+        breathText.innerText=t.inhaling;
+        breathingCircle.style.transition=`transform ${tIn}s cubic-bezier(.4,0,.2,1),opacity ${tIn}s cubic-bezier(.4,0,.2,1),box-shadow ${tIn}s cubic-bezier(.4,0,.2,1)`;
+        setCircleState('active'); playPhase(0); startPhaseCountdown(tIn);
+        await new Promise(r=>currentPhaseTimeout=setTimeout(r,tIn*1000));
     }
-
-    if (!isRunning) return;
-    const tHF = parseInt(times.holdFull.value);
-    if (tHF > 0) {
-        breathText.innerText = "Mantén";
-        play(audioHoldFull);
-        startPhaseCountdown(tHF);
-        await new Promise(r => currentPhaseTimeout = setTimeout(r, tHF * 1000));
+    if(!isRunning) return;
+    const tHF=parseInt(times.holdFull.value);
+    if(tHF>0){
+        breathText.innerText=t.holding; playPhase(1); startPhaseCountdown(tHF);
+        await new Promise(r=>currentPhaseTimeout=setTimeout(r,tHF*1000));
     }
-
-    if (!isRunning) return;
-    const tOut = parseInt(times.exhale.value);
-    if (tOut > 0) {
-        breathText.innerText = "Exhala";
-        breathingCircle.style.transition = `transform ${tOut}s cubic-bezier(0.4,0,0.2,1), opacity ${tOut}s cubic-bezier(0.4,0,0.2,1), box-shadow ${tOut}s cubic-bezier(0.4,0,0.2,1)`;
-        setCircleState('collapsed');
-        play(audioOut);
-        startPhaseCountdown(tOut);
-        await new Promise(r => currentPhaseTimeout = setTimeout(r, tOut * 1000));
+    if(!isRunning) return;
+    const tOut=parseInt(times.exhale.value);
+    if(tOut>0){
+        breathText.innerText=t.exhaling;
+        breathingCircle.style.transition=`transform ${tOut}s cubic-bezier(.4,0,.2,1),opacity ${tOut}s cubic-bezier(.4,0,.2,1),box-shadow ${tOut}s cubic-bezier(.4,0,.2,1)`;
+        setCircleState('collapsed'); playPhase(2); startPhaseCountdown(tOut);
+        await new Promise(r=>currentPhaseTimeout=setTimeout(r,tOut*1000));
     }
-
-    if (!isRunning) return;
-    const tHE = parseInt(times.holdEmpty.value);
-    if (tHE > 0) {
-        breathText.innerText = "Espera";
-        play(audioHoldEmpty);
-        startPhaseCountdown(tHE);
-        await new Promise(r => currentPhaseTimeout = setTimeout(r, tHE * 1000));
+    if(!isRunning) return;
+    const tHE=parseInt(times.holdEmpty.value);
+    if(tHE>0){
+        breathText.innerText=t.waiting; playPhase(3); startPhaseCountdown(tHE);
+        await new Promise(r=>currentPhaseTimeout=setTimeout(r,tHE*1000));
     }
-
-    if (isRunning) {
-        cycles++;
-        cycleCounter.innerText = `Ciclos: ${cycles}`;
+    if(isRunning){
+        cycles++; cycleCounter.innerText=cycles;
+        if(checkLimit()){ stopTimer(i18n[lang].limitMsg(limitType,limitValue)); return; }
         runFlow();
     }
 }
 
+// ── Start / Stop ──────────────────────────────────────────────
 function startTimer() {
-    toggleInputs(true);
-    startBtn.disabled = true;
-    breathText.innerText = "";
-    phaseTimerDisplay.innerText = "";
-    breathingCircle.style.transition = '';
-    setCircleState('collapsed');
+    toggleInputs(true); startBtn.disabled=true;
+    breathText.innerText=''; phaseTimerDisplay.innerText='';
+    breathingCircle.style.transition=''; setCircleState('collapsed');
     document.querySelector('.container').classList.add('session');
 
-    setTimeout(() => {
-        if (!startBtn.disabled) return;
-        isRunning = true;
-        totalSeconds = 0;
-        cycles = 0;
-
-        startBtn.disabled = false;
-        startBtn.innerText = "Detener";
-        startBtn.style.background = "linear-gradient(135deg, rgba(220,60,80,0.6), rgba(180,30,50,0.5))";
-        startBtn.style.borderColor = "rgba(220,100,100,0.3)";
-        sessionCounter.innerText = "Sesión: 00:00";
-        cycleCounter.innerText = "Ciclos: 0";
-
-        timerInterval = setInterval(() => {
+    setTimeout(()=>{
+        if(!startBtn.disabled) return;
+        isRunning=true; totalSeconds=0; cycles=0;
+        startBtn.disabled=false;
+        startBtn.innerText=i18n[lang].stop;
+        startBtn.style.background='linear-gradient(135deg,rgba(220,60,80,.6),rgba(180,30,50,.5))';
+        startBtn.style.borderColor='rgba(220,100,100,.3)';
+        sessionCounter.innerText='00:00'; cycleCounter.innerText='0';
+        timerInterval=setInterval(()=>{
             totalSeconds++;
-            sessionCounter.innerText = `Sesión: ${formatTime(totalSeconds)}`;
-        }, 1000);
-
+            sessionCounter.innerText=formatTime(totalSeconds);
+            if(limitType==='minutes' && checkLimit()){ stopTimer(i18n[lang].limitMsg(limitType,limitValue)); }
+        },1000);
         runFlow();
-    }, TRANSITION_MS);
+    },TRANSITION_MS);
 }
 
-function stopTimer() {
-    isRunning = false;
-    clearTimeout(currentPhaseTimeout);
-    clearInterval(timerInterval);
-    clearInterval(phaseInterval);
-
-    lastSession.innerText = `Última: ${formatTime(totalSeconds)} (${cycles} ciclos)`;
-
-    toggleInputs(true);
-    startBtn.disabled = true;
-    startBtn.innerText = "Iniciar";
-    startBtn.style.background = "";
-    startBtn.style.borderColor = "";
-    phaseTimerDisplay.innerText = "";
-    breathText.innerText = "";
-
-    breathingCircle.style.transition = '';
-    setCircleState('idle');
+function stopTimer(limitMsg) {
+    isRunning=false;
+    clearTimeout(currentPhaseTimeout); clearInterval(timerInterval); clearInterval(phaseInterval);
+    lastSession.innerText=`${formatTime(totalSeconds)} (${cycles})`;
+    playStopTone();
+    if(limitMsg) showToast(limitMsg);
+    toggleInputs(true); startBtn.disabled=true;
+    startBtn.innerText=i18n[lang].start;
+    startBtn.style.background=''; startBtn.style.borderColor='';
+    phaseTimerDisplay.innerText=''; breathText.innerText='';
+    breathingCircle.style.transition=''; setCircleState('idle');
     document.querySelector('.container').classList.remove('session');
-
-    setTimeout(() => {
-        breathText.innerText = "Listo";
-        toggleInputs(false);
-        startBtn.disabled = false;
-        [audioIn, audioHoldFull, audioOut, audioHoldEmpty].forEach(a => a.pause());
-    }, TRANSITION_MS);
+    setTimeout(()=>{
+        breathText.innerText=i18n[lang].ready;
+        toggleInputs(false); startBtn.disabled=false;
+        phaseAudios.forEach(a=>a.pause());
+    },TRANSITION_MS);
 }
 
 startBtn.onclick = () => isRunning ? stopTimer() : startTimer();
-
 resetBtn.onclick = () => {
-    if (isRunning) return; // Seguridad extra
-    times.inhale.value = 4;
-    times.holdFull.value = 4;
-    times.exhale.value = 4;
-    times.holdEmpty.value = 4;
+    if(isRunning) return;
+    times.inhale.value=4; times.holdFull.value=4;
+    times.exhale.value=4; times.holdEmpty.value=4;
 };
