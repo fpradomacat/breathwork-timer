@@ -3,22 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Breathwork Timer con Animación</title>
+    <title>Breathwork Timer Pro</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Breathwork Timer</h1>
-        
-        <div id="breathing-circle-container">
-            <div id="breathing-circle"></div>
+    <div class="main-layout">
+        <div class="volume-container">
+            <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5" orient="vertical">
+            <span>Vol</span>
         </div>
 
-        <div class="timer-display">
-            <span id="current-time">6</span>s
+        <div class="container">
+            <h1>Breathwork Timer</h1>
+            
+            <div id="breathing-circle-container">
+                <div id="breathing-circle">
+                    <span id="breath-text">Listo</span>
+                </div>
+            </div>
+
+            <div class="timer-display">
+                <span id="current-time">6</span>s
+            </div>
+            <input type="range" id="time-slider" min="1" max="30" value="6">
+            <button id="start-btn">Iniciar</button>
         </div>
-        <input type="range" id="time-slider" min="1" max="30" value="6">
-        <button id="start-btn">Iniciar</button>
     </div>
     <script src="script.js"></script>
 </body>
