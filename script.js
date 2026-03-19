@@ -12,23 +12,11 @@ let interval = null;
 let isRunning = false;
 let isInhaling = true;
 
-// Función para asegurar que el audio suene desde el inicio sin lag
 function playSound(audio) {
     audio.pause();
     audio.currentTime = 0;
-    // El volumen se actualiza justo antes de sonar por si se movió el slider
     audio.volume = volSlider.value;
-    
-    // Usamos una promesa para evitar errores de carga
-    const playPromise = audio.play();
-    if (playPromise !== undefined) {
-        playPromise.catch(error => console.log("Error al reproducir:", error));
-    }
-}
-
-function updateVolume() {
-    audioIn.volume = volSlider.value;
-    audioOut.volume = volSlider.value;
+    audio.play().catch(() => {});
 }
 
 function startTimer() {
@@ -38,19 +26,16 @@ function startTimer() {
     startBtn.innerText = "Detener";
     startBtn.style.backgroundColor = "#e74c3c";
 
-    // Reiniciar visuales
+    // Iniciamos la animación que va del 15% al 100%
     breathingCircle.style.animation = 'none';
-    breathingCircle.offsetHeight; // Truco de reflow para reiniciar la animación
-    breathingCircle.style.animation = `breathe ${seconds}s infinite alternate ease-in-out`;
+    breathingCircle.offsetHeight; 
+    breathingCircle.style.animation = `breathe ${seconds}s infinite alternate cubic-bezier(0.45, 0.05, 0.55, 0.95)`;
     
     breathText.innerText = "Inhala";
-    
-    // Disparar el primer sonido inmediatamente
     playSound(audioIn);
 
     interval = setInterval(() => {
         isInhaling = !isInhaling;
-        
         if (isInhaling) {
             breathText.innerText = "Inhala";
             playSound(audioIn);
@@ -67,19 +52,17 @@ function stopTimer() {
     startBtn.innerText = "Iniciar";
     startBtn.style.backgroundColor = "#0984e3";
     breathText.innerText = "Listo";
+    
+    // Al detener, vuelve automáticamente al 15% (definido en CSS)
     breathingCircle.style.animation = 'none';
+    
     audioIn.pause();
     audioOut.pause();
 }
 
-// Lógica para reiniciar al mover el slider
 slider.oninput = () => {
     display.innerText = slider.value;
-    if (isRunning) {
-        stopTimer();
-        startTimer(); // Reinicia con la nueva frecuencia automáticamente
-    }
+    if (isRunning) { stopTimer(); startTimer(); }
 };
 
 startBtn.onclick = () => isRunning ? stopTimer() : startTimer();
-volSlider.oninput = updateVolume;
