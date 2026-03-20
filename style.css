@@ -191,10 +191,13 @@ h1 {
 #breath-text { color:var(--accent-bright); font-size:.85rem; letter-spacing:.14em; opacity:.75; }
 #phase-timer {
     font-size:1.8rem; font-family:'DM Mono',monospace; font-weight:300;
-    height:1.8rem; line-height:1; margin-top:6px; color:var(--accent-bright);
-    visibility:visible;
+    height:0; line-height:1; margin-top:0; color:var(--accent-bright);
+    overflow:hidden; visibility:hidden;
 }
-#phase-timer:empty { visibility:hidden; }
+.container.session #phase-timer {
+    height:1.8rem; margin-top:6px; visibility:visible;
+}
+.container.session #phase-timer:empty { visibility:hidden; }
 
 /* ── Controls panel ── */
 .controls-panel {
