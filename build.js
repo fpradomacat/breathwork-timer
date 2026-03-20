@@ -44,11 +44,23 @@ async function build() {
     fs.writeFileSync(`${dist}/index.html`, minHTML);
     console.log('✓ index.html');
 
-    // ── MP3s ──
-    fs.readdirSync('.').filter(f => f.endsWith('.mp3')).forEach(f => {
-        fs.copyFileSync(f, `${dist}/${f}`);
-        console.log(`✓ ${f}`);
-    });
+    // ── Assets (sounds, images, etc.) ──
+    function copyDirRecursive(src, dest) {
+        if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
+        fs.readdirSync(src).forEach(entry => {
+            const srcPath  = `${src}/${entry}`;
+            const destPath = `${dest}/${entry}`;
+            if (fs.statSync(srcPath).isDirectory()) {
+                copyDirRecursive(srcPath, destPath);
+            } else {
+                fs.copyFileSync(srcPath, destPath);
+            }
+        });
+    }
+    if (fs.existsSync('./assets')) {
+        copyDirRecursive('./assets', `${dist}/assets`);
+        console.log('✓ assets/');
+    }
 
     console.log('\n🎉 Build listo en /dist');
 }
