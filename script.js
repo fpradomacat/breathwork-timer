@@ -49,19 +49,22 @@ const techniqueLabel    = document.getElementById('technique-label');
 const volSlider         = document.getElementById('volume-slider');
 
 // ── Audio context ─────────────────────────────────────────────
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+// IMPORTANT: AudioContext must be created INSIDE a user-gesture handler.
+// The browser blocks any audio until a click/keydown/touchstart has occurred.
+// Hovering is NOT a user gesture, so we cannot create or resume the context on hover.
+// Solution: create it lazily on the first real gesture, then it stays alive forever.
+let audioCtx = null;
 
-// Resume on first interaction — browsers block autoplay until a user gesture.
-// mousedown/touchstart/keydown all qualify; once resumed we clean up the listeners.
-function _resumeCtx() {
-    audioCtx.resume();
-    document.removeEventListener('mousedown', _resumeCtx);
-    document.removeEventListener('touchstart', _resumeCtx);
-    document.removeEventListener('keydown',    _resumeCtx);
+function _ensureAudioCtx() {
+    if (audioCtx) return;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // Also build the tick buffers now that the context exists
+    tickBufs[0] = _makeTickBuf(0);
+    tickBufs[1] = _makeTickBuf(1);
 }
-document.addEventListener('mousedown', _resumeCtx);
-document.addEventListener('touchstart', _resumeCtx, { passive: true });
-document.addEventListener('keydown',    _resumeCtx);
+document.addEventListener('mousedown',  _ensureAudioCtx);
+document.addEventListener('touchstart', _ensureAudioCtx, { passive: true });
+document.addEventListener('keydown',    _ensureAudioCtx);
 
 // ── Clock tick — fully synthetic, no files, no CORS ──────────
 let tickEnabled = true;
@@ -71,7 +74,7 @@ let tickRAF = null;
 
 // Generates a synthetic clock-tick buffer: shaped noise burst ~22ms
 // beatType 0 = main beat, 1 = mid beat (softer)
-function makeTickBuffer(beatType) {
+function _makeTickBuf(beatType) {
     const sampleRate = audioCtx.sampleRate;
     const len = Math.floor(sampleRate * 0.022);
     const buf = audioCtx.createBuffer(1, len, sampleRate);
@@ -84,8 +87,8 @@ function makeTickBuffer(beatType) {
     return buf;
 }
 
-// Pre-build both buffers once (pure computation, no I/O, no CORS)
-const tickBufs = [makeTickBuffer(0), makeTickBuffer(1)];
+// Filled inside _ensureAudioCtx() after the context is created
+const tickBufs = [null, null];
 
 function scheduleTickAt(beatType, when, vol) {
     const src  = audioCtx.createBufferSource();
@@ -144,6 +147,7 @@ function setTechniqueLabel(name, isCustom = false) {
 
 // ── UI sounds (all synthetic) ─────────────────────────────────
 function playTone(freq, duration, vol) {
+    if (!audioCtx) return;
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.connect(gain); gain.connect(audioCtx.destination);
@@ -156,10 +160,9 @@ function playTone(freq, duration, vol) {
 
 // Hover: tiny noise click — same technique as tick but shorter & quieter
 function playHoverClick() {
+    if (!audioCtx) return;   // not yet created — need a click first
     const vol = parseFloat(volSlider.value);
     if (vol <= 0) return;
-    // Resume here in case context is still suspended on first interaction
-    if (audioCtx.state === 'suspended') { audioCtx.resume(); return; }
     const len = Math.floor(audioCtx.sampleRate * 0.012);
     const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
     const data = buf.getChannelData(0);
@@ -176,6 +179,7 @@ function playHoverClick() {
 
 // Start: two warm ascending tones — soft, inviting
 function playStartSound() {
+    if (!audioCtx) return;
     const vol = parseFloat(volSlider.value);
     if (vol <= 0) return;
     [[440, 0], [554, 0.10]].forEach(([freq, delay]) => {
@@ -193,6 +197,7 @@ function playStartSound() {
 
 // Stop: single soft descending thud — short, neutral
 function playStopTone() {
+    if (!audioCtx) return;
     const vol = parseFloat(volSlider.value);
     if (vol <= 0) return;
     const osc  = audioCtx.createOscillator();
@@ -207,6 +212,7 @@ function playStopTone() {
 }
 
 function playSelectChime() {
+    if (!audioCtx) return;
     const vol = parseFloat(volSlider.value) * 0.22;
     if (vol <= 0) return;
     [[520, 0], [660, 0.07], [800, 0.14]].forEach(([freq, delay]) => {
@@ -533,7 +539,7 @@ async function runFlow() {
 
 // ── Start / Stop ──────────────────────────────────────────────
 function startTimer() {
-    audioCtx.resume();
+    _ensureAudioCtx();
     playStartSound();
     toggleInputs(true); startBtn.disabled=true;
     breathText.innerText=''; phaseTimerDisplay.innerText='';
