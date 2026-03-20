@@ -65,72 +65,79 @@ document.addEventListener('keydown',    _resumeCtx);
 
 // ── Clock tick — fully synthetic, no files, no CORS ──────────
 let tickEnabled = true;
+let tickBeat = 0;
+let tickNextTime = 0;
+let tickRAF = null;
 
 // Generates a synthetic clock-tick buffer: shaped noise burst ~22ms
-// beatType 0 = main beat (louder), 1 = mid beat (softer)
+// beatType 0 = main beat, 1 = mid beat (softer)
 function makeTickBuffer(beatType) {
     const sampleRate = audioCtx.sampleRate;
     const len = Math.floor(sampleRate * 0.022);
     const buf = audioCtx.createBuffer(1, len, sampleRate);
     const data = buf.getChannelData(0);
     for (let i = 0; i < len; i++) {
+        // Slower decay = less harsh transient
         const env = Math.exp(-i / (sampleRate * (beatType === 0 ? 0.008 : 0.011)));
         data[i] = (Math.random() * 2 - 1) * env;
     }
     return buf;
 }
 
-// Pre-build both buffers once
+// Pre-build both buffers once (pure computation, no I/O, no CORS)
 const tickBufs = [makeTickBuffer(0), makeTickBuffer(1)];
 
 function scheduleTickAt(beatType, when, vol) {
     const src  = audioCtx.createBufferSource();
     const gain = audioCtx.createGain();
+    // Lower HPF cutoff = warmer, less strident click
     const hpf  = audioCtx.createBiquadFilter();
     hpf.type = 'highpass';
     hpf.frequency.value = beatType === 0 ? 800 : 600;
+    // Low-pass to roll off harsh highs
     const lpf  = audioCtx.createBiquadFilter();
     lpf.type = 'lowpass';
     lpf.frequency.value = 4000;
     src.buffer = tickBufs[beatType];
     src.connect(hpf); hpf.connect(lpf); lpf.connect(gain); gain.connect(audioCtx.destination);
-    gain.gain.setValueAtTime(vol * (beatType === 0 ? 0.30 : 0.18), when);
+    const amplitude = vol * (beatType === 0 ? 0.30 : 0.18);
+    gain.gain.setValueAtTime(amplitude, when);
     src.start(when);
-    _tickSources.push(src);
 }
 
-// Scheduled BufferSourceNodes for the current phase — kept so we can stop them.
-let _tickSources = [];
-
-// Schedule exactly one tick per second for a phase of `seconds` duration.
-// Starts at t+1 (never t+0) so the phase-transition sound plays clean.
-// Cancels any ticks that were scheduled for the previous phase.
-function scheduleTicksForPhase(seconds) {
-    stopTick();
-    if (!tickEnabled) return;
+function tickLoop() {
     const vol = parseFloat(volSlider.value);
-    if (vol <= 0) return;
-    const now = audioCtx.currentTime;
-    for (let i = 1; i < seconds; i++) {   // i=1 → skip beat at t=0
-        const when     = now + i;
-        const beatType = (i - 1) % 2;     // alternating soft/loud within the phase
-        scheduleTickAt(beatType, when, vol);
+    const LOOKAHEAD = 0.15;
+    while (tickNextTime < audioCtx.currentTime + LOOKAHEAD) {
+        if (tickEnabled && vol > 0) {
+            scheduleTickAt(tickBeat % 2, tickNextTime, vol);
+        }
+        tickBeat++;
+        tickNextTime += 1.0;
     }
+    tickRAF = requestAnimationFrame(tickLoop);
+}
+
+function startTick() {
+    cancelAnimationFrame(tickRAF);
+    tickBeat = 0;
+    tickNextTime = audioCtx.currentTime + 0.05;
+    tickRAF = requestAnimationFrame(tickLoop);
 }
 
 function stopTick() {
-    // BufferSourceNodes stop themselves when their buffer ends,
-    // but we cancel any that haven't fired yet by stopping them now.
-    _tickSources.forEach(src => { try { src.stop(); } catch(_) {} });
-    _tickSources = [];
+    cancelAnimationFrame(tickRAF);
+    tickRAF = null;
 }
 
-// startTick / stopTick kept for compatibility — startTick is no longer called
-// directly; phases call scheduleTicksForPhase() instead.
-function startTick() { /* phases handle their own ticks */ }
+let isRunning=false, cycles=0;
+let sessionStartTime=0;   // audioCtx.currentTime when session started
+let totalSeconds=0;       // updated each rAF tick from audioCtx
 
-let isRunning=false, currentPhaseTimeout=null, timerInterval=null, phaseInterval=null;
-let totalSeconds=0, cycles=0;
+// Single rAF loop that drives both the session counter and phase countdown
+let _clockRAF=null;
+let _phaseEndTime=0;      // audioCtx.currentTime when current phase ends
+let _phaseResolve=null;   // resolves the runFlow await when phase ends
 
 // ── Technique label ───────────────────────────────────────────
 let activeTechniqueName = 'Box Breathing';
@@ -438,6 +445,11 @@ function showToast(msg) {
 function playPhase(pi) {
     const file = PHASE_SOUNDS[pi];
     if (!file) return;
+    // Push the next tick past this moment — skips the beat that coincides with the phase sound.
+    // tickNextTime may already be slightly ahead (lookahead), so only nudge if it's within 0.3s.
+    if (tickNextTime - audioCtx.currentTime < 0.3) {
+        tickNextTime = audioCtx.currentTime + 0.3;
+    }
     const a = new Audio(file);
     a.volume = parseFloat(volSlider.value);
     a.play().catch(() => {});
@@ -473,13 +485,49 @@ function toggleInputs(disabled) {
 function formatTime(s) {
     return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
 }
+// Master clock — single rAF loop, all timing derived from audioCtx.currentTime
+function _clockTick() {
+    if (!isRunning) return;
+    const now = audioCtx.currentTime;
+
+    // Session counter
+    const elapsed = Math.floor(now - sessionStartTime);
+    if (elapsed !== totalSeconds) {
+        totalSeconds = elapsed;
+        sessionCounter.innerText = formatTime(totalSeconds);
+        if (limitType==='minutes' && checkLimit()) {
+            stopTimer(i18n[lang].limitMsg(limitType, limitValue));
+            return;
+        }
+    }
+
+    // Phase countdown
+    const rem = Math.ceil(_phaseEndTime - now);
+    phaseTimerDisplay.innerText = rem > 0 ? rem : '';
+
+    // Resolve phase when time is up
+    if (now >= _phaseEndTime && _phaseResolve) {
+        const res = _phaseResolve;
+        _phaseResolve = null;
+        res();
+        return; // runFlow will re-register the loop for next phase
+    }
+
+    _clockRAF = requestAnimationFrame(_clockTick);
+}
+
+// Returns a promise that resolves after `seconds` audioCtx seconds
+function waitPhase(seconds) {
+    _phaseEndTime = audioCtx.currentTime + seconds;
+    return new Promise(resolve => {
+        _phaseResolve = resolve;
+        cancelAnimationFrame(_clockRAF);
+        _clockRAF = requestAnimationFrame(_clockTick);
+    });
+}
+
 function startPhaseCountdown(seconds) {
-    clearInterval(phaseInterval);
-    let rem=seconds; phaseTimerDisplay.innerText=rem;
-    phaseInterval=setInterval(()=>{
-        rem--; phaseTimerDisplay.innerText=rem>0?rem:'';
-        if(rem<=0) clearInterval(phaseInterval);
-    },1000);
+    // No-op: countdown is now driven by _clockTick via waitPhase()
 }
 const TRANSITION_MS=1200;
 function setCircleState(state) {
@@ -495,28 +543,28 @@ async function runFlow() {
     if(tIn>0){
         breathText.innerText=t.inhaling;
         breathingCircle.style.transition=`transform ${tIn}s cubic-bezier(.4,0,.2,1),opacity ${tIn}s cubic-bezier(.4,0,.2,1),box-shadow ${tIn}s cubic-bezier(.4,0,.2,1)`;
-        setCircleState('active'); playPhase(0); scheduleTicksForPhase(tIn); startPhaseCountdown(tIn);
-        await new Promise(r=>currentPhaseTimeout=setTimeout(r,tIn*1000));
+        setCircleState('active'); playPhase(0); startPhaseCountdown(tIn);
+        await waitPhase(tIn);
     }
     if(!isRunning) return;
     const tHF=parseInt(times.holdFull.value);
     if(tHF>0){
-        breathText.innerText=t.holding; playPhase(1); scheduleTicksForPhase(tHF); startPhaseCountdown(tHF);
-        await new Promise(r=>currentPhaseTimeout=setTimeout(r,tHF*1000));
+        breathText.innerText=t.holding; playPhase(1); startPhaseCountdown(tHF);
+        await waitPhase(tHF);
     }
     if(!isRunning) return;
     const tOut=parseInt(times.exhale.value);
     if(tOut>0){
         breathText.innerText=t.exhaling;
         breathingCircle.style.transition=`transform ${tOut}s cubic-bezier(.4,0,.2,1),opacity ${tOut}s cubic-bezier(.4,0,.2,1),box-shadow ${tOut}s cubic-bezier(.4,0,.2,1)`;
-        setCircleState('collapsed'); playPhase(2); scheduleTicksForPhase(tOut); startPhaseCountdown(tOut);
-        await new Promise(r=>currentPhaseTimeout=setTimeout(r,tOut*1000));
+        setCircleState('collapsed'); playPhase(2); startPhaseCountdown(tOut);
+        await waitPhase(tOut);
     }
     if(!isRunning) return;
     const tHE=parseInt(times.holdEmpty.value);
     if(tHE>0){
-        breathText.innerText=t.waiting; playPhase(3); scheduleTicksForPhase(tHE); startPhaseCountdown(tHE);
-        await new Promise(r=>currentPhaseTimeout=setTimeout(r,tHE*1000));
+        breathText.innerText=t.waiting; playPhase(3); startPhaseCountdown(tHE);
+        await waitPhase(tHE);
     }
     if(isRunning){
         cycles++; cycleCounter.innerText=cycles;
@@ -541,11 +589,8 @@ function startTimer() {
         startBtn.style.background='linear-gradient(135deg,rgba(220,60,80,.6),rgba(180,30,50,.5))';
         startBtn.style.borderColor='rgba(220,100,100,.3)';
         sessionCounter.innerText='00:00'; cycleCounter.innerText='0';
-        timerInterval=setInterval(()=>{
-            totalSeconds++;
-            sessionCounter.innerText=formatTime(totalSeconds);
-            if(limitType==='minutes' && checkLimit()){ stopTimer(i18n[lang].limitMsg(limitType,limitValue)); }
-        },1000);
+        totalSeconds=0; sessionStartTime=audioCtx.currentTime;
+        sessionCounter.innerText='00:00';
         startTick();
         runFlow();
     },TRANSITION_MS);
@@ -553,7 +598,7 @@ function startTimer() {
 
 function stopTimer(limitMsg) {
     isRunning=false;
-    clearTimeout(currentPhaseTimeout); clearInterval(timerInterval); clearInterval(phaseInterval);
+    cancelAnimationFrame(_clockRAF); _clockRAF=null; _phaseResolve=null;
     stopTick();
     lastSession.innerText=`${formatTime(totalSeconds)} (${cycles})`;
     playStopTone();

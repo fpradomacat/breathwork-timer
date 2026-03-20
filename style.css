@@ -192,8 +192,9 @@ h1 {
 #phase-timer {
     font-size:1.8rem; font-family:'DM Mono',monospace; font-weight:300;
     height:1.8rem; line-height:1; margin-top:6px; color:var(--accent-bright);
+    visibility:visible;
 }
-#phase-timer:empty { margin-top:0; height:0; }
+#phase-timer:empty { visibility:hidden; }
 
 /* ── Controls panel ── */
 .controls-panel {
