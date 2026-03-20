@@ -74,8 +74,9 @@
     const overlay = document.createElement('div');
     overlay.id = 'tut-overlay';
 
-    const spotlight = document.createElement('div');
-    spotlight.id = 'tut-spotlight';
+    const canvas = document.createElement('canvas');
+    canvas.id = 'tut-canvas';
+    document.body.appendChild(canvas);
 
     const card = document.createElement('div');
     card.id = 'tut-card';
@@ -105,7 +106,6 @@
     card.appendChild(cardBody);
     card.appendChild(btnRow);
 
-    overlay.appendChild(spotlight);
     overlay.appendChild(card);
     document.body.appendChild(overlay);
 
@@ -116,9 +116,7 @@
             position: fixed;
             inset: 0;
             z-index: 9999;
-            /* dark vignette; the spotlight punches a hole via clip-path */
-            background: rgba(0, 0, 0, 0.72);
-            backdrop-filter: blur(2px);
+            pointer-events: all;
             transition: opacity 0.35s ease;
         }
         #tut-overlay.tut-hiding {
@@ -126,21 +124,14 @@
             pointer-events: none;
         }
 
-        /* The "hole" spotlight — absolutely positioned box with a glowing ring */
-        #tut-spotlight {
+        /* Canvas draws the dark mask with a transparent hole */
+        #tut-canvas {
             position: fixed;
-            border-radius: 16px;
-            box-shadow:
-                0 0 0 4px rgba(255,255,255,0.18),
-                0 0 0 9999px rgba(0,0,0,0.72);
-            transition: all 0.45s cubic-bezier(.4,0,.2,1);
+            inset: 0;
+            width: 100%;
+            height: 100%;
             pointer-events: none;
-            z-index: 10000;
-        }
-        #tut-spotlight.tut-hidden {
-            opacity: 0;
-            width: 0 !important;
-            height: 0 !important;
+            z-index: 9999;
         }
 
         /* Tooltip card */
@@ -243,23 +234,91 @@
     // ── State ─────────────────────────────────────────────────
     let currentStep = 0;
 
-    // ── Spotlight helper ──────────────────────────────────────
-    const PADDING = 12; // px around the element
+    // ── Canvas spotlight ──────────────────────────────────────
+    const PADDING = 14; // px around the element
+    const RADIUS  = 16; // corner radius of the hole
+    let   _spotRect = null; // current animated rect {x,y,w,h}
+    let   _spotTarget = null;
+    let   _spotRAF = null;
 
-    function positionSpotlight(selector) {
-        if (!selector) {
-            spotlight.classList.add('tut-hidden');
+    function drawMask(x, y, w, h) {
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width  = window.innerWidth  * dpr;
+        canvas.height = window.innerHeight * dpr;
+        canvas.style.width  = window.innerWidth  + 'px';
+        canvas.style.height = window.innerHeight + 'px';
+        const ctx = canvas.getContext('2d');
+        ctx.scale(dpr, dpr);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Dark overlay
+        ctx.fillStyle = 'rgba(0,0,0,0.72)';
+        ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+
+        if (w > 0 && h > 0) {
+            // Cut a rounded-rect hole using composite operation
+            ctx.save();
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.beginPath();
+            ctx.roundRect(x, y, w, h, RADIUS);
+            ctx.fill();
+            ctx.restore();
+
+            // Glow ring around the hole
+            ctx.save();
+            ctx.strokeStyle = 'rgba(255,255,255,0.22)';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.roundRect(x - 1, y - 1, w + 2, h + 2, RADIUS + 1);
+            ctx.stroke();
+            ctx.restore();
+        }
+    }
+
+    function lerp(a, b, t) { return a + (b - a) * t; }
+
+    function animateSpotlight() {
+        if (!_spotTarget) {
+            drawMask(0, 0, 0, 0);
             return;
         }
-        const el = document.querySelector(selector);
-        if (!el) { spotlight.classList.add('tut-hidden'); return; }
+        const el = document.querySelector(_spotTarget);
+        if (!el) { drawMask(0, 0, 0, 0); return; }
 
-        spotlight.classList.remove('tut-hidden');
-        const r = el.getBoundingClientRect();
-        spotlight.style.left   = (r.left   - PADDING) + 'px';
-        spotlight.style.top    = (r.top    - PADDING) + 'px';
-        spotlight.style.width  = (r.width  + PADDING * 2) + 'px';
-        spotlight.style.height = (r.height + PADDING * 2) + 'px';
+        const r  = el.getBoundingClientRect();
+        const tx = r.left   - PADDING;
+        const ty = r.top    - PADDING;
+        const tw = r.width  + PADDING * 2;
+        const th = r.height + PADDING * 2;
+
+        if (!_spotRect) {
+            _spotRect = { x: tx, y: ty, w: tw, h: th };
+        } else {
+            const speed = 0.12;
+            _spotRect.x = lerp(_spotRect.x, tx, speed);
+            _spotRect.y = lerp(_spotRect.y, ty, speed);
+            _spotRect.w = lerp(_spotRect.w, tw, speed);
+            _spotRect.h = lerp(_spotRect.h, th, speed);
+        }
+
+        const dx = Math.abs(_spotRect.x - tx);
+        const dy = Math.abs(_spotRect.y - ty);
+        drawMask(_spotRect.x, _spotRect.y, _spotRect.w, _spotRect.h);
+
+        if (dx > 0.5 || dy > 0.5) {
+            _spotRAF = requestAnimationFrame(animateSpotlight);
+        }
+    }
+
+    function positionSpotlight(selector) {
+        cancelAnimationFrame(_spotRAF);
+        _spotTarget = selector || null;
+        if (!selector) {
+            drawMask(0, 0, 0, 0);
+            return;
+        }
+        animateSpotlight();
+        _spotRAF = requestAnimationFrame(animateSpotlight);
     }
 
     // ── Card position helper ──────────────────────────────────
@@ -355,9 +414,9 @@
 
     function closeTutorial() {
         overlay.classList.add('tut-hiding');
-        // Only persist when the user actually finishes or explicitly skips —
-        // not on intermediate "Siguiente" clicks, so F5 mid-tutorial still shows it.
-        setTimeout(() => overlay.remove(), 400);
+        canvas.style.transition = 'opacity 0.35s';
+        canvas.style.opacity = '0';
+        setTimeout(() => { overlay.remove(); canvas.remove(); }, 400);
     }
 
     btnNext.addEventListener('click', advance);
@@ -379,6 +438,7 @@
 
     // Reposition on resize
     window.addEventListener('resize', () => {
+        _spotRect = null; // reset so it snaps instead of animating from wrong pos
         const step = STEPS[currentStep];
         positionSpotlight(step.target);
         setTimeout(() => positionCard(step.target, step.pos), 50);
