@@ -11,6 +11,7 @@ const i18n = {
         soundPhases:['Inhalar','Pausa (Lleno)','Exhalar','Pausa (Vacío)'],
         limitMsg: (type,val) => type==='minutes' ? `⏱ ${val} min alcanzados` : `🔄 ${val} ciclos completados`,
         custom: 'Personalizado',
+        tickOn: 'Tic-tac: On', tickOff: 'Tic-tac: Off',
     },
     en: {
         title:'Breathspace',
@@ -23,6 +24,7 @@ const i18n = {
         soundPhases:['Inhale','Hold (Full)','Exhale','Hold (Empty)'],
         limitMsg: (type,val) => type==='minutes' ? `⏱ ${val} min reached` : `🔄 ${val} cycles completed`,
         custom: 'Custom',
+        tickOn: 'Tick-tock: On', tickOff: 'Tick-tock: Off',
     }
 };
 
@@ -46,6 +48,88 @@ const lastSession       = document.getElementById('last-session');
 const techniqueLabel    = document.getElementById('technique-label');
 const volSlider         = document.getElementById('volume-slider');
 
+// ── Audio context ─────────────────────────────────────────────
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+// Resume on first interaction — browsers block autoplay until a user gesture.
+// mousedown/touchstart/keydown all qualify; once resumed we clean up the listeners.
+function _resumeCtx() {
+    audioCtx.resume();
+    document.removeEventListener('mousedown', _resumeCtx);
+    document.removeEventListener('touchstart', _resumeCtx);
+    document.removeEventListener('keydown',    _resumeCtx);
+}
+document.addEventListener('mousedown', _resumeCtx);
+document.addEventListener('touchstart', _resumeCtx, { passive: true });
+document.addEventListener('keydown',    _resumeCtx);
+
+// ── Clock tick — fully synthetic, no files, no CORS ──────────
+let tickEnabled = true;
+let tickBeat = 0;
+let tickNextTime = 0;
+let tickRAF = null;
+
+// Generates a synthetic clock-tick buffer: shaped noise burst ~22ms
+// beatType 0 = main beat, 1 = mid beat (softer)
+function makeTickBuffer(beatType) {
+    const sampleRate = audioCtx.sampleRate;
+    const len = Math.floor(sampleRate * 0.022);
+    const buf = audioCtx.createBuffer(1, len, sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) {
+        // Slower decay = less harsh transient
+        const env = Math.exp(-i / (sampleRate * (beatType === 0 ? 0.008 : 0.011)));
+        data[i] = (Math.random() * 2 - 1) * env;
+    }
+    return buf;
+}
+
+// Pre-build both buffers once (pure computation, no I/O, no CORS)
+const tickBufs = [makeTickBuffer(0), makeTickBuffer(1)];
+
+function scheduleTickAt(beatType, when, vol) {
+    const src  = audioCtx.createBufferSource();
+    const gain = audioCtx.createGain();
+    // Lower HPF cutoff = warmer, less strident click
+    const hpf  = audioCtx.createBiquadFilter();
+    hpf.type = 'highpass';
+    hpf.frequency.value = beatType === 0 ? 800 : 600;
+    // Low-pass to roll off harsh highs
+    const lpf  = audioCtx.createBiquadFilter();
+    lpf.type = 'lowpass';
+    lpf.frequency.value = 4000;
+    src.buffer = tickBufs[beatType];
+    src.connect(hpf); hpf.connect(lpf); lpf.connect(gain); gain.connect(audioCtx.destination);
+    const amplitude = vol * (beatType === 0 ? 0.30 : 0.18);
+    gain.gain.setValueAtTime(amplitude, when);
+    src.start(when);
+}
+
+function tickLoop() {
+    const vol = parseFloat(volSlider.value);
+    const LOOKAHEAD = 0.15;
+    while (tickNextTime < audioCtx.currentTime + LOOKAHEAD) {
+        if (tickEnabled && vol > 0) {
+            scheduleTickAt(tickBeat % 2, tickNextTime, vol);
+        }
+        tickBeat++;
+        tickNextTime += 1.0;
+    }
+    tickRAF = requestAnimationFrame(tickLoop);
+}
+
+function startTick() {
+    cancelAnimationFrame(tickRAF);
+    tickBeat = 0;
+    tickNextTime = audioCtx.currentTime + 0.05;
+    tickRAF = requestAnimationFrame(tickLoop);
+}
+
+function stopTick() {
+    cancelAnimationFrame(tickRAF);
+    tickRAF = null;
+}
+
 let isRunning=false, currentPhaseTimeout=null, timerInterval=null, phaseInterval=null;
 let totalSeconds=0, cycles=0;
 
@@ -58,9 +142,7 @@ function setTechniqueLabel(name, isCustom = false) {
     techniqueLabel.classList.toggle('is-custom', isCustom);
 }
 
-// ── Audio context ─────────────────────────────────────────────
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
+// ── UI sounds (all synthetic) ─────────────────────────────────
 function playTone(freq, duration, vol) {
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
@@ -72,17 +154,56 @@ function playTone(freq, duration, vol) {
     osc.start(audioCtx.currentTime); osc.stop(audioCtx.currentTime + duration + 0.05);
 }
 
-function playHoverTick() {
-    const vol = parseFloat(volSlider.value) * 0.06;
+// Hover: tiny noise click — same technique as tick but shorter & quieter
+function playHoverClick() {
+    const vol = parseFloat(volSlider.value);
     if (vol <= 0) return;
-    const osc = audioCtx.createOscillator();
+    // Resume here in case context is still suspended on first interaction
+    if (audioCtx.state === 'suspended') { audioCtx.resume(); return; }
+    const len = Math.floor(audioCtx.sampleRate * 0.012);
+    const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = (Math.random()*2-1) * Math.exp(-i/(audioCtx.sampleRate*0.002));
+    const src  = audioCtx.createBufferSource();
+    const gain = audioCtx.createGain();
+    const hpf  = audioCtx.createBiquadFilter();
+    hpf.type = 'highpass'; hpf.frequency.value = 2400;
+    src.buffer = buf;
+    src.connect(hpf); hpf.connect(gain); gain.connect(audioCtx.destination);
+    gain.gain.setValueAtTime(vol * 0.18, audioCtx.currentTime);
+    src.start();
+}
+
+// Start: two warm ascending tones — soft, inviting
+function playStartSound() {
+    const vol = parseFloat(volSlider.value);
+    if (vol <= 0) return;
+    [[440, 0], [554, 0.10]].forEach(([freq, delay]) => {
+        const osc  = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.type = 'sine'; osc.frequency.value = freq;
+        const t = audioCtx.currentTime + delay;
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(vol * 0.28, t + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
+        osc.start(t); osc.stop(t + 0.4);
+    });
+}
+
+// Stop: single soft descending thud — short, neutral
+function playStopTone() {
+    const vol = parseFloat(volSlider.value);
+    if (vol <= 0) return;
+    const osc  = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.connect(gain); gain.connect(audioCtx.destination);
-    osc.type = 'sine'; osc.frequency.value = 900;
-    gain.gain.setValueAtTime(0, audioCtx.currentTime);
-    gain.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + 0.008);
-    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.07);
-    osc.start(audioCtx.currentTime); osc.stop(audioCtx.currentTime + 0.08);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(140, audioCtx.currentTime + 0.18);
+    gain.gain.setValueAtTime(vol * 0.35, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.22);
+    osc.start(audioCtx.currentTime); osc.stop(audioCtx.currentTime + 0.25);
 }
 
 function playSelectChime() {
@@ -106,10 +227,6 @@ function playVolumeTone() {
     playVolumeTone._t = setTimeout(() => playTone(440, 0.35, parseFloat(volSlider.value) * 0.3), 80);
 }
 
-function playStopTone() {
-    playTone(280, 1.2, parseFloat(volSlider.value) * 0.4);
-}
-
 volSlider.addEventListener('input', playVolumeTone);
 
 document.getElementById('gear-dropdown').addEventListener('wheel', e => {
@@ -120,10 +237,26 @@ document.getElementById('gear-dropdown').addEventListener('wheel', e => {
     playVolumeTone();
 }, { passive: false });
 
-// Hover tick on interactive modal/dropdown elements
+// Hover click — all interactive elements on main screen + modals
+// Uses mouseover+mouseout tracking to fire only on enter, not on child re-bubbles
+const HOVER_SELECTOR = [
+    // main screen
+    '#start-btn', '#reset-btn', '#lang-btn', '#gear-btn', '#session-gear-btn',
+    '#toggle-tick', '#open-presets',
+    '.limit-chip', '.ctrl-option', '.input-group input',
+    // footer
+    '.bmc-btn', '.author-tag',
+    // modals
+    '.preset-card', '.modal-close',
+].join(', ');
+let _lastHoverEl = null;
 document.addEventListener('mouseover', e => {
-    const el = e.target.closest('.preset-card, .sound-chip, .limit-chip, .ctrl-option, .modal-close');
-    if (el) playHoverTick();
+    const el = e.target.closest(HOVER_SELECTOR);
+    if (el && el !== _lastHoverEl) { playHoverClick(); _lastHoverEl = el; }
+});
+document.addEventListener('mouseout', e => {
+    const el = e.target.closest(HOVER_SELECTOR);
+    if (el && !el.contains(e.relatedTarget)) _lastHoverEl = null;
 });
 
 // ── i18n apply ────────────────────────────────────────────────
@@ -141,7 +274,7 @@ function applyLang(l) {
     startBtn.textContent = isRunning ? t.stop : t.start;
     const isCustom = techniqueLabel.classList.contains('is-custom');
     setTechniqueLabel(isCustom ? '' : activeTechniqueName, isCustom);
-    renderSoundModal();
+    document.getElementById('tick-label').textContent = tickEnabled ? t.tickOn : t.tickOff;
 }
 
 // ── Dropdown helper ───────────────────────────────────────────
@@ -261,47 +394,25 @@ function renderPresets() {
     });
 }
 
-// ── Sounds ────────────────────────────────────────────────────
-const SOUND_OPTIONS = [
-    { labelEs:'Campana',  labelEn:'Bell',    file:'inhala.mp3'      },
-    { labelEs:'Cuenco',   labelEn:'Bowl',    file:'sound_bowl.mp3'  },
-    { labelEs:'Chime',    labelEn:'Chime',   file:'sound_chime.mp3' },
-    { labelEs:'Silencio', labelEn:'Silence', file:null              },
+// ── Phase sounds (hardcoded per phase) ────────────────────────
+const PHASE_SOUNDS = [
+    'assets/sounds/inhala.mp3',      // 0 inhale
+    'assets/sounds/pausa_lleno.mp3', // 1 hold full
+    'assets/sounds/exhala.mp3',      // 2 exhale
+    'assets/sounds/pausa_vacio.mp3', // 3 hold empty
 ];
-let soundConfig = [0,0,0,0];
-const phaseAudios = [
-    new Audio('inhala.mp3'), new Audio('pausa_lleno.mp3'),
-    new Audio('exhala.mp3'), new Audio('pausa_vacio.mp3'),
-];
-
-function renderSoundModal() {
-    const grid = document.getElementById('sound-grid');
-    grid.innerHTML = '';
-    i18n[lang].soundPhases.forEach((name, pi) => {
-        const section = document.createElement('div');
-        section.className = 'sound-section';
-        section.innerHTML = `<div class="sound-section-title">${name}</div>`;
-        const opts = document.createElement('div');
-        opts.className = 'sound-options';
-        SOUND_OPTIONS.forEach((opt,oi) => {
-            const chip = document.createElement('button');
-            chip.className = 'sound-chip'+(soundConfig[pi]===oi?' active':'');
-            chip.textContent = lang==='es' ? opt.labelEs : opt.labelEn;
-            chip.addEventListener('click', () => { soundConfig[pi]=oi; renderSoundModal(); });
-            opts.appendChild(chip);
-        });
-        section.appendChild(opts);
-        grid.appendChild(section);
-    });
-}
 
 document.getElementById('open-presets').addEventListener('click', () => {
     document.getElementById('gear-dropdown').classList.remove('open');
     renderPresets(); openModal('modal-presets');
 });
-document.getElementById('open-sounds').addEventListener('click', () => {
-    document.getElementById('gear-dropdown').classList.remove('open');
-    renderSoundModal(); openModal('modal-sounds');
+
+document.getElementById('toggle-tick').addEventListener('click', () => {
+    tickEnabled = !tickEnabled;
+    document.getElementById('tick-label').textContent = tickEnabled
+        ? i18n[lang].tickOn
+        : i18n[lang].tickOff;
+    document.getElementById('toggle-tick').classList.toggle('muted', !tickEnabled);
 });
 
 // ── Modal helpers ─────────────────────────────────────────────
@@ -326,10 +437,14 @@ function showToast(msg) {
 
 // ── Phase audio ───────────────────────────────────────────────
 function playPhase(pi) {
-    const opt = SOUND_OPTIONS[soundConfig[pi]];
-    if (!opt || !opt.file) return;
-    const a = phaseAudios[pi];
-    a.pause(); a.currentTime = 0;
+    const file = PHASE_SOUNDS[pi];
+    if (!file) return;
+    // Push the next tick past this moment — skips the beat that coincides with the phase sound.
+    // tickNextTime may already be slightly ahead (lookahead), so only nudge if it's within 0.3s.
+    if (tickNextTime - audioCtx.currentTime < 0.3) {
+        tickNextTime = audioCtx.currentTime + 0.3;
+    }
+    const a = new Audio(file);
     a.volume = parseFloat(volSlider.value);
     a.play().catch(() => {});
 }
@@ -418,6 +533,8 @@ async function runFlow() {
 
 // ── Start / Stop ──────────────────────────────────────────────
 function startTimer() {
+    audioCtx.resume();
+    playStartSound();
     toggleInputs(true); startBtn.disabled=true;
     breathText.innerText=''; phaseTimerDisplay.innerText='';
     breathingCircle.style.transition=''; setCircleState('collapsed');
@@ -435,6 +552,7 @@ function startTimer() {
             sessionCounter.innerText=formatTime(totalSeconds);
             if(limitType==='minutes' && checkLimit()){ stopTimer(i18n[lang].limitMsg(limitType,limitValue)); }
         },1000);
+        startTick();
         runFlow();
     },TRANSITION_MS);
 }
@@ -442,6 +560,7 @@ function startTimer() {
 function stopTimer(limitMsg) {
     isRunning=false;
     clearTimeout(currentPhaseTimeout); clearInterval(timerInterval); clearInterval(phaseInterval);
+    stopTick();
     lastSession.innerText=`${formatTime(totalSeconds)} (${cycles})`;
     playStopTone();
     if(limitMsg) showToast(limitMsg);
@@ -454,7 +573,6 @@ function stopTimer(limitMsg) {
     setTimeout(()=>{
         breathText.innerText=i18n[lang].ready;
         toggleInputs(false); startBtn.disabled=false;
-        phaseAudios.forEach(a=>a.pause());
     },TRANSITION_MS);
 }
 
@@ -465,3 +583,11 @@ resetBtn.onclick = () => {
     times.exhale.value=4; times.holdEmpty.value=4;
     setTechniqueLabel('Box Breathing');
 };
+
+// Reset inputs to defaults on every load — prevents browser session-restore
+// from showing stale values that don't match the technique label
+window.addEventListener('load', () => {
+    times.inhale.value=4; times.holdFull.value=4;
+    times.exhale.value=4; times.holdEmpty.value=4;
+    setTechniqueLabel('Box Breathing');
+});

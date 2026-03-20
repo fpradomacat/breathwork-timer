@@ -367,3 +367,6 @@ footer { display:flex; align-items:center; justify-content:center; gap:8px; }
     z-index:400; white-space:nowrap;
 }
 .limit-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* Tick toggle muted state */
+#toggle-tick.muted { opacity: 0.45; }

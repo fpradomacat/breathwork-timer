@@ -79,6 +79,7 @@
                             <div class="ctrl-divider"></div>
                             <button class="ctrl-option" id="open-presets" data-i18n="menuPresets">🌬 Técnicas</button>
                             <button class="ctrl-option" id="open-sounds" data-i18n="menuSounds">🔔 Sonidos</button>
+                            <button class="ctrl-option" id="toggle-tick">🕐 <span id="tick-label">Tic-tac: On</span></button>
                         </div>
                     </div>
                     <div class="technique-label-wrap">
@@ -86,19 +87,19 @@
                     </div>
                     <div class="input-group">
                         <label data-i18n="inhale">Inhala</label>
-                        <input type="text" inputmode="numeric" id="time-inhale" value="4" min="1">
+                        <input type="text" inputmode="numeric" id="time-inhale" value="4" min="1" autocomplete="off">
                     </div>
                     <div class="input-group">
                         <label data-i18n="holdFull">Pausa (Lleno)</label>
-                        <input type="text" inputmode="numeric" id="time-hold-full" value="4" min="0">
+                        <input type="text" inputmode="numeric" id="time-hold-full" value="4" min="0" autocomplete="off">
                     </div>
                     <div class="input-group">
                         <label data-i18n="exhale">Exhala</label>
-                        <input type="text" inputmode="numeric" id="time-exhale" value="4" min="1">
+                        <input type="text" inputmode="numeric" id="time-exhale" value="4" min="1" autocomplete="off">
                     </div>
                     <div class="input-group">
                         <label data-i18n="holdEmpty">Pausa (Vacío)</label>
-                        <input type="text" inputmode="numeric" id="time-hold-empty" value="4" min="0">
+                        <input type="text" inputmode="numeric" id="time-hold-empty" value="4" min="0" autocomplete="off">
                     </div>
                 </div>
             </div>
