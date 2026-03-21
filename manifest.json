@@ -1,0 +1,28 @@
+{
+  "name": "Breathspace",
+  "short_name": "Breathspace",
+  "description": "Tu espacio para respirar con intención.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#06030f",
+  "theme_color": "#06030f",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    }
+  ]
+}

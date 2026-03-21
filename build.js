@@ -3,6 +3,9 @@ const CleanCSS = require('clean-css');
 const { minify: minifyJS } = require('terser');
 const fs = require('fs');
 
+// ── Config ──
+const SITE_URL = process.env.SITE_URL || 'https://breathspace.netlify.app';
+
 const dist = './dist';
 if (!fs.existsSync(dist)) fs.mkdirSync(dist);
 
@@ -51,7 +54,8 @@ async function build() {
     console.log('✓ tutorial.js');
 
     // ── HTML ──
-    const html = fs.readFileSync('./index.html', 'utf8');
+    let html = fs.readFileSync('./index.html', 'utf8');
+    html = html.replaceAll('https://TU-DOMINIO.com', SITE_URL);
     const minHTML = await minifyHTML(html, {
         collapseWhitespace: true,
         removeComments: true,
@@ -78,6 +82,12 @@ async function build() {
     if (fs.existsSync('./assets')) {
         copyDirRecursive('./assets', `${dist}/assets`);
         console.log('✓ assets/');
+    }
+
+    // ── Manifest ──
+    if (fs.existsSync('./manifest.json')) {
+        fs.copyFileSync('./manifest.json', `${dist}/manifest.json`);
+        console.log('✓ manifest.json');
     }
 
     console.log('\n🎉 Build listo en /dist');
