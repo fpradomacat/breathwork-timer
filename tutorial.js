@@ -32,11 +32,11 @@
             pos: 'top',
             es: {
                 title: '⚙️ Elige tu técnica',
-                body:  'Ajusta los tiempos de cada fase: inhala, pausa, exhala y pausa vacío. O elige una técnica predefinida desde el menú ⚙.<br><br>💡 <strong>En móvil:</strong> mantén el dedo sobre un campo y desliza arriba/abajo para cambiar el valor.',
+                body:  'Ajusta los tiempos de cada fase: inhala, pausa, exhala y pausa vacío. O elige una técnica predefinida desde el menú.<br><br>💡 <strong>En móvil:</strong> mantén el dedo sobre un campo y desliza arriba/abajo para cambiar el valor.',
             },
             en: {
                 title: '⚙️ Choose your technique',
-                body:  'Set the duration for each phase: inhale, hold, exhale, and empty hold. Or pick a preset from the ⚙ menu.<br><br>💡 <strong>On mobile:</strong> press and hold a field, then slide up or down to change its value.',
+                body:  'Set the duration for each phase: inhale, hold, exhale, and empty hold. Or pick a preset from the menu.<br><br>💡 <strong>On mobile:</strong> press and hold a field, then slide up or down to change its value.',
             },
         },
         {
