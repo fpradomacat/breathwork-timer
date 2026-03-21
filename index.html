@@ -4,7 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Breathspace</title>
-    <link rel="stylesheet" href="style.css">
+     <link rel="stylesheet" href="style.css">
+
+    <!-- ── Primary meta ──────────────────────────────── -->
+    <meta name="description" content="Tu espacio para respirar con intención. Técnicas de respiración guiadas: Box Breathing, 4-7-8, Wim Hof y más.">
+    <meta name="theme-color" content="#06030f">
+    <link rel="icon" href="assets/icons/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+    <link rel="manifest" href="manifest.json">
+
+    <!-- ── Open Graph (WhatsApp, Telegram, LinkedIn…) ── -->
+    <meta property="og:type"        content="website">
+    <meta property="og:title"       content="Breathspace">
+    <meta property="og:description" content="Tu espacio para respirar con intención.">
+    <meta property="og:image"       content="https://TU-DOMINIO.com/assets/icons/og-image.png">
+    <meta property="og:url"         content="https://TU-DOMINIO.com">
+
+    <!-- ── Twitter / X ──────────────────────────────── -->
+    <meta name="twitter:card"        content="summary_large_image">
+    <meta name="twitter:title"       content="Breathspace">
+    <meta name="twitter:description" content="Tu espacio para respirar con intención.">
+    <meta name="twitter:image"       content="https://TU-DOMINIO.com/assets/icons/og-image.png">
+</head>
 </head>
 <body>
     <div class="main-layout">
@@ -49,7 +70,7 @@
             <!-- Footer -->
             <footer>
                 <a href="https://buymeacoffee.com/soypradito" target="_blank" class="bmc-btn">
-                    <span class="bmc-emoji">☕</span> Buy me a coffee
+                    <span data-i18n="donate">Donar :)</span>
                 </a>
                 <span class="footer-sep">·</span>
                 <a href="https://instagram.com/soypradito" target="_blank" class="author-tag">@soypradito</a>
@@ -65,6 +86,17 @@
                 <button class="modal-close" data-close="modal-settings">✕</button>
             </div>
             <div class="modal-body">
+
+                <!-- Lang + Reset -->
+                <div class="settings-section lang-reset-section">
+                    <div class="lang-inline">
+                        <button class="lang-inline-btn active" data-value="es">🇪🇸 ES</button>
+                        <button class="lang-inline-btn" data-value="en">🇬🇧 EN</button>
+                    </div>
+                    <button class="reset-inline-btn" id="reset-btn" data-i18n="reset">Reset</button>
+                </div>
+
+                <div class="settings-divider"></div>
 
                 <!-- Timing controls -->
                 <div class="settings-section">
@@ -133,16 +165,6 @@
                     <div class="theme-chips-wrap" id="theme-chips"></div>
                 </div>
 
-                <div class="settings-divider"></div>
-
-                <!-- Lang + Reset -->
-                <div class="settings-section lang-reset-section">
-                    <div class="lang-inline">
-                        <button class="lang-inline-btn active" data-value="es">🇪🇸 ES</button>
-                        <button class="lang-inline-btn" data-value="en">🇬🇧 EN</button>
-                    </div>
-                    <button class="reset-inline-btn" id="reset-btn" data-i18n="reset">Reset</button>
-                </div>
 
             </div>
         </div>

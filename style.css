@@ -957,3 +957,30 @@ body::before {
     color: var(--text-primary);
     border-color: var(--accent);
 }
+
+/* ── Theme chips: visibles en todos los temas ── */
+.theme-chip {
+    color: var(--text-primary);
+    border-color: var(--input-border);
+    opacity: 0.6;
+}
+.theme-chip:hover {
+    opacity: 1;
+    border-color: var(--accent);
+    color: var(--text-primary);
+    background: var(--accent-dim);
+}
+.theme-chip.active {
+    opacity: 1;
+}
+
+/* ── Theme chips: texto siempre blanco ── */
+.theme-chip,
+.theme-chip:hover,
+.theme-chip.active {
+    color: #fff !important;
+    opacity: 1;
+}
+.theme-chip { border-color: rgba(255,255,255,.25); }
+.theme-chip:hover { border-color: rgba(255,255,255,.5); background: rgba(255,255,255,.08); }
+.theme-chip.active { border-color: rgba(255,255,255,.7); background: rgba(255,255,255,.15); }
