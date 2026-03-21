@@ -32,6 +32,24 @@ async function build() {
     fs.writeFileSync(`${dist}/script.js`, result.code);
     console.log('✓ script.js');
 
+    // ── tutorial.js — minify + obfuscate ──
+    const tutorialJs = fs.readFileSync('./tutorial.js', 'utf8');
+    const tutorialResult = await minifyJS(tutorialJs, {
+        compress: {
+            drop_console: true,
+            passes: 3,
+        },
+        mangle: {
+            toplevel: true,
+            properties: false,
+        },
+        format: {
+            comments: false,
+        },
+    });
+    fs.writeFileSync(`${dist}/tutorial.js`, tutorialResult.code);
+    console.log('✓ tutorial.js');
+
     // ── HTML ──
     const html = fs.readFileSync('./index.html', 'utf8');
     const minHTML = await minifyHTML(html, {
