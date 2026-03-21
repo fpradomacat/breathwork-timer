@@ -312,9 +312,11 @@ function renderPresets() {
     });
 }
 
-// ── Phase sounds — decoded into AudioBuffers at load time ────
-// Using AudioBufferSourceNode (Web Audio API) instead of HTMLAudioElement
-// bypasses the OS audio stack entirely, eliminating Bluetooth dropouts.
+// ── Phase sounds ─────────────────────────────────────────────
+// Primary path: fetch + decodeAudioData into AudioBuffers (Web Audio API).
+// This bypasses the OS audio stack, eliminating Bluetooth dropouts on mobile.
+// Fallback path: HTMLAudioElement, used if decode fails (e.g. file:// protocol,
+// missing file, or browser decode error) so desktop always works.
 const PHASE_SOUND_SRCS = [
     'assets/sounds/inhala.mp3',
     'assets/sounds/pausa_lleno.mp3',
@@ -322,28 +324,43 @@ const PHASE_SOUND_SRCS = [
     'assets/sounds/pausa_vacio.mp3',
 ];
 
-const _phaseBuffers = new Array(PHASE_SOUND_SRCS.length).fill(null);
+const _phaseBuffers  = new Array(PHASE_SOUND_SRCS.length).fill(null);
+const _phaseAudioEls = PHASE_SOUND_SRCS.map(src => {
+    const a = new Audio(src);
+    a.preload = 'auto';
+    a.load();
+    return a;
+});
 
-// Fetch + decode all files immediately. Runs in parallel.
-// If a file fails (404, network error) the slot stays null and playPhase skips it silently.
 PHASE_SOUND_SRCS.forEach((src, i) => {
     fetch(src)
         .then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
         .then(ab => audioCtx.decodeAudioData(ab))
         .then(buf => { _phaseBuffers[i] = buf; })
-        .catch(() => {});
+        .catch(() => { /* decode failed — fallback HTMLAudioElement will be used */ });
 });
 
 function playPhase(pi) {
-    const buf = _phaseBuffers[pi];
-    if (!buf) return;
-    const src  = audioCtx.createBufferSource();
-    const gain = audioCtx.createGain();
-    src.buffer = buf;
-    gain.gain.value = parseFloat(volSlider.value);
-    src.connect(gain);
-    gain.connect(audioCtx.destination);
-    src.start();
+    const vol = parseFloat(volSlider.value);
+    if (vol <= 0) return;
+
+    if (_phaseBuffers[pi]) {
+        // Web Audio path — zero latency, no OS stack, Bluetooth-safe
+        const src  = audioCtx.createBufferSource();
+        const gain = audioCtx.createGain();
+        src.buffer = _phaseBuffers[pi];
+        gain.gain.value = vol;
+        src.connect(gain);
+        gain.connect(audioCtx.destination);
+        src.start();
+    } else {
+        // Fallback: HTMLAudioElement (decode not ready or failed)
+        const a = _phaseAudioEls[pi];
+        if (!a) return;
+        a.volume = vol;
+        a.currentTime = 0;
+        a.play().catch(() => {});
+    }
 }
 
 document.getElementById('open-presets').addEventListener('click', () => {
