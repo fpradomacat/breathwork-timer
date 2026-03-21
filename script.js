@@ -156,7 +156,7 @@ document.getElementById('gear-dropdown').addEventListener('wheel', e => {
 
 // ── Hover click ───────────────────────────────────────────────
 const HOVER_SELECTOR = [
-    '#start-btn', '#presets-btn', '#reset-btn', '#lang-btn', '#gear-btn', '#session-gear-btn',
+    '#start-btn', '#presets-btn', '#reset-btn', '#lang-btn', '#gear-btn', '#session-gear-btn', '#techniques-btn',
     '.limit-chip', '.ctrl-option', '.input-group input',
     '.bmc-btn', '.author-tag', '.preset-card', '.modal-close',
 ].join(', ');
