@@ -374,3 +374,202 @@ footer { display:flex; align-items:center; justify-content:center; gap:8px; }
 
 /* Tick toggle muted state */
 #toggle-tick.muted { opacity: 0.45; }
+/* ══════════════════════════════════════════════════════════════
+   NEW SIMPLIFIED LAYOUT — additions/overrides
+   ══════════════════════════════════════════════════════════════ */
+
+/* Technique label next to title */
+.header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+#technique-label {
+    font-size: .52rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif;
+    transition: color .2s;
+    /* override old absolute positioning */
+    position: static;
+    pointer-events: auto;
+}
+#technique-label.is-custom { color: var(--accent); opacity: .7; }
+
+/* Bigger circle container — no longer shrinks for controls */
+#breathing-circle-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 280px;
+    transition: height var(--transition);
+    margin-bottom: 24px;
+}
+.container.session #breathing-circle-container { height: 360px; }
+
+/* Circle cursor hint */
+#breathing-circle {
+    cursor: pointer;
+}
+#breathing-circle:hover:not(.active):not(.collapsed) {
+    opacity: .7;
+}
+
+/* Bottom bar with settings pill */
+.bottom-bar {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 18px;
+}
+
+.settings-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 22px;
+    border-radius: 100px;
+    border: 1px solid var(--divider);
+    background: var(--panel-bg);
+    color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: .75rem;
+    font-weight: 400;
+    letter-spacing: .08em;
+    cursor: pointer;
+    transition: color .2s, border-color .2s, background .2s;
+    flex: none;
+    box-shadow: none;
+}
+.settings-pill:hover {
+    color: var(--text-secondary);
+    border-color: rgba(255,255,255,.15);
+    background: rgba(255,255,255,.04);
+}
+.settings-pill svg { flex-shrink: 0; }
+
+/* Hide the old bottom bar elements */
+.controls-panel { display: none !important; }
+.button-group    { display: none !important; }
+
+/* ── Settings modal ── */
+.modal-settings-modal {
+    max-width: 380px;
+}
+
+.settings-section {
+    margin-bottom: 4px;
+}
+
+.settings-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.settings-section-title {
+    font-size: .52rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    display: block;
+}
+.settings-section-header .settings-section-title {
+    margin-bottom: 0;
+}
+
+.technique-label-modal {
+    font-size: .52rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif;
+}
+.technique-label-modal.is-custom { color: var(--accent); opacity: .7; }
+
+.timing-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.settings-divider {
+    height: 1px;
+    background: var(--divider);
+    margin: 16px 0;
+}
+
+/* Lang + Reset row */
+.lang-reset-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0;
+}
+
+.lang-inline {
+    display: flex;
+    gap: 6px;
+}
+
+.lang-inline-btn {
+    padding: 7px 14px;
+    border-radius: 100px;
+    border: 1px solid var(--divider);
+    background: transparent;
+    color: var(--text-muted);
+    font-family: 'DM Mono', monospace;
+    font-size: .68rem;
+    letter-spacing: .06em;
+    cursor: pointer;
+    box-shadow: none;
+    flex: none;
+    transition: color .2s, border-color .2s, background .2s;
+}
+.lang-inline-btn:hover {
+    color: var(--text-secondary);
+    border-color: rgba(255,255,255,.15);
+}
+.lang-inline-btn.active {
+    color: var(--accent-bright);
+    border-color: rgba(176,132,245,.35);
+    background: var(--accent-dim);
+}
+
+.reset-inline-btn {
+    padding: 7px 16px;
+    border-radius: 100px;
+    border: 1px solid var(--divider);
+    background: transparent;
+    color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: .75rem;
+    letter-spacing: .06em;
+    cursor: pointer;
+    box-shadow: none;
+    flex: none;
+    transition: color .2s, border-color .2s;
+}
+.reset-inline-btn:hover {
+    color: var(--text-secondary);
+    border-color: rgba(255,255,255,.15);
+}
+
+/* Vol row inside modal */
+.vol-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+.vol-row .gear-vol-slider { flex: 1; }
+
+/* Presets list inside modal */
+#presets-list .preset-card { margin-bottom: 8px; }
+#presets-list .preset-card:last-child { margin-bottom: 0; }

@@ -44,23 +44,23 @@
             pos: 'bottom',
             es: {
                 title: '🫁 El círculo te guía',
-                body:  'El círculo crece al inhalar y se contrae al exhalar. Sigue su ritmo y déjate llevar.',
+                body:  'El círculo crece al inhalar y se contrae al exhalar. Sigue su ritmo y déjate llevar.<br><br><strong>Tocalo</strong> para iniciar o pausar la sesión.',
             },
             en: {
                 title: '🫁 The circle guides you',
-                body:  'The circle expands as you inhale and shrinks as you exhale. Just follow its rhythm.',
+                body:  'The circle expands as you inhale and shrinks as you exhale. Just follow its rhythm.<br><br><strong>Tap it</strong> to start or pause the session.',
             },
         },
         {
-            target: '#start-btn',
+            target: '#settings-btn',
             pos: 'top',
             es: {
-                title: '▶️ Cuando estés listo',
-                body:  'Pulsa <strong>Iniciar</strong> para comenzar la sesión. Puedes pausarla en cualquier momento.',
+                title: '⚙️ Todo desde aquí',
+                body:  'Accedé a técnicas, tiempos, límites de sesión, volumen e idioma desde este botón.<br><br>Para iniciar, simplemente <strong>tocá la bolita</strong>.',
             },
             en: {
-                title: '▶️ When you\'re ready',
-                body:  'Press <strong>Start</strong> to begin your session. You can stop it at any time.',
+                title: '⚙️ Everything from here',
+                body:  'Access techniques, timings, session limits, volume and language from this button.<br><br>To start, simply <strong>tap the circle</strong>.',
             },
         },
     ];

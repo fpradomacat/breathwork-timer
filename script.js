@@ -156,9 +156,11 @@ document.getElementById('gear-dropdown').addEventListener('wheel', e => {
 
 // ── Hover click ───────────────────────────────────────────────
 const HOVER_SELECTOR = [
-    '#start-btn', '#presets-btn', '#reset-btn', '#lang-btn', '#gear-btn', '#session-gear-btn', '#techniques-btn',
+    '#start-btn', '#presets-btn', '#reset-btn', '#settings-btn',
     '.limit-chip', '.ctrl-option', '.input-group input',
     '.bmc-btn', '.author-tag', '.preset-card', '.modal-close',
+    '.lang-inline-btn', '.reset-inline-btn', '.settings-pill',
+    '#breathing-circle',
 ].join(', ');
 
 let _lastHoverEl = null;
@@ -186,7 +188,7 @@ function applyLang(l) {
     document.querySelectorAll('#lang-dropdown .ctrl-option').forEach(o =>
         o.classList.toggle('active', o.dataset.value === l));
     if (!isRunning) breathText.textContent = t.ready;
-    startBtn.textContent = isRunning ? t.stop : t.start;
+    if (startBtn) startBtn.textContent = isRunning ? t.stop : t.start;
     const isCustom = techniqueLabel.classList.contains('is-custom');
     setTechniqueLabel(isCustom ? '' : activeTechniqueName, isCustom);
 }
@@ -455,8 +457,9 @@ Object.values(times).forEach(input => {
 // ── Helpers ───────────────────────────────────────────────────
 function toggleInputs(disabled) {
     Object.values(times).forEach(i => i.disabled = disabled);
-    resetBtn.disabled = disabled;
-    document.querySelector('.settings-grid').classList.toggle('locked', disabled);
+    if (resetBtn) resetBtn.disabled = disabled;
+    const grid = document.querySelector('.settings-grid');
+    if (grid) grid.classList.toggle('locked', disabled);
 }
 function formatTime(s) {
     return `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;

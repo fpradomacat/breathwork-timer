@@ -5,41 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Breathspace</title>
     <link rel="stylesheet" href="style.css">
-
-    <!-- ── Primary meta ──────────────────────────────── -->
-    <meta name="description" content="Tu espacio para respirar con intención. Técnicas de respiración guiadas: Box Breathing, 4-7-8, Wim Hof y más.">
-    <meta name="theme-color" content="#06030f">
-    <link rel="icon" href="assets/icons/icon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
-    <link rel="manifest" href="manifest.json">
-
-    <!-- ── Open Graph (WhatsApp, Telegram, LinkedIn…) ── -->
-    <meta property="og:type"        content="website">
-    <meta property="og:title"       content="Breathspace">
-    <meta property="og:description" content="Tu espacio para respirar con intención.">
-    <meta property="og:image"       content="https://TU-DOMINIO.com/assets/icons/og-image.png">
-    <meta property="og:url"         content="https://TU-DOMINIO.com">
-
-    <!-- ── Twitter / X ──────────────────────────────── -->
-    <meta name="twitter:card"        content="summary_large_image">
-    <meta name="twitter:title"       content="Breathspace">
-    <meta name="twitter:description" content="Tu espacio para respirar con intención.">
-    <meta name="twitter:image"       content="https://TU-DOMINIO.com/assets/icons/og-image.png">
 </head>
 <body>
     <div class="main-layout">
         <div class="container">
 
-            <!-- Header: title + lang selector -->
+            <!-- Header -->
             <div class="header-row">
                 <h1 data-i18n="title">Breathspace</h1>
-                <div class="lang-wrap">
-                    <button class="ctrl-btn" id="lang-btn">ES</button>
-                    <div class="ctrl-dropdown" id="lang-dropdown">
-                        <button class="ctrl-option active" data-value="es">ES — Español</button>
-                        <button class="ctrl-option" data-value="en">EN — English</button>
-                    </div>
-                </div>
+                <span id="technique-label">Box Breathing</span>
             </div>
 
             <!-- Stats box -->
@@ -58,26 +32,9 @@
                     <span class="stat-label" data-i18n="statLast">Última</span>
                     <span class="stat-value" id="last-session">--</span>
                 </div>
-                <!-- Session limit gear -->
-                <div class="session-gear-wrap">
-                    <button class="ctrl-btn gear-sm" id="session-gear-btn">⚙</button>
-                    <div class="ctrl-dropdown dropdown-left" id="session-gear-dropdown">
-                        <div class="dropdown-form">
-                            <div class="dropdown-form-title" data-i18n="limitTitle">Límite de sesión</div>
-                            <div class="limit-chips">
-                                <button class="limit-chip active" data-value="none" data-i18n="limitNone">Sin límite</button>
-                                <button class="limit-chip" data-value="minutes" data-i18n="limitMin">Minutos</button>
-                                <button class="limit-chip" data-value="cycles" data-i18n="limitCyc">Ciclos</button>
-                            </div>
-                            <div class="limit-value-row">
-                                <input type="text" inputmode="numeric" id="limit-value" value="10" min="1" disabled>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
 
-            <!-- Breathing circle -->
+            <!-- Breathing circle (tap to start/stop) -->
             <div id="breathing-circle-container">
                 <div id="breathing-circle">
                     <span id="breath-text" data-i18n="ready">Listo</span>
@@ -85,47 +42,15 @@
                 </div>
             </div>
 
-            <!-- Controls panel -->
-            <div class="controls-panel">
-                <div class="settings-grid">
-                    <!-- Gear: top-right inside the grid -->
-                    <div class="gear-wrap">
-                        <button class="ctrl-btn gear-sm" id="gear-btn">⚙</button>
-                        <div class="ctrl-dropdown dropdown-up" id="gear-dropdown">
-                            <div class="gear-vol-row">
-                                <span class="gear-vol-label" data-i18n="vol">Vol</span>
-                                <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5" class="gear-vol-slider">
-                            </div>
-                            <div class="ctrl-divider"></div>
-                            <button class="ctrl-option" id="reset-btn" data-i18n="reset">Reset</button>
-                        </div>
-                    </div>
-                    <div class="technique-label-wrap">
-                        <span id="technique-label">Box Breathing</span>
-                    </div>
-                    <div class="input-group">
-                        <label data-i18n="inhale">Inhala</label>
-                        <input type="text" inputmode="numeric" id="time-inhale" value="4" min="1" autocomplete="off">
-                    </div>
-                    <div class="input-group">
-                        <label data-i18n="holdFull">Pausa (Lleno)</label>
-                        <input type="text" inputmode="numeric" id="time-hold-full" value="4" min="0" autocomplete="off">
-                    </div>
-                    <div class="input-group">
-                        <label data-i18n="exhale">Exhala</label>
-                        <input type="text" inputmode="numeric" id="time-exhale" value="4" min="1" autocomplete="off">
-                    </div>
-                    <div class="input-group">
-                        <label data-i18n="holdEmpty">Pausa (Vacío)</label>
-                        <input type="text" inputmode="numeric" id="time-hold-empty" value="4" min="0" autocomplete="off">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Buttons -->
-            <div class="button-group">
-                <button id="start-btn" data-i18n="start">Iniciar</button>
-                <button id="techniques-btn" data-i18n="menuPresets">Técnicas</button>
+            <!-- Bottom bar -->
+            <div class="bottom-bar">
+                <button class="settings-pill" id="settings-btn">
+                    <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M16.2 12.5a1.38 1.38 0 0 0 .28 1.52l.05.05a1.67 1.67 0 0 1-2.36 2.36l-.05-.05a1.38 1.38 0 0 0-1.52-.28 1.38 1.38 0 0 0-.84 1.27V17.5a1.67 1.67 0 0 1-3.33 0v-.07a1.38 1.38 0 0 0-.9-1.27 1.38 1.38 0 0 0-1.52.28l-.05.05a1.67 1.67 0 0 1-2.36-2.36l.05-.05a1.38 1.38 0 0 0 .28-1.52 1.38 1.38 0 0 0-1.27-.84H2.5a1.67 1.67 0 0 1 0-3.33h.07a1.38 1.38 0 0 0 1.27-.9 1.38 1.38 0 0 0-.28-1.52l-.05-.05a1.67 1.67 0 0 1 2.36-2.36l.05.05a1.38 1.38 0 0 0 1.52.28h.07A1.38 1.38 0 0 0 8.33 2.57V2.5a1.67 1.67 0 0 1 3.33 0v.07a1.38 1.38 0 0 0 .84 1.27 1.38 1.38 0 0 0 1.52-.28l.05-.05a1.67 1.67 0 0 1 2.36 2.36l-.05.05a1.38 1.38 0 0 0-.28 1.52v.07a1.38 1.38 0 0 0 1.27.84h.07a1.67 1.67 0 0 1 0 3.33h-.07a1.38 1.38 0 0 0-1.27.84z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span data-i18n="settingsLabel">Ajustes</span>
+                </button>
             </div>
 
             <!-- Footer -->
@@ -136,33 +61,138 @@
                 <span class="footer-sep">·</span>
                 <a href="https://instagram.com/soypradito" target="_blank" class="author-tag">@soypradito</a>
             </footer>
-
         </div>
     </div>
 
-    <!-- Modal: Presets -->
-    <div class="modal-overlay" id="modal-presets">
-        <div class="modal">
+    <!-- Modal: Settings (unified) -->
+    <div class="modal-overlay" id="modal-settings">
+        <div class="modal modal-settings-modal">
             <div class="modal-header">
-                <span class="modal-title" data-i18n="menuPresets">Técnicas</span>
-                <button class="modal-close" data-close="modal-presets">✕</button>
+                <span class="modal-title" data-i18n="settingsTitle">Configuración</span>
+                <button class="modal-close" data-close="modal-settings">✕</button>
             </div>
-            <div class="modal-body" id="presets-list"></div>
+            <div class="modal-body">
+
+                <!-- Timing controls -->
+                <div class="settings-section">
+                    <div class="settings-section-header">
+                        <span class="settings-section-title" data-i18n="sectionTiming">Tiempos</span>
+                        <span id="technique-label-modal" class="technique-label-modal">Box Breathing</span>
+                    </div>
+                    <div class="timing-grid">
+                        <div class="input-group">
+                            <label data-i18n="inhale">Inhala</label>
+                            <input type="text" inputmode="numeric" id="time-inhale" value="4" min="1" autocomplete="off">
+                        </div>
+                        <div class="input-group">
+                            <label data-i18n="holdFull">Pausa (Lleno)</label>
+                            <input type="text" inputmode="numeric" id="time-hold-full" value="4" min="0" autocomplete="off">
+                        </div>
+                        <div class="input-group">
+                            <label data-i18n="exhale">Exhala</label>
+                            <input type="text" inputmode="numeric" id="time-exhale" value="4" min="1" autocomplete="off">
+                        </div>
+                        <div class="input-group">
+                            <label data-i18n="holdEmpty">Pausa (Vacío)</label>
+                            <input type="text" inputmode="numeric" id="time-hold-empty" value="4" min="0" autocomplete="off">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-divider"></div>
+
+                <!-- Techniques -->
+                <div class="settings-section">
+                    <div class="settings-section-title" data-i18n="menuPresets">Técnicas</div>
+                    <div id="presets-list"></div>
+                </div>
+
+                <div class="settings-divider"></div>
+
+                <!-- Session limit -->
+                <div class="settings-section">
+                    <div class="settings-section-title" data-i18n="limitTitle">Límite de sesión</div>
+                    <div class="limit-chips">
+                        <button class="limit-chip active" data-value="none" data-i18n="limitNone">Sin límite</button>
+                        <button class="limit-chip" data-value="minutes" data-i18n="limitMin">Minutos</button>
+                        <button class="limit-chip" data-value="cycles" data-i18n="limitCyc">Ciclos</button>
+                    </div>
+                    <div class="limit-value-row">
+                        <input type="text" inputmode="numeric" id="limit-value" value="10" min="1" disabled>
+                    </div>
+                </div>
+
+                <div class="settings-divider"></div>
+
+                <!-- Volume -->
+                <div class="settings-section">
+                    <div class="settings-section-title" data-i18n="vol">Vol</div>
+                    <div class="vol-row">
+                        <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5" class="gear-vol-slider">
+                    </div>
+                </div>
+
+                <div class="settings-divider"></div>
+
+                <!-- Lang + Reset -->
+                <div class="settings-section lang-reset-section">
+                    <div class="lang-inline">
+                        <button class="lang-inline-btn active" data-value="es">🇪🇸 ES</button>
+                        <button class="lang-inline-btn" data-value="en">🇬🇧 EN</button>
+                    </div>
+                    <button class="reset-inline-btn" id="reset-btn" data-i18n="reset">Reset</button>
+                </div>
+
+            </div>
         </div>
     </div>
 
-    <!-- Modal: Sounds -->
-    <div class="modal-overlay" id="modal-sounds">
-        <div class="modal">
-            <div class="modal-header">
-                <span class="modal-title" data-i18n="menuSounds">🔔 Sonidos</span>
-                <button class="modal-close" data-close="modal-sounds">✕</button>
-            </div>
-            <div class="modal-body" id="sound-grid"></div>
+    <!-- Hidden elements for JS compatibility -->
+    <div style="display:none">
+        <button id="lang-btn">ES</button>
+        <div id="lang-dropdown">
+            <button class="ctrl-option active" data-value="es">ES — Español</button>
+            <button class="ctrl-option" data-value="en">EN — English</button>
         </div>
+        <button id="gear-btn"></button>
+        <div id="gear-dropdown"></div>
+        <button id="session-gear-btn"></button>
+        <div id="session-gear-dropdown"></div>
+        <div class="controls-panel"></div>
+        <button id="start-btn"></button>
+        <button id="techniques-btn"></button>
     </div>
 
     <script src="script.js"></script>
     <script src="tutorial.js"></script>
+    <script>
+    // ── Circle tap = start / stop ──────────────────────────────
+    document.getElementById('breathing-circle').addEventListener('click', () => {
+        document.getElementById('start-btn').click();
+    });
+
+    // ── Settings modal ─────────────────────────────────────────
+    document.getElementById('settings-btn').addEventListener('click', () => {
+        renderPresets();
+        openModal('modal-settings');
+    });
+
+    // ── Inline lang buttons ────────────────────────────────────
+    document.querySelectorAll('.lang-inline-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.lang-inline-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            applyLang(btn.dataset.value);
+        });
+    });
+
+    // ── Sync technique-label-modal with technique-label ────────
+    const _techMain  = document.getElementById('technique-label');
+    const _techModal = document.getElementById('technique-label-modal');
+    new MutationObserver(() => {
+        _techModal.textContent = _techMain.textContent;
+        _techModal.className   = 'technique-label-modal' + (_techMain.classList.contains('is-custom') ? ' is-custom' : '');
+    }).observe(_techMain, { childList: true, characterData: true, subtree: true, attributes: true });
+    </script>
 </body>
 </html>
