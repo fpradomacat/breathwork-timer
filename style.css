@@ -281,9 +281,9 @@ button:not(:disabled):active{transform:scale(.97);}
 button:not(:disabled):hover{box-shadow:none;}
 #start-btn{box-shadow:0 4px 20px rgba(100,40,220,.3);}
 #start-btn:not(:disabled):hover{box-shadow:0 4px 30px rgba(160,100,255,.45);}
-#reset-btn{flex:1;background:rgba(255,255,255,.05);border-color:var(--divider);color:var(--text-secondary);box-shadow:none;}
-#reset-btn:not(:disabled):hover{background:rgba(255,255,255,.08);box-shadow:none;}
-#reset-btn:disabled{opacity:.3;cursor:not-allowed;}
+#techniques-btn{flex:1;background:rgba(255,255,255,.05);border-color:var(--divider);color:var(--text-secondary);box-shadow:none;}
+#techniques-btn:not(:disabled):hover{background:rgba(255,255,255,.08);box-shadow:none;}
+#techniques-btn:disabled{opacity:.3;cursor:not-allowed;}
 
 /* ── Footer ── */
 footer { display:flex; align-items:center; justify-content:center; gap:8px; }

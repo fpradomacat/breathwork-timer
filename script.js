@@ -40,6 +40,7 @@ const phaseTimerDisplay = document.getElementById('phase-timer');
 const breathingCircle   = document.getElementById('breathing-circle');
 const startBtn          = document.getElementById('start-btn');
 const resetBtn          = document.getElementById('reset-btn');
+const techniquesBtn     = document.getElementById('techniques-btn');
 const sessionCounter    = document.getElementById('session-counter');
 const cycleCounter      = document.getElementById('cycle-counter');
 const lastSession       = document.getElementById('last-session');
@@ -155,8 +156,8 @@ document.getElementById('gear-dropdown').addEventListener('wheel', e => {
 
 // ── Hover click ───────────────────────────────────────────────
 const HOVER_SELECTOR = [
-    '#start-btn', '#reset-btn', '#lang-btn', '#gear-btn', '#session-gear-btn',
-    '#open-presets', '.limit-chip', '.ctrl-option', '.input-group input',
+    '#start-btn', '#presets-btn', '#reset-btn', '#lang-btn', '#gear-btn', '#session-gear-btn',
+    '.limit-chip', '.ctrl-option', '.input-group input',
     '.bmc-btn', '.author-tag', '.preset-card', '.modal-close',
 ].join(', ');
 
@@ -332,13 +333,16 @@ const _phaseAudioEls = PHASE_SOUND_SRCS.map(src => {
     return a;
 });
 
-PHASE_SOUND_SRCS.forEach((src, i) => {
-    fetch(src)
-        .then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
-        .then(ab => audioCtx.decodeAudioData(ab))
-        .then(buf => { _phaseBuffers[i] = buf; })
-        .catch(() => { /* decode failed — fallback HTMLAudioElement will be used */ });
-});
+// Only attempt fetch/decode when served over http(s) — file:// blocks fetch with CORS errors.
+if (location.protocol !== 'file:') {
+    PHASE_SOUND_SRCS.forEach((src, i) => {
+        fetch(src)
+            .then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+            .then(ab => audioCtx.decodeAudioData(ab))
+            .then(buf => { _phaseBuffers[i] = buf; })
+            .catch(() => { /* decode failed — fallback HTMLAudioElement will be used */ });
+    });
+}
 
 function playPhase(pi) {
     const vol = parseFloat(volSlider.value);
@@ -363,8 +367,7 @@ function playPhase(pi) {
     }
 }
 
-document.getElementById('open-presets').addEventListener('click', () => {
-    document.getElementById('gear-dropdown').classList.remove('open');
+document.getElementById('techniques-btn').addEventListener('click', () => {
     renderPresets();
     openModal('modal-presets');
 });
@@ -653,9 +656,13 @@ function stopTimer(limitMsg) {
 startBtn.onclick = () => isRunning ? stopTimer() : startTimer();
 resetBtn.onclick = () => {
     if (isRunning) return;
-    renderPresets();
-    openModal('modal-presets');
+    times.inhale.value = 4; times.holdFull.value = 4;
+    times.exhale.value = 4; times.holdEmpty.value = 4;
+    setTechniqueLabel('Box Breathing');
+    toggleDropdown('gear-dropdown');
 };
+
+
 
 // Prevent browser session-restore from showing stale input values
 window.addEventListener('load', () => {
