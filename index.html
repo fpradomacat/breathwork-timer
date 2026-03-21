@@ -134,6 +134,14 @@
 
                 <div class="settings-divider"></div>
 
+                <!-- Themes -->
+                <div class="settings-section">
+                    <div class="settings-section-title" data-i18n="sectionTheme">Tema</div>
+                    <div class="theme-chips-wrap" id="theme-chips"></div>
+                </div>
+
+                <div class="settings-divider"></div>
+
                 <!-- Lang + Reset -->
                 <div class="settings-section lang-reset-section">
                     <div class="lang-inline">
@@ -165,6 +173,7 @@
 
     <script src="script.js"></script>
     <script src="tutorial.js"></script>
+    <script src="theme.js"></script>
     <script>
     // ── Circle tap = start / stop ──────────────────────────────
     document.getElementById('breathing-circle').addEventListener('click', () => {
@@ -174,6 +183,7 @@
     // ── Settings modal ─────────────────────────────────────────
     document.getElementById('settings-btn').addEventListener('click', () => {
         renderPresets();
+        if (typeof renderThemeChips === 'function') renderThemeChips();
         openModal('modal-settings');
     });
 

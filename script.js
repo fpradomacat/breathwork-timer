@@ -11,6 +11,7 @@ const i18n = {
         soundPhases:['Inhalar','Pausa (Lleno)','Exhalar','Pausa (Vacío)'],
         limitMsg: (type,val) => type==='minutes' ? `⏱ ${val} min alcanzados` : `🔄 ${val} ciclos completados`,
         custom: 'Personalizado',
+        sectionTheme: 'Tema', settingsTitle: 'Configuración', settingsLabel: 'Ajustes', sectionTiming: 'Tiempos',
     },
     en: {
         title:'Breathspace',
@@ -23,6 +24,7 @@ const i18n = {
         soundPhases:['Inhale','Hold (Full)','Exhale','Hold (Empty)'],
         limitMsg: (type,val) => type==='minutes' ? `⏱ ${val} min reached` : `🔄 ${val} cycles completed`,
         custom: 'Custom',
+        sectionTheme: 'Theme', settingsTitle: 'Settings', settingsLabel: 'Settings', sectionTiming: 'Timings',
     }
 };
 

@@ -573,3 +573,258 @@ footer { display:flex; align-items:center; justify-content:center; gap:8px; }
 /* Presets list inside modal */
 #presets-list .preset-card { margin-bottom: 8px; }
 #presets-list .preset-card:last-child { margin-bottom: 0; }
+
+/* ══════════════════════════════════════════════════════════════
+   TEMAS, BOLITA GRANDE, STATS MINIMALISTAS, ARCO, HÁPTICA
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Variables base por tema ── */
+:root, [data-theme="purple"] {
+    --bg-base:       #06030f;
+    --bg-grad-a:     rgba(88,28,220,.22);
+    --bg-grad-b:     rgba(147,51,234,.16);
+    --bg-grad-c:     rgba(30,10,80,.5);
+    --nebula-a:      rgba(120,60,255,.10);
+    --nebula-b:      rgba(80,30,180,.12);
+    --circle-inner:  rgba(210,180,255,.55);
+    --circle-mid:    rgba(150,90,255,.30);
+    --circle-outer:  rgba(90,40,200,.20);
+    --circle-glow-a: rgba(220,190,255,.45);
+    --circle-glow-b: rgba(176,132,245,.30);
+    --circle-glow-c: rgba(140,80,255,.18);
+    --arc-color:     rgba(200,170,255,.8);
+    --arc-track:     rgba(176,132,245,.12);
+    --toast-bg:      #1a0d35;
+    --modal-bg:      #0f0920;
+    --dropdown-bg:   #130d28;
+}
+
+[data-theme="midnight"] {
+    --accent:        #7eb8f7;
+    --accent-bright: #aed4ff;
+    --accent-dim:    rgba(126,184,247,0.12);
+    --bg-base:       #020810;
+    --bg-grad-a:     rgba(10,40,120,.28);
+    --bg-grad-b:     rgba(20,60,180,.18);
+    --bg-grad-c:     rgba(5,15,60,.5);
+    --nebula-a:      rgba(30,80,220,.10);
+    --nebula-b:      rgba(10,40,160,.13);
+    --circle-inner:  rgba(160,200,255,.55);
+    --circle-mid:    rgba(80,140,255,.30);
+    --circle-outer:  rgba(20,60,200,.20);
+    --circle-glow-a: rgba(160,200,255,.40);
+    --circle-glow-b: rgba(100,160,255,.28);
+    --circle-glow-c: rgba(40,100,220,.16);
+    --arc-color:     rgba(140,200,255,.85);
+    --arc-track:     rgba(100,160,255,.12);
+    --toast-bg:      #040e24;
+    --modal-bg:      #05101e;
+    --dropdown-bg:   #06122a;
+}
+
+[data-theme="forest"] {
+    --accent:        #6fcf8e;
+    --accent-bright: #9de8b4;
+    --accent-dim:    rgba(111,207,142,0.12);
+    --bg-base:       #020d05;
+    --bg-grad-a:     rgba(10,80,30,.25);
+    --bg-grad-b:     rgba(20,100,40,.16);
+    --bg-grad-c:     rgba(5,30,10,.5);
+    --nebula-a:      rgba(20,120,50,.09);
+    --nebula-b:      rgba(10,80,30,.11);
+    --circle-inner:  rgba(160,240,180,.50);
+    --circle-mid:    rgba(60,180,100,.28);
+    --circle-outer:  rgba(20,100,50,.18);
+    --circle-glow-a: rgba(140,230,170,.38);
+    --circle-glow-b: rgba(80,200,120,.24);
+    --circle-glow-c: rgba(20,140,70,.14);
+    --arc-color:     rgba(120,220,160,.85);
+    --arc-track:     rgba(80,180,110,.12);
+    --toast-bg:      #031208;
+    --modal-bg:      #04110a;
+    --dropdown-bg:   #051408;
+}
+
+[data-theme="sand"] {
+    --accent:        #c8a96e;
+    --accent-bright: #e8cfa0;
+    --accent-dim:    rgba(200,169,110,0.12);
+    --text-primary:  rgba(40,28,14,0.92);
+    --text-secondary:rgba(40,28,14,0.45);
+    --text-muted:    rgba(40,28,14,0.28);
+    --input-bg:      rgba(40,28,14,0.06);
+    --input-border:  rgba(40,28,14,0.12);
+    --divider:       rgba(40,28,14,0.10);
+    --panel-bg:      rgba(40,28,14,0.04);
+    --bg-base:       #f5ede0;
+    --bg-grad-a:     rgba(200,160,80,.14);
+    --bg-grad-b:     rgba(220,180,100,.10);
+    --bg-grad-c:     rgba(180,140,60,.18);
+    --nebula-a:      rgba(200,160,80,.07);
+    --nebula-b:      rgba(180,130,50,.09);
+    --circle-inner:  rgba(220,180,110,.60);
+    --circle-mid:    rgba(190,150,80,.35);
+    --circle-outer:  rgba(160,120,60,.20);
+    --circle-glow-a: rgba(220,190,130,.40);
+    --circle-glow-b: rgba(200,160,90,.25);
+    --circle-glow-c: rgba(180,130,60,.14);
+    --arc-color:     rgba(180,140,70,.85);
+    --arc-track:     rgba(180,140,70,.14);
+    --toast-bg:      #efe3d0;
+    --modal-bg:      #ede0cc;
+    --dropdown-bg:   #ede0cc;
+}
+
+/* ── Apply theme bg to body ── */
+body {
+    background-color: var(--bg-base);
+    background-image:
+        radial-gradient(ellipse 80% 60% at 20% 10%, var(--bg-grad-a) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 80%, var(--bg-grad-b) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 40% at 60% 30%, var(--bg-grad-c) 0%, transparent 70%);
+}
+body::before {
+    background:
+        radial-gradient(ellipse 40% 30% at 30% 70%, var(--nebula-a) 0%, transparent 60%),
+        radial-gradient(ellipse 35% 25% at 75% 25%, var(--nebula-b) 0%, transparent 60%);
+}
+.modal { background: var(--modal-bg); }
+.ctrl-dropdown { background: var(--dropdown-bg); }
+.limit-toast { background: var(--toast-bg); }
+
+/* ── Circle colors use theme vars ── */
+#breathing-circle {
+    background: radial-gradient(circle at 38% 32%,
+        var(--circle-inner) 0%,
+        var(--circle-mid)   40%,
+        var(--circle-outer) 75%,
+        transparent 100%);
+}
+#breathing-circle.active {
+    box-shadow:
+        0 0 12px 6px var(--circle-glow-a),
+        0 0 30px 16px var(--circle-glow-b),
+        0 0 55px 28px var(--circle-glow-c),
+        0 0 90px 48px rgba(0,0,0,.06);
+}
+#breathing-circle.collapsed {
+    box-shadow:
+        0 0 8px 4px var(--arc-track),
+        0 0 18px 8px var(--arc-track);
+    border-color: var(--arc-track);
+}
+
+/* ── Bolita más grande ── */
+#breathing-circle {
+    width: 190px;
+    height: 190px;
+}
+#breathing-circle-container {
+    height: 300px;
+}
+.container.session #breathing-circle-container { height: 380px; }
+
+/* ── Contador regresivo: número grande dentro de la bolita ── */
+#phase-timer {
+    font-size: 3.2rem;
+    font-weight: 200;
+    letter-spacing: -.02em;
+    height: 0;
+    visibility: hidden;
+    color: var(--accent-bright);
+    opacity: .9;
+    margin-top: 0;
+    line-height: 1;
+    overflow: hidden;
+    font-family: 'DM Mono', monospace;
+    transition: opacity .3s ease;
+}
+.container.session #phase-timer {
+    height: 3.5rem;
+    margin-top: 4px;
+    visibility: visible;
+}
+.container.session #phase-timer:empty { opacity: 0; }
+
+#breath-text {
+    font-size: .75rem;
+    letter-spacing: .18em;
+    opacity: .65;
+    color: var(--accent-bright);
+}
+
+/* ── Stats más minimalistas ── */
+.stats-box {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0 4px;
+    margin-bottom: 8px;
+    gap: 0;
+    justify-content: center;
+    gap: 24px;
+}
+.stat-item {
+    flex: 0;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 5px;
+}
+.stat-label {
+    font-size: .45rem;
+    letter-spacing: .12em;
+    color: var(--text-muted);
+}
+.stat-value {
+    font-size: .72rem;
+    color: var(--text-secondary);
+}
+.stat-divider { display: none; }
+
+/* ── Settings pill minimalista: solo ícono ── */
+.settings-pill {
+    padding: 9px;
+    border-radius: 50%;
+    gap: 0;
+    width: 36px;
+    height: 36px;
+    justify-content: center;
+}
+.settings-pill span[data-i18n] {
+    display: none;
+}
+
+/* ── Theme chips ── */
+.theme-chips-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.theme-chip {
+    padding: 7px 14px;
+    border-radius: 100px;
+    border: 1px solid var(--divider);
+    background: transparent;
+    color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: .72rem;
+    letter-spacing: .04em;
+    cursor: pointer;
+    box-shadow: none;
+    flex: none;
+    transition: color .2s, border-color .2s, background .2s;
+}
+.theme-chip:hover {
+    color: var(--text-secondary);
+    border-color: rgba(128,128,128,.25);
+}
+.theme-chip.active {
+    color: var(--accent-bright);
+    border-color: var(--accent);
+    background: var(--accent-dim);
+}
+
+/* ── Arc SVG container needs relative positioning ── */
+#breathing-circle-container {
+    position: relative;
+}
