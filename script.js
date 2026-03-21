@@ -283,6 +283,9 @@ const PRESETS = [
     { nameEs:'Relajación profunda', nameEn:'Deep Relaxation',  timing:[4,0,8,0],
       descEs:'Exhala el doble de lo que inhalas. Baja la frecuencia cardíaca y relaja el cuerpo.',
       descEn:'Exhale twice as long as you inhale. Lowers heart rate and relaxes the body.' },
+    { nameEs:'Fire Breath',          nameEn:'Fire Breath',       timing:[1,0,1,0],
+      descEs:'Respiración rápida y rítmica que activa el sistema nervioso y genera calor interno. Hacé 30–40 ciclos seguidos.',
+      descEn:'Fast rhythmic breathing that activates the nervous system and generates internal heat. Do 30–40 consecutive cycles.' },
 ];
 
 function renderPresets() {
@@ -595,9 +598,8 @@ function stopTimer(limitMsg) {
 startBtn.onclick = () => isRunning ? stopTimer() : startTimer();
 resetBtn.onclick = () => {
     if (isRunning) return;
-    times.inhale.value = 4; times.holdFull.value = 4;
-    times.exhale.value = 4; times.holdEmpty.value = 4;
-    setTechniqueLabel('Box Breathing');
+    renderPresets();
+    openModal('modal-presets');
 };
 
 // Prevent browser session-restore from showing stale input values
