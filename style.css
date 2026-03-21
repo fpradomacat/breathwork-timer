@@ -622,27 +622,34 @@ footer { display:flex; align-items:center; justify-content:center; gap:8px; }
     --dropdown-bg:   #06122a;
 }
 
-[data-theme="forest"] {
-    --accent:        #6fcf8e;
-    --accent-bright: #9de8b4;
-    --accent-dim:    rgba(111,207,142,0.12);
-    --bg-base:       #020d05;
-    --bg-grad-a:     rgba(10,80,30,.25);
-    --bg-grad-b:     rgba(20,100,40,.16);
-    --bg-grad-c:     rgba(5,30,10,.5);
-    --nebula-a:      rgba(20,120,50,.09);
-    --nebula-b:      rgba(10,80,30,.11);
-    --circle-inner:  rgba(160,240,180,.50);
-    --circle-mid:    rgba(60,180,100,.28);
-    --circle-outer:  rgba(20,100,50,.18);
-    --circle-glow-a: rgba(140,230,170,.38);
-    --circle-glow-b: rgba(80,200,120,.24);
-    --circle-glow-c: rgba(20,140,70,.14);
-    --arc-color:     rgba(120,220,160,.85);
-    --arc-track:     rgba(80,180,110,.12);
-    --toast-bg:      #031208;
-    --modal-bg:      #04110a;
-    --dropdown-bg:   #051408;
+[data-theme="aurora"] {
+    --accent:        #0071e3;
+    --accent-bright: #0a84ff;
+    --accent-dim:    rgba(0,113,227,0.10);
+    --text-primary:  rgba(10,10,20,0.92);
+    --text-secondary:rgba(10,10,20,0.55);
+    --text-muted:    rgba(10,10,20,0.36);
+    --input-bg:      rgba(10,10,20,0.05);
+    --input-border:  rgba(10,10,20,0.14);
+    --divider:       rgba(10,10,20,0.10);
+    --panel-bg:      rgba(10,10,20,0.04);
+    --bg-base:       #e8eaf0;
+    --bg-grad-a:     rgba(0,113,227,.10);
+    --bg-grad-b:     rgba(80,180,255,.09);
+    --bg-grad-c:     rgba(140,60,210,.07);
+    --nebula-a:      rgba(0,113,227,.07);
+    --nebula-b:      rgba(80,180,255,.08);
+    --circle-inner:  rgba(80,160,255,.62);
+    --circle-mid:    rgba(20,110,255,.35);
+    --circle-outer:  rgba(0,60,180,.16);
+    --circle-glow-a: rgba(80,160,255,.35);
+    --circle-glow-b: rgba(20,110,255,.22);
+    --circle-glow-c: rgba(0,60,180,.12);
+    --arc-color:     rgba(0,113,227,.80);
+    --arc-track:     rgba(0,113,227,.14);
+    --toast-bg:      #dce8fa;
+    --modal-bg:      #eef1f8;
+    --dropdown-bg:   #e8ebf2;
 }
 
 [data-theme="sand"] {
@@ -827,4 +834,126 @@ body::before {
 /* ── Arc SVG container needs relative positioning ── */
 #breathing-circle-container {
     position: relative;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   STATS + SETTINGS ROW · BOLITA GRANDE · ARCO EXTERIOR
+   ══════════════════════════════════════════════════════════════ */
+
+/* Stats row con settings integrado */
+.stats-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 0;
+    margin-bottom: 6px;
+    background: transparent;
+    border: none;
+}
+.stat-item {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 5px;
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+/* "Última" tiene valor más largo — no romper */
+.stat-item--last .stat-value {
+    max-width: 72px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.stat-label { font-size: .44rem; letter-spacing: .12em; color: var(--text-muted); }
+.stat-value  { font-size: .70rem; color: var(--text-secondary); font-family: 'DM Mono', monospace; letter-spacing: .03em; }
+.stat-divider { display: none; }
+
+/* Settings pill dentro del row */
+.stats-box .settings-pill {
+    margin-left: 4px;
+    flex-shrink: 0;
+}
+
+/* Ocultar el bottom-bar si quedara vacío */
+.bottom-bar { display: none !important; }
+
+/* Bolita más grande */
+#breathing-circle {
+    width: 220px;
+    height: 220px;
+}
+#breathing-circle-container {
+    height: 320px;
+    margin-bottom: 12px;
+}
+.container.session #breathing-circle-container { height: 400px; }
+
+/* ── Arco exterior: fuera de la bolita, decorativo ── */
+/* El SVG cubre todo el container; el arco tiene radio mayor que la bolita */
+/* Bolita = 220px → radio = 110px en coords del container */
+/* El SVG viewBox es 400×400, bolita centrada en 200,200, radio bolita ≈ 110 unidades */
+/* El arco se dibuja en r=155 → queda ~45 unidades fuera del borde de la bolita */
+#phase-arc {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: visible;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SETTINGS PILL → ESTILO BMC · TEMA CLARO APPLE
+   ══════════════════════════════════════════════════════════════ */
+
+/* Settings pill = mismo estilo que bmc-btn */
+.settings-pill {
+    font-family: 'DM Sans', sans-serif;
+    font-size: .72rem;
+    letter-spacing: .06em;
+    color: var(--text-muted);
+    text-decoration: none;
+    padding: 7px 12px;
+    border-radius: 100px;
+    border: 1px solid var(--divider);
+    background: transparent;
+    transition: color .2s, border-color .2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    box-shadow: none;
+    flex-shrink: 0;
+    width: auto;
+    height: auto;
+}
+.settings-pill:hover {
+    color: var(--text-secondary);
+    border-color: rgba(128,128,128,.2);
+    background: transparent;
+}
+.settings-pill svg { flex-shrink: 0; opacity: .7; }
+.settings-pill span[data-i18n] { display: none; }
+
+/* Arc SVG dentro de la bolita */
+#breathing-circle { overflow: visible; }
+#phase-arc {
+    position: absolute;
+    width: 220px; height: 220px;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    overflow: visible;
+}
+
+/* ── Theme chips: contraste garantizado en todos los temas ── */
+.theme-chip {
+    color: var(--text-secondary);
+    border-color: var(--input-border);
+}
+.theme-chip:hover {
+    color: var(--text-primary);
+    border-color: var(--accent);
 }

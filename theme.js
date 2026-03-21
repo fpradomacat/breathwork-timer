@@ -4,7 +4,7 @@
 const THEMES = [
     { id: 'purple', label: '✦ Púrpura' },
     { id: 'midnight', label: '◆ Midnight' },
-    { id: 'forest', label: '◉ Bosque' },
+    { id: 'aurora', label: '◎ Aurora' },
     { id: 'sand', label: '○ Arena' },
 ];
 
@@ -42,59 +42,86 @@ let _arcLen = 0;
 function initArc() {
     if (_arcSVG) return;
     const container = document.getElementById('breathing-circle-container');
+
+    // Bolita expandida = 220px × scale(1.35) = 297px → radio = ~148px
+    // SVG fijo de 300×300, centrado en el container, no dentro de la bolita
+    const SIZE = 300;
+    const CX = 150, CY = 150, R = 148;
+
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.id = 'phase-arc';
-    svg.setAttribute('viewBox', '0 0 220 220');
+    svg.setAttribute('viewBox', `0 0 ${SIZE} ${SIZE}`);
     svg.style.cssText = `
         position:absolute;
-        width:100%; height:100%;
-        top:0; left:0;
+        width:${SIZE}px; height:${SIZE}px;
+        top:50%; left:50%;
+        transform:translate(-50%,-50%);
         pointer-events:none;
         opacity:0;
-        transition:opacity .4s ease;
+        transition:opacity .5s ease;
+        overflow:visible;
+        z-index:0;
     `;
-    // Track (background arc)
+
+    _arcLen = 2 * Math.PI * R;
+
     const track = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    track.setAttribute('cx', '110');
-    track.setAttribute('cy', '110');
-    track.setAttribute('r', '100');
+    track.setAttribute('cx', CX); track.setAttribute('cy', CY); track.setAttribute('r', R);
     track.setAttribute('fill', 'none');
     track.setAttribute('stroke', 'var(--arc-track)');
-    track.setAttribute('stroke-width', '2');
-    track.setAttribute('stroke-dasharray', '4 6');
+    track.setAttribute('stroke-width', '1');
+    track.setAttribute('stroke-dasharray', '2 10');
     track.setAttribute('stroke-linecap', 'round');
 
-    // Progress arc
     const arc = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    arc.setAttribute('cx', '110');
-    arc.setAttribute('cy', '110');
-    arc.setAttribute('r', '100');
+    arc.setAttribute('cx', CX); arc.setAttribute('cy', CY); arc.setAttribute('r', R);
     arc.setAttribute('fill', 'none');
     arc.setAttribute('stroke', 'var(--arc-color)');
-    arc.setAttribute('stroke-width', '2.5');
+    arc.setAttribute('stroke-width', '1.5');
     arc.setAttribute('stroke-linecap', 'round');
-    // Start from top (rotate -90deg)
-    arc.style.transformOrigin = '110px 110px';
+    arc.style.transformOrigin = `${CX}px ${CY}px`;
     arc.style.transform = 'rotate(-90deg)';
-
-    _arcLen = 2 * Math.PI * 100;
     arc.setAttribute('stroke-dasharray', _arcLen);
-    arc.setAttribute('stroke-dashoffset', _arcLen); // starts empty
+    arc.setAttribute('stroke-dashoffset', _arcLen);
+
+    const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    dot.setAttribute('cx', CX); dot.setAttribute('cy', CY - R);
+    dot.setAttribute('r', '2.5');
+    dot.setAttribute('fill', 'var(--arc-color)');
+    dot.style.opacity = '0';
+    dot.id = 'arc-dot';
 
     svg.appendChild(track);
     svg.appendChild(arc);
+    svg.appendChild(dot);
+
     container.style.position = 'relative';
     container.appendChild(svg);
 
-    _arcSVG    = svg;
-    _arcCircle = arc;
+    _arcSVG = svg; _arcCircle = arc; _arcDot = dot;
+    _arcR = R; _arcCX = CX; _arcCY = CY;
 }
+
+let _arcDot = null;
+let _arcR   = 148;
+let _arcCX  = 110;
+let _arcCY  = 110;
 
 // progress: 0 (empty) → 1 (full)
 function setArc(progress) {
     if (!_arcCircle) return;
-    const offset = _arcLen * (1 - Math.max(0, Math.min(1, progress)));
+    const p = Math.max(0, Math.min(1, progress));
+    const offset = _arcLen * (1 - p);
     _arcCircle.setAttribute('stroke-dashoffset', offset);
+    // Move dot along the arc
+    if (_arcDot) {
+        const angle = (p * 2 * Math.PI) - (Math.PI / 2);
+        const dx = _arcCX + _arcR * Math.cos(angle);
+        const dy = _arcCY + _arcR * Math.sin(angle);
+        _arcDot.setAttribute('cx', dx);
+        _arcDot.setAttribute('cy', dy);
+        _arcDot.style.opacity = p > 0.01 ? '0.8' : '0';
+    }
 }
 
 function showArc(visible) {
