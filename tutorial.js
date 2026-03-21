@@ -17,13 +17,14 @@
         {
             target: null,
             pos: 'center',
+            langPicker: true,
             es: {
                 title: '👋 Bienvenido a Breathspace',
-                body:  'Tu espacio para respirar con intención. En 3 pasos te explicamos cómo funciona.',
+                body:  'Tu espacio para respirar con intención. Primero, elige tu idioma:',
             },
             en: {
                 title: '👋 Welcome to Breathspace',
-                body:  'Your space to breathe with intention. In 3 quick steps we\'ll show you how it works.',
+                body:  'Your space to breathe with intention. First, choose your language:',
             },
         },
         {
@@ -31,11 +32,11 @@
             pos: 'top',
             es: {
                 title: '⚙️ Elige tu técnica',
-                body:  'Ajusta los tiempos de cada fase: inhala, pausa, exhala y pausa vacío. O elige una técnica predefinida desde el menú ⚙.',
+                body:  'Ajusta los tiempos de cada fase: inhala, pausa, exhala y pausa vacío. O elige una técnica predefinida desde el menú ⚙.<br><br>💡 <strong>En móvil:</strong> mantén el dedo sobre un campo y desliza arriba/abajo para cambiar el valor.',
             },
             en: {
                 title: '⚙️ Choose your technique',
-                body:  'Set the duration for each phase: inhale, hold, exhale, and empty hold. Or pick a preset from the ⚙ menu.',
+                body:  'Set the duration for each phase: inhale, hold, exhale, and empty hold. Or pick a preset from the ⚙ menu.<br><br>💡 <strong>On mobile:</strong> press and hold a field, then slide up or down to change its value.',
             },
         },
         {
@@ -228,6 +229,34 @@
             width: 18px;
             border-radius: 3px;
         }
+
+        #tut-lang-picker {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+        }
+        .tut-lang-btn {
+            flex: 1;
+            padding: 10px 0;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.05);
+            color: rgba(210,210,230,0.75);
+            font-size: 14px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s, color 0.2s;
+            box-shadow: none;
+        }
+        .tut-lang-btn:hover {
+            background: rgba(255,255,255,0.09);
+            color: #fff;
+        }
+        .tut-lang-btn.tut-lang-active {
+            border-color: rgba(120,140,255,0.7);
+            background: rgba(100,120,255,0.18);
+            color: #fff;
+        }
     `;
     document.head.appendChild(style);
 
@@ -388,12 +417,30 @@
         ).join('');
         cardStep.innerHTML = `<div class="tut-dots">${dots}</div>`;
 
-        cardTitle.textContent  = t.title;
-        cardBody.innerHTML     = t.body;
-        btnNext.textContent    = isLast
-            ? (lang === 'es' ? '¡Empezar! 🎉' : 'Let\'s go! 🎉')
-            : (lang === 'es' ? 'Siguiente →' : 'Next →');
-        btnSkip.textContent    = lang === 'es' ? 'Saltar tutorial' : 'Skip tutorial';
+        cardTitle.textContent = t.title;
+        cardBody.innerHTML    = t.body;
+
+        if (step.langPicker) {
+            const picker = document.createElement('div');
+            picker.id = 'tut-lang-picker';
+            picker.innerHTML = '<button class="tut-lang-btn" data-lang="es">\uD83C\uDDEA\uD83C\uDDF8 Espa\u00F1ol</button>' +
+                               '<button class="tut-lang-btn" data-lang="en">\uD83C\uDDEC\uD83C\uDDE7 English</button>';
+            cardBody.appendChild(picker);
+            picker.querySelectorAll('.tut-lang-btn').forEach(function(btn) {
+                if (btn.dataset.lang === lang) btn.classList.add('tut-lang-active');
+                btn.addEventListener('click', function() {
+                    picker.querySelectorAll('.tut-lang-btn').forEach(function(b) { b.classList.remove('tut-lang-active'); });
+                    btn.classList.add('tut-lang-active');
+                    if (typeof applyLang === 'function') applyLang(btn.dataset.lang);
+                    renderStep(index);
+                });
+            });
+        }
+
+        btnNext.textContent  = isLast
+            ? (lang === 'es' ? '\u00A1Empezar! \uD83C\uDF89' : 'Let\'s go! \uD83C\uDF89')
+            : (lang === 'es' ? 'Siguiente \u2192' : 'Next \u2192');
+        btnSkip.textContent  = lang === 'es' ? 'Saltar tutorial' : 'Skip tutorial';
 
         positionSpotlight(step.target);
 
