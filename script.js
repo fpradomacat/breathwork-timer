@@ -309,7 +309,9 @@ function renderPresets() {
     });
 }
 
-// ── Phase sounds — pre-loaded, reused each cycle ──────────────
+// ── Phase sounds — decoded into AudioBuffers at load time ────
+// Using AudioBufferSourceNode (Web Audio API) instead of HTMLAudioElement
+// bypasses the OS audio stack entirely, eliminating Bluetooth dropouts.
 const PHASE_SOUND_SRCS = [
     'assets/sounds/inhala.mp3',
     'assets/sounds/pausa_lleno.mp3',
@@ -317,19 +319,28 @@ const PHASE_SOUND_SRCS = [
     'assets/sounds/pausa_vacio.mp3',
 ];
 
-const _phaseAudio = PHASE_SOUND_SRCS.map(src => {
-    const a = new Audio(src);
-    a.preload = 'auto';
-    a.load();
-    return a;
+const _phaseBuffers = new Array(PHASE_SOUND_SRCS.length).fill(null);
+
+// Fetch + decode all files immediately. Runs in parallel.
+// If a file fails (404, network error) the slot stays null and playPhase skips it silently.
+PHASE_SOUND_SRCS.forEach((src, i) => {
+    fetch(src)
+        .then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+        .then(ab => audioCtx.decodeAudioData(ab))
+        .then(buf => { _phaseBuffers[i] = buf; })
+        .catch(() => {});
 });
 
 function playPhase(pi) {
-    const a = _phaseAudio[pi];
-    if (!a) return;
-    a.volume = parseFloat(volSlider.value);
-    a.currentTime = 0;
-    a.play().catch(() => {});
+    const buf = _phaseBuffers[pi];
+    if (!buf) return;
+    const src  = audioCtx.createBufferSource();
+    const gain = audioCtx.createGain();
+    src.buffer = buf;
+    gain.gain.value = parseFloat(volSlider.value);
+    src.connect(gain);
+    gain.connect(audioCtx.destination);
+    src.start();
 }
 
 document.getElementById('open-presets').addEventListener('click', () => {
@@ -401,6 +412,7 @@ let totalSeconds   = 0;
 let _sessionTimer  = null;   // setTimeout handle — ticks every 1 s
 let _phaseTimer    = null;   // setTimeout handle — fires when phase ends
 let _displayRAF    = null;   // rAF handle — only used for phase countdown display
+let _keepAliveNode = null;   // silent oscillator — keeps AudioContext alive on Bluetooth
 
 // ─────────────────────────────────────────────────────────────
 // TIMING STRATEGY
@@ -527,6 +539,16 @@ function startTimer() {
         // Start session clock
         _sessionTimer = setTimeout(_sessionTick, 1000);
 
+        // Keep AudioContext alive for the whole session.
+        // Without this, mobile browsers (especially with Bluetooth) suspend
+        // the context during silent gaps, causing audible dropouts on resume.
+        _keepAliveNode = audioCtx.createOscillator();
+        const _kaGain  = audioCtx.createGain();
+        _kaGain.gain.value = 0;   // completely silent
+        _keepAliveNode.connect(_kaGain);
+        _kaGain.connect(audioCtx.destination);
+        _keepAliveNode.start();
+
         // Start breathing flow
         runCycle();
 
@@ -544,6 +566,9 @@ function stopTimer(limitMsg) {
     _sessionTimer = null;
     _phaseTimer   = null;
     _displayRAF   = null;
+
+    // Stop the keep-alive oscillator
+    if (_keepAliveNode) { try { _keepAliveNode.stop(); } catch(e) {} _keepAliveNode = null; }
 
     lastSession.innerText = `${formatTime(totalSeconds)} (${cycles})`;
     playStopTone();
