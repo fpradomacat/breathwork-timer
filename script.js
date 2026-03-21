@@ -372,8 +372,11 @@ function showToast(msg) {
     _toastTimer = setTimeout(() => toastEl.classList.remove('show'), 3500);
 }
 
-// ── Input wheels ──────────────────────────────────────────────
+// ── Input wheels + touch drag ────────────────────────────────
+// Desktop: scroll wheel. Mobile: hold + drag up/down.
+// Every 8px of drag = ±1. Haptic feedback on each step if available.
 Object.values(times).forEach(input => {
+    // Desktop scroll
     input.addEventListener('wheel', e => {
         if (isRunning) return;
         e.preventDefault();
@@ -382,6 +385,41 @@ Object.values(times).forEach(input => {
         input.value = Math.max(parseInt(input.getAttribute('min')) || 0, v);
         setTechniqueLabel('', true);
     }, { passive: false });
+
+    // Mobile touch drag
+    let _touchStartY = null;
+    let _touchBaseVal = null;
+    let _lastStepVal = null;
+
+    input.addEventListener('touchstart', e => {
+        if (isRunning) return;
+        _touchStartY  = e.touches[0].clientY;
+        _touchBaseVal = parseInt(input.value) || 0;
+        _lastStepVal  = _touchBaseVal;
+        input.blur(); // hide keyboard immediately
+    }, { passive: true });
+
+    input.addEventListener('touchmove', e => {
+        if (isRunning || _touchStartY === null) return;
+        e.preventDefault(); // block page scroll while dragging
+        const dy    = _touchStartY - e.touches[0].clientY; // up = positive
+        const min   = parseInt(input.getAttribute('min')) || 0;
+        const steps = Math.round(dy / 8);
+        const next  = Math.max(min, _touchBaseVal + steps);
+        if (next !== _lastStepVal) {
+            input.value = next;
+            _lastStepVal = next;
+            setTechniqueLabel('', true);
+            if (navigator.vibrate) navigator.vibrate(6);
+        }
+    }, { passive: false });
+
+    input.addEventListener('touchend', () => {
+        _touchStartY = null;
+        _touchBaseVal = null;
+        _lastStepVal = null;
+    }, { passive: true });
+
     input.addEventListener('keydown', e => {
         if (['Backspace','Tab','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Delete'].includes(e.key)) return;
         if (!/^\d$/.test(e.key)) e.preventDefault();
