@@ -719,7 +719,10 @@ function startTimer() {
     phaseTimerDisplay.innerText = '';
     breathingCircle.style.transition = '';
     setCircleState('collapsed');
-    document.querySelector('.container').classList.add('session');
+    const _container = document.querySelector('.container');
+    _container.classList.add('session');
+    // After animation completes, snap last-stat to display:none (no phantom space)
+    setTimeout(() => _container.classList.add('session-hide-last'), TRANSITION_MS);
 
     setTimeout(() => {
         isRunning    = true;
@@ -779,7 +782,9 @@ function stopTimer(limitMsg) {
     breathText.innerText        = '';
     breathingCircle.style.transition = '';
     setCircleState('idle');
-    document.querySelector('.container').classList.remove('session');
+    const _container = document.querySelector('.container');
+    _container.classList.remove('session-hide-last'); // restore before animation
+    _container.classList.remove('session');
 
     setTimeout(() => {
         breathText.innerText = i18n[lang].ready;

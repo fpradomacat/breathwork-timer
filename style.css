@@ -1205,3 +1205,8 @@ body::before {
     justify-content: center;
     gap: 32px;
 }
+
+/* 1) After animation: truly remove last-stat space */
+.container.session-hide-last .stat-item--last {
+    display: none !important;
+}
