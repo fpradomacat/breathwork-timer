@@ -34,10 +34,9 @@
             <!-- Header -->
             <div class="header-row">
                 <h1 data-i18n="title">Breathspace</h1>
-                <span id="technique-label">Box Breathing</span>
             </div>
 
-            <!-- Stats + settings row -->
+            <!-- Stats row -->
             <div class="stats-box">
                 <div class="stat-item">
                     <span class="stat-label" data-i18n="statSession">Sesión</span>
@@ -51,12 +50,12 @@
                     <span class="stat-label" data-i18n="statLast">Última</span>
                     <span class="stat-value" id="last-session">--</span>
                 </div>
-                <button class="settings-pill" id="settings-btn">
-                    <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M10 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M16.2 12.5a1.38 1.38 0 0 0 .28 1.52l.05.05a1.67 1.67 0 0 1-2.36 2.36l-.05-.05a1.38 1.38 0 0 0-1.52-.28 1.38 1.38 0 0 0-.84 1.27V17.5a1.67 1.67 0 0 1-3.33 0v-.07a1.38 1.38 0 0 0-.9-1.27 1.38 1.38 0 0 0-1.52.28l-.05.05a1.67 1.67 0 0 1-2.36-2.36l.05-.05a1.38 1.38 0 0 0 .28-1.52 1.38 1.38 0 0 0-1.27-.84H2.5a1.67 1.67 0 0 1 0-3.33h.07a1.38 1.38 0 0 0 1.27-.9 1.38 1.38 0 0 0-.28-1.52l-.05-.05a1.67 1.67 0 0 1 2.36-2.36l.05.05a1.38 1.38 0 0 0 1.52.28h.07A1.38 1.38 0 0 0 8.33 2.57V2.5a1.67 1.67 0 0 1 3.33 0v.07a1.38 1.38 0 0 0 .84 1.27 1.38 1.38 0 0 0 1.52-.28l.05-.05a1.67 1.67 0 0 1 2.36 2.36l-.05.05a1.38 1.38 0 0 0-.28 1.52v.07a1.38 1.38 0 0 0 1.27.84h.07a1.67 1.67 0 0 1 0 3.33h-.07a1.38 1.38 0 0 0-1.27.84z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
+            </div>
+
+            <!-- Technique name + limit badge row -->
+            <div class="meta-row" id="meta-row">
+                <span id="technique-label">Box Breathing</span>
+                <span id="limit-badge" class="limit-badge" style="display:none"></span>
             </div>
 
             <!-- Breathing circle (tap to start/stop) -->
@@ -65,6 +64,12 @@
                     <span id="breath-text" data-i18n="ready">Listo</span>
                     <div id="phase-timer"></div>
                 </div>
+            </div>
+
+            <!-- Two action pills — hidden during session -->
+            <div class="action-pills" id="action-pills">
+                <button class="pill-tecnicas" id="tecnicas-btn" data-i18n="menuPresets">Técnicas</button>
+                <button class="pill-ajustes" id="settings-btn" data-i18n="settingsLabel">Ajustes</button>
             </div>
 
             <!-- Footer -->
@@ -78,7 +83,20 @@
         </div>
     </div>
 
-    <!-- Modal: Settings (unified) -->
+    <!-- Modal: Técnicas -->
+    <div class="modal-overlay" id="modal-tecnicas">
+        <div class="modal modal-tecnicas-modal">
+            <div class="modal-header">
+                <span class="modal-title" data-i18n="menuPresets">Técnicas</span>
+                <button class="modal-close" data-close="modal-tecnicas">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="presets-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Ajustes -->
     <div class="modal-overlay" id="modal-settings">
         <div class="modal modal-settings-modal">
             <div class="modal-header">
@@ -125,14 +143,6 @@
 
                 <div class="settings-divider"></div>
 
-                <!-- Techniques -->
-                <div class="settings-section">
-                    <div class="settings-section-title" data-i18n="menuPresets">Técnicas</div>
-                    <div id="presets-list"></div>
-                </div>
-
-                <div class="settings-divider"></div>
-
                 <!-- Session limit -->
                 <div class="settings-section">
                     <div class="settings-section-title" data-i18n="limitTitle">Límite de sesión</div>
@@ -164,7 +174,6 @@
                     <div class="theme-chips-wrap" id="theme-chips"></div>
                 </div>
 
-
             </div>
         </div>
     </div>
@@ -194,9 +203,14 @@
         document.getElementById('start-btn').click();
     });
 
-    // ── Settings modal ─────────────────────────────────────────
-    document.getElementById('settings-btn').addEventListener('click', () => {
+    // ── Técnicas pill ──────────────────────────────────────────
+    document.getElementById('tecnicas-btn').addEventListener('click', () => {
         renderPresets();
+        openModal('modal-tecnicas');
+    });
+
+    // ── Ajustes pill ───────────────────────────────────────────
+    document.getElementById('settings-btn').addEventListener('click', () => {
         if (typeof renderThemeChips === 'function') renderThemeChips();
         openModal('modal-settings');
     });

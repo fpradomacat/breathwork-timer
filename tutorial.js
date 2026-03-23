@@ -305,17 +305,10 @@ function applyLimit(type, value) {
     updateLimitBadge();
 }
 
-// Show/hide the limit badge in the stats row
+// Show/hide the limit badge in the meta-row
 function updateLimitBadge() {
-    let badge = document.getElementById('limit-badge');
-    if (!badge) {
-        badge = document.createElement('div');
-        badge.id = 'limit-badge';
-        badge.className = 'limit-badge';
-        // Insert after stats-box
-        const statsBox = document.querySelector('.stats-box');
-        if (statsBox) statsBox.insertAdjacentElement('afterend', badge);
-    }
+    const badge = document.getElementById('limit-badge');
+    if (!badge) return;
     if (limitType === 'none') {
         badge.textContent = '';
         badge.style.display = 'none';
@@ -382,7 +375,7 @@ function renderPresets() {
                 setTimeout(() => showToast(i18n[lang].fireBreathAutoLimit(p.autoLimitCycles)), 300);
             }
             playSelectChime();
-            closeModal('modal-settings');
+            closeModal('modal-tecnicas');
             // Si hay sesión activa, pararla y arrancar de nuevo con los nuevos tiempos
             if (isRunning) {
                 stopTimer();
@@ -447,10 +440,8 @@ function playPhase(pi) {
     }
 }
 
-document.getElementById('techniques-btn').addEventListener('click', () => {
-    renderPresets();
-    openModal('modal-settings');
-});
+
+
 
 // ── Modals ────────────────────────────────────────────────────
 function openModal(id)  { const el = document.getElementById(id); if (el) el.classList.add('open'); }
