@@ -17,25 +17,24 @@ async function build() {
     fs.writeFileSync(`${dist}/style.css`, minCSS);
     console.log('✓ style.css');
 
-    // ── JS — minify + obfuscate ──
+    // ── JS — minify ──
     const js = fs.readFileSync('./script.js', 'utf8');
     const result = await minifyJS(js, {
         compress: {
-            drop_console: true,      // remove console.log calls
+            drop_console: true,
             passes: 3,
         },
         mangle: {
-            toplevel: true,          // rename top-level vars/functions
-            properties: false,       // don't mangle object properties (breaks DOM)
+            toplevel: false,   // files share globals — renaming breaks cross-file calls
         },
         format: {
-            comments: false,         // strip all comments
+            comments: false,
         },
     });
     fs.writeFileSync(`${dist}/script.js`, result.code);
     console.log('✓ script.js');
 
-    // ── tutorial.js — minify + obfuscate ──
+    // ── tutorial.js — minify ──
     const tutorialJs = fs.readFileSync('./tutorial.js', 'utf8');
     const tutorialResult = await minifyJS(tutorialJs, {
         compress: {
@@ -43,8 +42,7 @@ async function build() {
             passes: 3,
         },
         mangle: {
-            toplevel: true,
-            properties: false,
+            toplevel: false,   // exposes globals used by script.js and inline HTML script
         },
         format: {
             comments: false,
