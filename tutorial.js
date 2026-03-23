@@ -14,8 +14,8 @@ const i18n = {
         limitBadgeCyc: (val) => `🔄 ${val} ciclos`,
         custom: 'Personalizado',
         sectionTheme: 'Tema', settingsTitle: 'Configuración', settingsLabel: 'Ajustes', sectionTiming: 'Tiempos',
-        donate: 'Donar :)',
-        fireBreathAutoLimit: (n) => `🔥 Fire Breath: límite automático de ${n} ciclos activado`,
+        donate: '😊 Dona',
+        fireBreathAutoLimit: (n) => `límite automático: ${n} ciclos`,
     },
     en: {
         title:'Breathspace',
@@ -31,8 +31,8 @@ const i18n = {
         limitBadgeCyc: (val) => `🔄 ${val} cycles`,
         custom: 'Custom',
         sectionTheme: 'Theme', settingsTitle: 'Settings', settingsLabel: 'Settings', sectionTiming: 'Timings',
-        donate: 'Donate :)',
-        fireBreathAutoLimit: (n) => `🔥 Fire Breath: auto-limit of ${n} cycles activated`,
+        donate: '😊 Donate',
+        fireBreathAutoLimit: (n) => `auto-limit: ${n} cycles`,
     }
 };
 
@@ -197,6 +197,9 @@ function applyLang(l) {
     document.getElementById('lang-btn').textContent = l.toUpperCase();
     document.querySelectorAll('#lang-dropdown .ctrl-option').forEach(o =>
         o.classList.toggle('active', o.dataset.value === l));
+    // Sync inline lang buttons in settings modal
+    document.querySelectorAll('.lang-inline-btn').forEach(b =>
+        b.classList.toggle('active', b.dataset.value === l));
     if (!isRunning) breathText.textContent = t.ready;
     if (startBtn) startBtn.textContent = isRunning ? t.stop : t.start;
     // Re-translate the active technique name if it matches a preset
@@ -329,9 +332,10 @@ const PRESETS = [
     { nameEs:'4-7-8 Relajante',           nameEn:'4-7-8 Relaxing',           timing:[4,7,8,0],
       descEs:'Activa el sistema parasimpático. Ideal para reducir ansiedad y preparar el sueño.',
       descEn:'Activates the parasympathetic system. Ideal for reducing anxiety and preparing for sleep.' },
-    { nameEs:'Wim Hof (ciclo)',            nameEn:'Wim Hof (cycle)',           timing:[2,0,2,0],
-      descEs:'Hiperventilación controlada que eleva el oxígeno y genera energía. Hacé 30 ciclos rápidos.',
-      descEn:'Controlled hyperventilation that raises oxygen and generates energy. Do 30 quick cycles.' },
+    { nameEs:'Wim Hof',                   nameEn:'Wim Hof',                  timing:[2,0,2,0],
+      autoLimitCycles: 30,
+      descEs:'Hiperventilación intensa: sube el oxígeno y genera energía. Más potente que la Respiración Conectada. Límite automático: 30 ciclos.',
+      descEn:'Intense hyperventilation: raises oxygen and generates energy. More powerful than Conscious Connected. Auto-limit: 30 cycles.' },
     { nameEs:'Respiración Conectada',     nameEn:'Conscious Connected',       timing:[2,0,2,0],
       descEs:'Ciclo continuo sin pausa entre inhalar y exhalar. Disuelve tensiones y conecta con el cuerpo.',
       descEn:'Continuous cycle with no pause between inhale and exhale. Dissolves tension and connects with the body.' },
@@ -369,10 +373,13 @@ function renderPresets() {
             times.exhale.value = e; times.holdEmpty.value = he;
             const name = lang === 'es' ? p.nameEs : p.nameEn;
             setTechniqueLabel(name);
-            // Auto-limit for Fire Breath
+            // Auto-limit for techniques that define it; reset for those that don't
             if (hasAutoLimit) {
                 applyLimit('cycles', p.autoLimitCycles);
-                setTimeout(() => showToast(i18n[lang].fireBreathAutoLimit(p.autoLimitCycles)), 300);
+                const techName = lang === 'es' ? p.nameEs : p.nameEn;
+                setTimeout(() => showToast(`${techName} — ${i18n[lang].fireBreathAutoLimit(p.autoLimitCycles)}`), 300);
+            } else {
+                applyLimit('none', 10);
             }
             playSelectChime();
             closeModal('modal-tecnicas');
@@ -731,6 +738,8 @@ resetBtn.onclick = () => {
     times.inhale.value = 4; times.holdFull.value = 4;
     times.exhale.value = 4; times.holdEmpty.value = 4;
     setTechniqueLabel('Box Breathing');
+    // Reset session limit
+    applyLimit('none', 10);
     toggleDropdown('gear-dropdown');
 };
 

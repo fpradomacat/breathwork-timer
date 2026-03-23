@@ -1084,3 +1084,60 @@ body::before {
 .theme-chip { border-color: rgba(255,255,255,.25); }
 .theme-chip:hover { border-color: rgba(255,255,255,.5); background: rgba(255,255,255,.08); }
 .theme-chip.active { border-color: rgba(255,255,255,.7); background: rgba(255,255,255,.15); }
+/* ══════════════════════════════════════════════════════════════
+   LEGIBILITY PASS — minimum sizes per web standards
+   Body/interactive min 14px, labels min 12px, meta min 11px
+   ══════════════════════════════════════════════════════════════ */
+
+/* Stat labels: .44–.5rem → 12px */
+.stat-label { font-size: .75rem !important; }
+/* Stat values: .70–.82rem → 14px */
+.stat-value { font-size: .875rem !important; }
+
+/* Technique name in meta-row */
+.meta-row #technique-label { font-size: .68rem !important; }
+
+/* Limit badge */
+.limit-badge { font-size: .68rem !important; }
+
+/* Breath text inside circle */
+#breath-text { font-size: .95rem !important; }
+
+/* Phase countdown number */
+#phase-timer { font-size: 3.6rem !important; }
+
+/* Preset card text */
+.preset-name { font-size: .9rem !important; }
+.preset-timing { font-size: .75rem !important; }
+.preset-desc { font-size: .8rem !important; }
+
+/* Settings section titles */
+.settings-section-title { font-size: .68rem !important; }
+.technique-label-modal { font-size: .68rem !important; }
+.timing-section-header .technique-label-modal { font-size: .72rem !important; }
+
+/* Input labels */
+.input-group label { font-size: .68rem !important; }
+/* Input values */
+.input-group input { font-size: 1.1rem !important; }
+
+/* Limit chips */
+.limit-chip { font-size: .875rem !important; }
+
+/* Pills */
+.pill-tecnicas { font-size: .875rem !important; }
+.pill-ajustes  { font-size: .875rem !important; }
+
+/* Lang buttons */
+.lang-inline-btn { font-size: .78rem !important; }
+.reset-inline-btn { font-size: .875rem !important; }
+
+/* Modal title */
+.modal-title { font-size: .95rem !important; }
+
+/* Footer */
+.bmc-btn { font-size: .8rem !important; }
+.author-tag { font-size: .78rem !important; }
+
+/* Toast */
+.limit-toast { font-size: .875rem !important; }
