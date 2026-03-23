@@ -10,9 +10,12 @@ const i18n = {
         limitTitle:'Límite de sesión', limitNone:'Sin límite', limitMin:'Minutos', limitCyc:'Ciclos',
         soundPhases:['Inhalar','Pausa (Lleno)','Exhalar','Pausa (Vacío)'],
         limitMsg: (type,val) => type==='minutes' ? `⏱ ${val} min alcanzados` : `🔄 ${val} ciclos completados`,
+        limitBadgeMin: (val) => `⏱ ${val} min`,
+        limitBadgeCyc: (val) => `🔄 ${val} ciclos`,
         custom: 'Personalizado',
         sectionTheme: 'Tema', settingsTitle: 'Configuración', settingsLabel: 'Ajustes', sectionTiming: 'Tiempos',
         donate: 'Donar :)',
+        fireBreathAutoLimit: (n) => `🔥 Fire Breath: límite automático de ${n} ciclos activado`,
     },
     en: {
         title:'Breathspace',
@@ -24,9 +27,12 @@ const i18n = {
         limitTitle:'Session limit', limitNone:'No limit', limitMin:'Minutes', limitCyc:'Cycles',
         soundPhases:['Inhale','Hold (Full)','Exhale','Hold (Empty)'],
         limitMsg: (type,val) => type==='minutes' ? `⏱ ${val} min reached` : `🔄 ${val} cycles completed`,
+        limitBadgeMin: (val) => `⏱ ${val} min`,
+        limitBadgeCyc: (val) => `🔄 ${val} cycles`,
         custom: 'Custom',
         sectionTheme: 'Theme', settingsTitle: 'Settings', settingsLabel: 'Settings', sectionTiming: 'Timings',
         donate: 'Donate :)',
+        fireBreathAutoLimit: (n) => `🔥 Fire Breath: auto-limit of ${n} cycles activated`,
     }
 };
 
@@ -193,10 +199,22 @@ function applyLang(l) {
         o.classList.toggle('active', o.dataset.value === l));
     if (!isRunning) breathText.textContent = t.ready;
     if (startBtn) startBtn.textContent = isRunning ? t.stop : t.start;
+    // Re-translate the active technique name if it matches a preset
     const isCustom = techniqueLabel.classList.contains('is-custom');
-    setTechniqueLabel(isCustom ? '' : activeTechniqueName, isCustom);
+    if (!isCustom && activeTechniqueName) {
+        const preset = PRESETS.find(p => p.nameEs === activeTechniqueName || p.nameEn === activeTechniqueName);
+        if (preset) {
+            activeTechniqueName = l === 'es' ? preset.nameEs : preset.nameEn;
+            techniqueLabel.textContent = activeTechniqueName;
+        } else {
+            setTechniqueLabel(activeTechniqueName, false);
+        }
+    } else if (isCustom) {
+        techniqueLabel.textContent = t.custom;
+    }
     // Re-render presets so descriptions update in the open modal
     if (document.getElementById('presets-list')) renderPresets();
+    updateLimitBadge();
 }
 
 // ── Dropdowns ────────────────────────────────────────────────
@@ -247,6 +265,7 @@ document.querySelectorAll('.limit-chip').forEach(chip =>
         chip.classList.add('active');
         limitType = chip.dataset.value;
         limitInput.disabled = limitType === 'none';
+        updateLimitBadge();
     }));
 
 limitInput.addEventListener('keydown', e => {
@@ -257,13 +276,15 @@ limitInput.addEventListener('wheel', e => {
     e.preventDefault();
     limitInput.value = Math.max(1, (parseInt(limitInput.value) || 1) + (e.deltaY < 0 ? 1 : -1));
     limitValue = parseInt(limitInput.value);
+    updateLimitBadge();
 }, { passive: false });
 limitInput.addEventListener('blur', () => {
     const v = parseInt(limitInput.value);
     limitInput.value = (!v || v < 1) ? 1 : v;
     limitValue = parseInt(limitInput.value);
+    updateLimitBadge();
 });
-limitInput.addEventListener('input', () => { limitValue = parseInt(limitInput.value) || 1; });
+limitInput.addEventListener('input', () => { limitValue = parseInt(limitInput.value) || 1; updateLimitBadge(); });
 
 function checkLimit() {
     if (limitType === 'none') return false;
@@ -272,29 +293,68 @@ function checkLimit() {
     return false;
 }
 
+// Apply a limit programmatically (used by Fire Breath auto-limit)
+function applyLimit(type, value) {
+    limitType  = type;
+    limitValue = value;
+    limitInput.value    = value;
+    limitInput.disabled = false;
+    document.querySelectorAll('.limit-chip').forEach(c => {
+        c.classList.toggle('active', c.dataset.value === type);
+    });
+    updateLimitBadge();
+}
+
+// Show/hide the limit badge in the stats row
+function updateLimitBadge() {
+    let badge = document.getElementById('limit-badge');
+    if (!badge) {
+        badge = document.createElement('div');
+        badge.id = 'limit-badge';
+        badge.className = 'limit-badge';
+        // Insert after stats-box
+        const statsBox = document.querySelector('.stats-box');
+        if (statsBox) statsBox.insertAdjacentElement('afterend', badge);
+    }
+    if (limitType === 'none') {
+        badge.textContent = '';
+        badge.style.display = 'none';
+    } else {
+        const t = i18n[lang];
+        badge.textContent = limitType === 'minutes'
+            ? t.limitBadgeMin(limitValue)
+            : t.limitBadgeCyc(limitValue);
+        badge.style.display = 'inline-flex';
+    }
+}
+
 // ── Presets ───────────────────────────────────────────────────
 const PRESETS = [
-    { nameEs:'Box Breathing',      nameEn:'Box Breathing',    timing:[4,4,4,4],
+    { nameEs:'Box Breathing',             nameEn:'Box Breathing',            timing:[4,4,4,4],
       descEs:'Equilibra el sistema nervioso. Usada por fuerzas especiales para mantener la calma bajo presión.',
       descEn:'Balances the nervous system. Used by special forces to stay calm under pressure.' },
-    { nameEs:'4-7-8 Relajante',    nameEn:'4-7-8 Relaxing',   timing:[4,7,8,0],
+    { nameEs:'4-7-8 Relajante',           nameEn:'4-7-8 Relaxing',           timing:[4,7,8,0],
       descEs:'Activa el sistema parasimpático. Ideal para reducir ansiedad y preparar el sueño.',
       descEn:'Activates the parasympathetic system. Ideal for reducing anxiety and preparing for sleep.' },
-    { nameEs:'Wim Hof (ciclo)',     nameEn:'Wim Hof (cycle)',  timing:[2,0,2,0],
+    { nameEs:'Wim Hof (ciclo)',            nameEn:'Wim Hof (cycle)',           timing:[2,0,2,0],
       descEs:'Hiperventilación controlada que eleva el oxígeno y genera energía. Hacé 30 ciclos rápidos.',
       descEn:'Controlled hyperventilation that raises oxygen and generates energy. Do 30 quick cycles.' },
-    { nameEs:'Coherencia Cardíaca', nameEn:'Cardiac Coherence',timing:[5,0,5,0],
+    { nameEs:'Respiración Conectada',     nameEn:'Conscious Connected',       timing:[2,0,2,0],
+      descEs:'Ciclo continuo sin pausa entre inhalar y exhalar. Disuelve tensiones y conecta con el cuerpo.',
+      descEn:'Continuous cycle with no pause between inhale and exhale. Dissolves tension and connects with the body.' },
+    { nameEs:'Coherencia Cardíaca',       nameEn:'Cardiac Coherence',         timing:[5,0,5,0],
       descEs:'Sincroniza el ritmo cardíaco y el sistema nervioso. 5 minutos diarios tienen efecto acumulativo.',
       descEn:'Syncs heart rate and nervous system. 5 minutes daily has a cumulative effect.' },
-    { nameEs:'Energizante',         nameEn:'Energizing',       timing:[6,0,2,0],
+    { nameEs:'Energizante',               nameEn:'Energizing',                timing:[6,0,2,0],
       descEs:'Inhala largo, exhala corto. Aumenta el nivel de activación y concentración.',
       descEn:'Long inhale, short exhale. Increases activation and concentration.' },
-    { nameEs:'Relajación profunda', nameEn:'Deep Relaxation',  timing:[4,0,8,0],
+    { nameEs:'Relajación profunda',       nameEn:'Deep Relaxation',           timing:[4,0,8,0],
       descEs:'Exhala el doble de lo que inhalas. Baja la frecuencia cardíaca y relaja el cuerpo.',
       descEn:'Exhale twice as long as you inhale. Lowers heart rate and relaxes the body.' },
-    { nameEs:'Fire Breath',          nameEn:'Fire Breath',       timing:[1,0,1,0],
-      descEs:'Respiración rápida y rítmica que activa el sistema nervioso y genera calor interno. Hacé 30–40 ciclos seguidos.',
-      descEn:'Fast rhythmic breathing that activates the nervous system and generates internal heat. Do 30–40 consecutive cycles.' },
+    { nameEs:'Fire Breath',               nameEn:'Fire Breath',               timing:[1,0,1,0],
+      autoLimitCycles: 30,
+      descEs:'Respiración rápida y rítmica que activa el sistema nervioso y genera calor interno. Límite automático: 30 ciclos.',
+      descEn:'Fast rhythmic breathing that activates the nervous system and generates internal heat. Auto-limit: 30 cycles.' },
 ];
 
 function renderPresets() {
@@ -304,6 +364,7 @@ function renderPresets() {
         const [i, hf, e, he] = p.timing;
         const card = document.createElement('div');
         card.className = 'preset-card';
+        const hasAutoLimit = !!p.autoLimitCycles;
         card.innerHTML = `
             <div class="preset-header">
                 <span class="preset-name">${lang === 'es' ? p.nameEs : p.nameEn}</span>
@@ -313,7 +374,13 @@ function renderPresets() {
         card.addEventListener('click', () => {
             times.inhale.value = i; times.holdFull.value = hf;
             times.exhale.value = e; times.holdEmpty.value = he;
-            setTechniqueLabel(lang === 'es' ? p.nameEs : p.nameEn);
+            const name = lang === 'es' ? p.nameEs : p.nameEn;
+            setTechniqueLabel(name);
+            // Auto-limit for Fire Breath
+            if (hasAutoLimit) {
+                applyLimit('cycles', p.autoLimitCycles);
+                setTimeout(() => showToast(i18n[lang].fireBreathAutoLimit(p.autoLimitCycles)), 300);
+            }
             playSelectChime();
             closeModal('modal-settings');
             // Si hay sesión activa, pararla y arrancar de nuevo con los nuevos tiempos
@@ -683,4 +750,5 @@ window.addEventListener('load', () => {
     times.inhale.value = 4; times.holdFull.value = 4;
     times.exhale.value = 4; times.holdEmpty.value = 4;
     setTechniqueLabel('Box Breathing');
+    updateLimitBadge();
 });

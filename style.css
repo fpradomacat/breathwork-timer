@@ -974,8 +974,34 @@ body::before {
     opacity: 1;
 }
 
-/* ── Theme chips: texto siempre blanco ── */
-.theme-chip,
+/* ── Limit badge in main screen ── */
+.limit-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DM Mono', monospace;
+    font-size: .52rem;
+    letter-spacing: .1em;
+    color: var(--accent-bright);
+    background: var(--accent-dim);
+    border: 1px solid rgba(176,132,245,.25);
+    border-radius: 100px;
+    padding: 3px 10px;
+    margin-bottom: 6px;
+    opacity: .85;
+}
+
+/* Timing section header: centered technique label, no "Tiempos" title */
+.timing-section-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 12px;
+}
+.timing-section-header .technique-label-modal {
+    font-size: .62rem;
+    opacity: .9;
+}
 .theme-chip:hover,
 .theme-chip.active {
     color: #fff !important;
