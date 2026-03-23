@@ -32,11 +32,11 @@
             pos: 'bottom',
             es: {
                 title: '🫁 El círculo te guía',
-                body:  'El círculo crece al inhalar y se contrae al exhalar. Sigue su ritmo.<br><br><strong>Tocalo</strong> para iniciar o detener la sesión.',
+                body:  'El círculo crece al inhalar y se contrae al exhalar. Seguí su ritmo.<br><br><strong>Tocalo</strong> para iniciar la sesión. Tocalo de nuevo para detenerla.',
             },
             en: {
                 title: '🫁 The circle guides you',
-                body:  'The circle expands as you inhale and shrinks as you exhale. Follow its rhythm.<br><br><strong>Tap it</strong> to start or stop the session.',
+                body:  'The circle expands as you inhale and shrinks as you exhale. Follow its rhythm.<br><br><strong>Tap it</strong> to start the session. Tap again to stop.',
             },
         },
         {
@@ -44,23 +44,23 @@
             pos: 'bottom',
             es: {
                 title: '📊 Tus estadísticas',
-                body:  'Aquí ves el tiempo de sesión, los ciclos completados y la última sesión.<br><br>El botón <strong>⚙</strong> de la derecha abre toda la configuración.',
+                body:  'Aquí ves el tiempo de sesión, los ciclos completados y la última sesión.',
             },
             en: {
                 title: '📊 Your stats',
-                body:  'Session time, completed cycles and last session at a glance.<br><br>The <strong>⚙</strong> button on the right opens all settings.',
+                body:  'Session time, completed cycles and last session at a glance.',
             },
         },
         {
-            target: '#settings-btn',
-            pos: 'bottom',
+            target: '.action-pills',
+            pos: 'top',
             es: {
-                title: '⚙️ Todo en un lugar',
-                body:  'Técnicas, tiempos, límite de sesión, volumen, tema e idioma. Todo desde aquí.<br><br>💡 <strong>En móvil:</strong> deslizá los campos de tiempo arriba/abajo para cambiar el valor.',
+                title: '✦ Técnicas y ajustes',
+                body:  '<strong>Técnicas</strong> para elegir o cambiar la respiración.<br><strong>Ajustes</strong> para tiempos, límite de sesión, volumen e idioma.<br><br>💡 <strong>En móvil:</strong> deslizá los campos de tiempo arriba/abajo para cambiar el valor.',
             },
             en: {
-                title: '⚙️ Everything in one place',
-                body:  'Techniques, timings, session limit, volume, theme and language. All from here.<br><br>💡 <strong>On mobile:</strong> slide the time fields up or down to change their value.',
+                title: '✦ Techniques & settings',
+                body:  '<strong>Techniques</strong> to pick or change your breathing pattern.<br><strong>Settings</strong> for timings, session limit, volume and language.<br><br>💡 <strong>On mobile:</strong> slide the time fields up or down to change their value.',
             },
         },
     ];

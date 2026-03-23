@@ -1141,3 +1141,67 @@ body::before {
 
 /* Toast */
 .limit-toast { font-size: .875rem !important; }
+/* ── Active session tweaks ── */
+
+/* 3) Fix "Last" clipping when NOT in session — remove max-width cap */
+.stat-item--last .stat-value {
+    max-width: none !important;
+    overflow: visible !important;
+    text-overflow: unset !important;
+}
+
+/* Stats box: smooth justify transition via flex gap animation */
+.stats-box {
+    transition:
+        gap 1.2s cubic-bezier(0.4,0,0.2,1),
+        justify-content 1.2s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* Each stat item can fade+collapse */
+.stat-item {
+    transition:
+        opacity 1.2s cubic-bezier(0.4,0,0.2,1),
+        max-width 1.2s cubic-bezier(0.4,0,0.2,1),
+        transform 1.2s cubic-bezier(0.4,0,0.2,1),
+        visibility 0s linear 0s;
+    overflow: hidden;
+    max-width: 200px;
+    visibility: visible;
+}
+
+/* 1) Pills: fade+slide down, then collapse height so no ghost space */
+.action-pills {
+    transition:
+        opacity 0.6s cubic-bezier(0.4,0,0.2,1),
+        transform 0.6s cubic-bezier(0.4,0,0.2,1),
+        max-height 1.2s cubic-bezier(0.4,0,0.2,1),
+        margin-bottom 1.2s cubic-bezier(0.4,0,0.2,1);
+    max-height: 60px;
+    overflow: hidden;
+}
+.container.session .action-pills {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(6px);
+    max-height: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+/* 2) "Last" animates to zero then becomes invisible (no ghost space) */
+.container.session .stat-item--last {
+    opacity: 0;
+    max-width: 0;
+    transform: scale(0.7);
+    pointer-events: none;
+    visibility: hidden;
+    /* delay visibility snap until after the width+opacity animation */
+    transition:
+        opacity 1.2s cubic-bezier(0.4,0,0.2,1),
+        max-width 1.2s cubic-bezier(0.4,0,0.2,1),
+        transform 1.2s cubic-bezier(0.4,0,0.2,1),
+        visibility 0s linear 1.2s;
+}
+.container.session .stats-box {
+    justify-content: center;
+    gap: 32px;
+}

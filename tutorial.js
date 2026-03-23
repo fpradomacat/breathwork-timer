@@ -170,14 +170,16 @@ const HOVER_SELECTOR = [
     '.limit-chip', '.ctrl-option', '.input-group input',
     '.bmc-btn', '.author-tag', '.preset-card', '.modal-close',
     '.lang-inline-btn', '.reset-inline-btn', '.settings-pill',
-    '#breathing-circle',
+    '#breathing-circle', '.pill-tecnicas', '.pill-ajustes',
+    '.theme-chip',
 ].join(', ');
 
 let _lastHoverEl = null;
 let _suppressHover = false;
+let _lastWasTouch = false;
 
 document.addEventListener('mouseover', e => {
-    if (_suppressHover) return;
+    if (_suppressHover || _lastWasTouch) return;
     const el = e.target.closest(HOVER_SELECTOR);
     if (el && el !== _lastHoverEl) { playHoverClick(); _lastHoverEl = el; }
 });
@@ -185,6 +187,18 @@ document.addEventListener('mouseout', e => {
     const el = e.target.closest(HOVER_SELECTOR);
     if (el && !el.contains(e.relatedTarget)) _lastHoverEl = null;
 });
+
+// On touch: haptic only (no sound — avoids double-firing with synthetic mouseover)
+document.addEventListener('touchstart', e => {
+    _lastWasTouch = true;
+    const el = e.target.closest(HOVER_SELECTOR);
+    if (el && !el.disabled) {
+        if (navigator.vibrate) navigator.vibrate(8);
+    }
+}, { passive: true });
+
+// Reset touch flag on real mouse movement (desktop)
+document.addEventListener('mousemove', () => { _lastWasTouch = false; }, { passive: true });
 
 // ── i18n ─────────────────────────────────────────────────────
 function applyLang(l) {
@@ -272,22 +286,57 @@ document.querySelectorAll('.limit-chip').forEach(chip =>
     }));
 
 limitInput.addEventListener('keydown', e => {
+    if (limitInput.disabled) return;
     if (['Backspace','Tab','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Delete'].includes(e.key)) return;
     if (!/^\d$/.test(e.key)) e.preventDefault();
 });
 limitInput.addEventListener('wheel', e => {
+    if (limitInput.disabled) return;
     e.preventDefault();
     limitInput.value = Math.max(1, (parseInt(limitInput.value) || 1) + (e.deltaY < 0 ? 1 : -1));
     limitValue = parseInt(limitInput.value);
     updateLimitBadge();
 }, { passive: false });
 limitInput.addEventListener('blur', () => {
+    if (limitInput.disabled) return;
     const v = parseInt(limitInput.value);
     limitInput.value = (!v || v < 1) ? 1 : v;
     limitValue = parseInt(limitInput.value);
     updateLimitBadge();
 });
-limitInput.addEventListener('input', () => { limitValue = parseInt(limitInput.value) || 1; updateLimitBadge(); });
+limitInput.addEventListener('input', () => {
+    if (limitInput.disabled) return;
+    limitValue = parseInt(limitInput.value) || 1;
+    updateLimitBadge();
+});
+
+// Mobile touch drag for limitInput — same behaviour as timing inputs
+(function() {
+    let _touchStartY = null, _touchBaseVal = null, _lastStepVal = null;
+    limitInput.addEventListener('touchstart', e => {
+        if (limitInput.disabled) return;
+        _touchStartY  = e.touches[0].clientY;
+        _touchBaseVal = parseInt(limitInput.value) || 1;
+        _lastStepVal  = _touchBaseVal;
+        limitInput.blur();
+    }, { passive: true });
+    limitInput.addEventListener('touchmove', e => {
+        if (limitInput.disabled || _touchStartY === null) return;
+        e.preventDefault();
+        const steps = Math.round((_touchStartY - e.touches[0].clientY) / 8);
+        const next  = Math.max(1, _touchBaseVal + steps);
+        if (next !== _lastStepVal) {
+            limitInput.value = next;
+            limitValue = next;
+            _lastStepVal = next;
+            updateLimitBadge();
+            if (navigator.vibrate) navigator.vibrate(6);
+        }
+    }, { passive: false });
+    limitInput.addEventListener('touchend', () => {
+        _touchStartY = null; _touchBaseVal = null; _lastStepVal = null;
+    }, { passive: true });
+})();
 
 function checkLimit() {
     if (limitType === 'none') return false;
@@ -301,7 +350,7 @@ function applyLimit(type, value) {
     limitType  = type;
     limitValue = value;
     limitInput.value    = value;
-    limitInput.disabled = false;
+    limitInput.disabled = (type === 'none');
     document.querySelectorAll('.limit-chip').forEach(c => {
         c.classList.toggle('active', c.dataset.value === type);
     });
@@ -451,7 +500,14 @@ function playPhase(pi) {
 
 
 // ── Modals ────────────────────────────────────────────────────
-function openModal(id)  { const el = document.getElementById(id); if (el) el.classList.add('open'); }
+function openModal(id)  {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.add('open');
+    // Always scroll to top
+    const body = el.querySelector('.modal-body');
+    if (body) body.scrollTop = 0;
+}
 function closeModal(id) { const el = document.getElementById(id); if (el) el.classList.remove('open'); }
 document.querySelectorAll('.modal-close').forEach(btn =>
     btn.addEventListener('click', () => closeModal(btn.dataset.close)));
@@ -743,6 +799,44 @@ resetBtn.onclick = () => {
     toggleDropdown('gear-dropdown');
 };
 
+// ── Click sound on all interactive elements ───────────────────
+// Plays on mouse click (desktop) and touch tap (mobile, via touchend
+// so it doesn't double-fire with the touchstart haptic).
+const CLICK_SOUND_SELECTOR = [
+    'button:not(:disabled)', 'a', '.preset-card', '.limit-chip',
+    '.lang-inline-btn', '.reset-inline-btn', '.pill-tecnicas',
+    '.pill-ajustes', '.theme-chip', '.modal-close', '.bmc-btn',
+].join(', ');
+
+document.addEventListener('click', e => {
+    if (_lastWasTouch) return; // mobile: handled by touchend below
+    const el = e.target.closest(CLICK_SOUND_SELECTOR);
+    if (el) playHoverClick();
+});
+
+document.addEventListener('touchend', e => {
+    const el = e.target.closest(CLICK_SOUND_SELECTOR);
+    if (el && !el.disabled) playHoverClick();
+}, { passive: true });
+
+// ── Keyboard shortcuts ────────────────────────────────────────
+document.addEventListener('keydown', e => {
+    // Escape: close any open modal
+    if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay.open').forEach(m => closeModal(m.id));
+        return;
+    }
+    // Space: start / stop — only when no modal is open and no input is focused
+    if (e.key === ' ' || e.code === 'Space') {
+        const modalOpen = document.querySelector('.modal-overlay.open');
+        const focused   = document.activeElement;
+        const isInput   = focused && ['INPUT','TEXTAREA','SELECT'].includes(focused.tagName);
+        if (modalOpen || isInput) return;
+        e.preventDefault(); // prevent page scroll
+        if (!startBtn.disabled) startBtn.click();
+    }
+});
+
 
 
 // Prevent browser session-restore from showing stale input values
@@ -750,5 +844,5 @@ window.addEventListener('load', () => {
     times.inhale.value = 4; times.holdFull.value = 4;
     times.exhale.value = 4; times.holdEmpty.value = 4;
     setTechniqueLabel('Box Breathing');
-    updateLimitBadge();
+    applyLimit('none', 10); // also resets limitInput.disabled and badge
 });
