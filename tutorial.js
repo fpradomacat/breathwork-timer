@@ -85,6 +85,7 @@ const i18n = {
 let lang = 'es';
 
 // ── DOM refs ──────────────────────────────────────────────────
+const vol = 1;
 const DEFAULT_TIMES = {
   inhale: 4,
   holdFull: 4,
@@ -102,13 +103,11 @@ const breathText = document.getElementById('breath-text');
 const phaseTimerDisplay = document.getElementById('phase-timer');
 const breathingCircle = document.getElementById('breathing-circle');
 const startBtn = document.getElementById('start-btn');
-const resetBtn = document.getElementById('reset-btn');
 const techniquesBtn = document.getElementById('techniques-btn');
 const sessionCounter = document.getElementById('session-counter');
 const cycleCounter = document.getElementById('cycle-counter');
 const lastSession = document.getElementById('last-session');
 const techniqueLabel = document.getElementById('technique-label');
-const volSlider = document.getElementById('volume-slider');
 
 // ── Audio context ─────────────────────────────────────────────
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -146,8 +145,6 @@ function playTone(freq, duration, vol) {
 }
 
 function playHoverClick() {
-  const vol = parseFloat(volSlider.value);
-  if (vol <= 0 || audioCtx.state === 'suspended') return;
   const len = Math.floor(audioCtx.sampleRate * 0.012);
   const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
   const data = buf.getChannelData(0);
@@ -163,12 +160,10 @@ function playHoverClick() {
   src.connect(hpf);
   hpf.connect(gain);
   gain.connect(audioCtx.destination);
-  gain.gain.setValueAtTime(vol * 0.18, audioCtx.currentTime);
   src.start();
 }
 
 function playStartSound() {
-  const vol = parseFloat(volSlider.value);
   if (vol <= 0) return;
   [
     [440, 0],
@@ -190,8 +185,6 @@ function playStartSound() {
 }
 
 function playStopTone() {
-  const vol = parseFloat(volSlider.value);
-  if (vol <= 0) return;
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
   osc.connect(gain);
@@ -206,8 +199,6 @@ function playStopTone() {
 }
 
 function playSelectChime() {
-  const vol = parseFloat(volSlider.value) * 0.22;
-  if (vol <= 0) return;
   [
     [520, 0],
     [660, 0.07],
@@ -228,41 +219,10 @@ function playSelectChime() {
   });
 }
 
-function playVolumeTone() {
-  clearTimeout(playVolumeTone._t);
-  playVolumeTone._t = setTimeout(
-    () => playTone(440, 0.35, parseFloat(volSlider.value) * 0.3),
-    80,
-  );
-}
-volSlider.addEventListener('input', playVolumeTone);
-
-document.getElementById('gear-dropdown').addEventListener(
-  'wheel',
-  (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    volSlider.value = Math.min(
-      1,
-      Math.max(
-        0,
-        parseFloat(
-          (parseFloat(volSlider.value) + (e.deltaY < 0 ? 0.1 : -0.1)).toFixed(
-            1,
-          ),
-        ),
-      ),
-    );
-    playVolumeTone();
-  },
-  { passive: false },
-);
-
 // ── Hover click ───────────────────────────────────────────────
 const HOVER_SELECTOR = [
   '#start-btn',
   '#presets-btn',
-  '#reset-btn',
   '.ctrl-option',
   '.input-group input',
   '.bmc-btn',
@@ -329,7 +289,6 @@ function applyLang(l) {
     .querySelectorAll('#lang-dropdown .ctrl-option')
     .forEach((o) => o.classList.toggle('active', o.dataset.value === l));
   if (!isRunning) breathText.textContent = t.ready;
-  if (startBtn) startBtn.textContent = isRunning ? t.stop : t.start;
   // Re-translate the active technique name if it matches a preset
   const isCustom = techniqueLabel.classList.contains('is-custom');
   if (!isCustom && activeTechniqueName) {
@@ -355,8 +314,6 @@ function applyLang(l) {
 // ── Dropdowns ────────────────────────────────────────────────
 const allDropdowns = [
   'lang-dropdown',
-  'gear-dropdown',
-  'session-gear-dropdown',
 ];
 
 function toggleDropdown(id) {
@@ -373,12 +330,6 @@ document.addEventListener('click', () =>
   ),
 );
 
-['session-gear-dropdown', 'gear-dropdown'].forEach((id) =>
-  document
-    .getElementById(id)
-    .addEventListener('click', (e) => e.stopPropagation()),
-);
-
 document.getElementById('lang-btn').addEventListener('click', (e) => {
   e.stopPropagation();
   toggleDropdown('lang-dropdown');
@@ -390,116 +341,10 @@ document.querySelectorAll('#lang-dropdown .ctrl-option').forEach((o) =>
   }),
 );
 
-const controlsPanel = document.querySelector('.controls-panel');
-function syncControlsPanelOverflow() {
-  controlsPanel.classList.toggle(
-    'dropdown-open',
-    document.getElementById('gear-dropdown').classList.contains('open'),
-  );
-}
-document.getElementById('gear-btn').addEventListener('click', (e) => {
-  e.stopPropagation();
-  toggleDropdown('gear-dropdown');
-  syncControlsPanelOverflow();
-});
-document.addEventListener('click', syncControlsPanelOverflow);
-
-document.getElementById('session-gear-btn').addEventListener('click', (e) => {
-  e.stopPropagation();
-  toggleDropdown('session-gear-dropdown');
-});
-
 // ── Session limit ─────────────────────────────────────────────
 let limitType = 'none';
 let limitValue = 10;
-const limitInput = document.getElementById('limit-value');
 
-limitInput.addEventListener('keydown', (e) => {
-  if (limitInput.disabled) return;
-  if (
-    [
-      'Backspace',
-      'Tab',
-      'ArrowUp',
-      'ArrowDown',
-      'ArrowLeft',
-      'ArrowRight',
-      'Delete',
-    ].includes(e.key)
-  )
-    return;
-  if (!/^\d$/.test(e.key)) e.preventDefault();
-});
-limitInput.addEventListener(
-  'wheel',
-  (e) => {
-    if (limitInput.disabled) return;
-    e.preventDefault();
-    limitInput.value = Math.max(
-      1,
-      (parseInt(limitInput.value) || 1) + (e.deltaY < 0 ? 1 : -1),
-    );
-    limitValue = parseInt(limitInput.value);
-    updateLimitBadge();
-  },
-  { passive: false },
-);
-limitInput.addEventListener('blur', () => {
-  if (limitInput.disabled) return;
-  const v = parseInt(limitInput.value);
-  limitInput.value = !v || v < 1 ? 1 : v;
-  limitValue = parseInt(limitInput.value);
-  updateLimitBadge();
-});
-limitInput.addEventListener('input', () => {
-  if (limitInput.disabled) return;
-  limitValue = parseInt(limitInput.value) || 1;
-  updateLimitBadge();
-});
-
-// Mobile touch drag for limitInput — same behaviour as timing inputs
-(function () {
-  let _touchStartY = null,
-    _touchBaseVal = null,
-    _lastStepVal = null;
-  limitInput.addEventListener(
-    'touchstart',
-    (e) => {
-      if (limitInput.disabled) return;
-      _touchStartY = e.touches[0].clientY;
-      _touchBaseVal = parseInt(limitInput.value) || 1;
-      _lastStepVal = _touchBaseVal;
-      limitInput.blur();
-    },
-    { passive: true },
-  );
-  limitInput.addEventListener(
-    'touchmove',
-    (e) => {
-      if (limitInput.disabled || _touchStartY === null) return;
-      e.preventDefault();
-      const steps = Math.round((_touchStartY - e.touches[0].clientY) / 8);
-      const next = Math.max(1, _touchBaseVal + steps);
-      if (next !== _lastStepVal) {
-        limitInput.value = next;
-        limitValue = next;
-        _lastStepVal = next;
-        updateLimitBadge();
-        if (navigator.vibrate) navigator.vibrate(6);
-      }
-    },
-    { passive: false },
-  );
-  limitInput.addEventListener(
-    'touchend',
-    () => {
-      _touchStartY = null;
-      _touchBaseVal = null;
-      _lastStepVal = null;
-    },
-    { passive: true },
-  );
-})();
 
 function checkLimit() {
   if (limitType === 'none') return false;
@@ -512,8 +357,6 @@ function checkLimit() {
 function applyLimit(type, value) {
   limitType = type;
   limitValue = value;
-  limitInput.value = value;
-  limitInput.disabled = type === 'none';
   updateLimitBadge();
 }
 
@@ -659,9 +502,6 @@ if (location.protocol !== 'file:') {
 }
 
 function playPhase(pi) {
-  const vol = parseFloat(volSlider.value);
-  if (vol <= 0) return;
-
   if (_phaseBuffers[pi]) {
     // Web Audio path — zero latency, no OS stack, Bluetooth-safe
     const src = audioCtx.createBufferSource();
@@ -865,8 +705,6 @@ function startTimer() {
   resumeAudio();
   playStartSound();
   _suppressHover = true;
-  startBtn.blur();
-  startBtn.disabled = true;
   breathText.innerText = '';
   phaseTimerDisplay.innerText = '';
   breathingCircle.style.transition = '';
@@ -883,11 +721,6 @@ function startTimer() {
     isRunning = true;
     totalSeconds = 0;
     cycles = 0;
-    startBtn.disabled = false;
-    startBtn.innerText = i18n[lang].stop;
-    startBtn.style.background =
-      'linear-gradient(135deg,rgba(220,60,80,.6),rgba(180,30,50,.5))';
-    startBtn.style.borderColor = 'rgba(220,100,100,.3)';
     sessionCounter.innerText = '00:00';
     cycleCounter.innerText = '0';
 
@@ -937,10 +770,6 @@ function stopTimer(limitMsg) {
   playStopTone();
   if (limitMsg) showToast(limitMsg);
 
-  startBtn.disabled = true;
-  startBtn.innerText = i18n[lang].start;
-  startBtn.style.background = '';
-  startBtn.style.borderColor = '';
   phaseTimerDisplay.innerText = '';
   breathText.innerText = '';
   breathingCircle.style.transition = '';
@@ -951,22 +780,10 @@ function stopTimer(limitMsg) {
 
   setTimeout(() => {
     breathText.innerText = i18n[lang].ready;
-    startBtn.disabled = false;
   }, TRANSITION_MS);
 }
 
 startBtn.onclick = () => (isRunning ? stopTimer() : startTimer());
-resetBtn.onclick = () => {
-  if (isRunning) return;
-  times.inhale = DEFAULT_TIMES.inhale;
-  times.holdFull = DEFAULT_TIMES.holdFull;
-  times.exhale = DEFAULT_TIMES.exhale;
-  times.holdEmpty = DEFAULT_TIMES.holdEmpty;
-  setTechniqueLabel(lang === 'es' ? 'Respiración cuadrada' : 'Box Breathing');
-  // Reset session limit
-  applyLimit('none', 10);
-  toggleDropdown('gear-dropdown');
-};
 
 // ── Click sound on all interactive elements ───────────────────
 // Plays on mouse click (desktop) and touch tap (mobile, via touchend
@@ -1015,7 +832,6 @@ document.addEventListener('keydown', (e) => {
       focused && ['INPUT', 'TEXTAREA', 'SELECT'].includes(focused.tagName);
     if (modalOpen || isInput) return;
     e.preventDefault(); // prevent page scroll
-    if (!startBtn.disabled) startBtn.click();
   }
 });
 
@@ -1026,5 +842,5 @@ window.addEventListener('load', () => {
   times.exhale = DEFAULT_TIMES.exhale;
   times.holdEmpty = DEFAULT_TIMES.holdEmpty;
   setTechniqueLabel(lang === 'es' ? 'Respiración cuadrada' : 'Box Breathing');
-  applyLimit('none', 10); // also resets limitInput.disabled and badge
+  applyLimit('none', 10);
 });

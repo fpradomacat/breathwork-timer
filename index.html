@@ -54,7 +54,7 @@
 
             <!-- Technique name + limit badge row -->
             <div class="meta-row" id="meta-row">
-                <span id="technique-label">Box Breathing</span>
+                <span id="technique-label">Respiración cuadrada</span>
                 <span id="limit-badge" class="limit-badge" style="display:none"></span>
             </div>
 
@@ -102,11 +102,6 @@
             <button class="ctrl-option active" data-value="es">ES — Español</button>
             <button class="ctrl-option" data-value="en">EN — English</button>
         </div>
-        <button id="gear-btn"></button>
-        <div id="gear-dropdown"></div>
-        <button id="session-gear-btn"></button>
-        <div id="session-gear-dropdown"></div>
-        <div class="controls-panel"></div>
         <button id="start-btn"></button>
         <button id="techniques-btn"></button>
     </div>
@@ -125,13 +120,6 @@
         openModal('modal-tecnicas');
     });
 
-    // ── Sync technique-label-modal with technique-label ────────
-    const _techMain  = document.getElementById('technique-label');
-    const _techModal = document.getElementById('technique-label-modal');
-    new MutationObserver(() => {
-        _techModal.textContent = _techMain.textContent;
-        _techModal.className   = 'technique-label-modal' + (_techMain.classList.contains('is-custom') ? ' is-custom' : '');
-    }).observe(_techMain, { childList: true, characterData: true, subtree: true, attributes: true });
     </script>
 </body>
 </html>

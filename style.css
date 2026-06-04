@@ -110,7 +110,6 @@ h1 {
 .ctrl-option:hover { background:rgba(255,255,255,.04); color:var(--text-secondary); }
 .ctrl-option.active { color:var(--text-secondary); }
 
-#gear-dropdown .ctrl-option,
 #lang-dropdown .ctrl-option { border-radius:0; }
 
 /* ── Stats box ── */
@@ -185,15 +184,6 @@ h1 {
     height:1.8rem; margin-top:6px; visibility:visible;
 }
 .container.session #phase-timer:empty { visibility:hidden; }
-
-/* ── Controls panel ── */
-.controls-panel {
-    overflow:hidden; max-height:400px; opacity:1;
-    transition:max-height var(--transition),opacity var(--transition);
-    margin-bottom:10px;
-}
-.controls-panel.dropdown-open { overflow:visible; }
-.container.session .controls-panel { max-height:0; opacity:0; pointer-events:none; }
 
 /* ── Settings grid ── */
 .settings-grid {
@@ -429,7 +419,6 @@ footer { display:flex; align-items:center; justify-content:center; gap:8px; }
 .settings-pill svg { flex-shrink: 0; }
 
 /* Hide the old bottom bar elements */
-.controls-panel { display: none !important; }
 .button-group    { display: none !important; }
 
 

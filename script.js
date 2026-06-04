@@ -55,12 +55,12 @@
             target: '.action-pills',
             pos: 'top',
             es: {
-                title: '✦ Técnicas y ajustes',
-                body:  '<strong>Técnicas</strong> para elegir o cambiar la respiración.<br><strong>Ajustes</strong> para tiempos, límite de sesión, volumen e idioma.<br><br>💡 <strong>En móvil:</strong> deslizá los campos de tiempo arriba/abajo para cambiar el valor.',
+                title: '✦ Técnicas',
+                body:  'Explora diferentes técnicas de respiración y elige la que mejor se adapte a tus necesidades. Cada técnica está diseñada para ayudarte a alcanzar un objetivo distinto, como relajarte, concentrarte o recuperar energía. Ajusta tu ritmo y encuentra la experiencia que más te beneficie.',
             },
             en: {
-                title: '✦ Techniques & settings',
-                body:  '<strong>Techniques</strong> to pick or change your breathing pattern.<br><strong>Settings</strong> for timings, session limit, volume and language.<br><br>💡 <strong>On mobile:</strong> slide the time fields up or down to change their value.',
+                title: '✦ Techniques',
+                body:  'Explore different breathing techniques and choose the one that best fits your needs. Each technique is designed to support a different goal, such as relaxation, focus, or renewed energy. Adjust your breathing rhythm and find the experience that works best for you.',
             },
         },
     ];
