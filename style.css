@@ -703,13 +703,13 @@ body::before {
   border: 1px solid rgba(176,132,245,.35);
   background: var(--accent-dim);
   color: var(--accent-bright);
-  font-size: 1.1rem;
   cursor: pointer;
   box-shadow: none;
   transition: background .2s, border-color .2s, opacity .2s;
   display: flex;
   align-items: center;
   justify-content: center;
+  text-align: center;
 }
 .pill-ambient:hover {
   background: rgba(176,132,245,.2);
