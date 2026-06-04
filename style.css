@@ -121,7 +121,9 @@ h1 {
         rgba(90,40,200,.20) 75%,transparent 100%);
     transition:transform var(--transition),opacity var(--transition),box-shadow var(--transition);
     opacity:.55; transform:scale(1); box-shadow:none;
+    -webkit-tap-highlight-color: transparent; /* para que no muestre el cuadrado feo en mobile */
 }
+
 #breathing-circle::before,#breathing-circle::after{content:none;}
 #breathing-circle.collapsed {
     opacity:.45; transform:scale(.65);

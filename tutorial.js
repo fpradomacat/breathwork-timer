@@ -83,7 +83,25 @@ const i18n = {
 };
 
 let lang = 'es';
-let wakeLock = null;
+
+// ── Hover click ───────────────────────────────────────────────
+const HOVER_SELECTOR = [
+  '#start-btn',
+  '#presets-btn',
+  '.ctrl-option',
+  '.input-group input',
+  '.bmc-btn',
+  '.author-tag',
+  '.preset-card',
+  '.modal-close',
+  '.reset-inline-btn',
+  '#breathing-circle',
+  '.pill-tecnicas',
+].join(', ');
+
+let _lastHoverEl = null;
+let _suppressHover = false;
+let _lastWasTouch = false;
 
 // ── DOM refs ──────────────────────────────────────────────────
 const vol = 1;
@@ -220,33 +238,17 @@ function playSelectChime() {
   });
 }
 
-// ── Hover click ───────────────────────────────────────────────
-const HOVER_SELECTOR = [
-  '#start-btn',
-  '#presets-btn',
-  '.ctrl-option',
-  '.input-group input',
-  '.bmc-btn',
-  '.author-tag',
-  '.preset-card',
-  '.modal-close',
-  '.reset-inline-btn',
-  '#breathing-circle',
-  '.pill-tecnicas',
-].join(', ');
-
-let _lastHoverEl = null;
-let _suppressHover = false;
-let _lastWasTouch = false;
-
 document.addEventListener('mouseover', (e) => {
   if (_suppressHover || _lastWasTouch) return;
   const el = e.target.closest(HOVER_SELECTOR);
   if (el && el !== _lastHoverEl) {
     playHoverClick();
     _lastHoverEl = el;
+    _suppressHover = true;
+    setTimeout(() => { _suppressHover = false; }, 150);
   }
 });
+
 document.addEventListener('mouseout', (e) => {
   const el = e.target.closest(HOVER_SELECTOR);
   if (el && !el.contains(e.relatedTarget)) _lastHoverEl = null;
@@ -326,17 +328,6 @@ document.addEventListener('click', () =>
   allDropdowns.forEach((d) =>
     document.getElementById(d).classList.remove('open'),
   ),
-);
-
-document.getElementById('lang-btn').addEventListener('click', (e) => {
-  e.stopPropagation();
-  toggleDropdown('lang-dropdown');
-});
-document.querySelectorAll('#lang-dropdown .ctrl-option').forEach((o) =>
-  o.addEventListener('click', () => {
-    applyLang(o.dataset.value);
-    document.getElementById('lang-dropdown').classList.remove('open');
-  }),
 );
 
 // ── Session limit ─────────────────────────────────────────────
@@ -798,19 +789,24 @@ const CLICK_SOUND_SELECTOR = [
 ].join(', ');
 
 document.addEventListener('click', (e) => {
-  if (_lastWasTouch) return; // mobile: handled by touchend below
+  if (_lastWasTouch) return;
   const el = e.target.closest(CLICK_SOUND_SELECTOR);
-  if (el) playHoverClick();
+  if (el) {
+    playHoverClick();
+    _suppressHover = true;
+    setTimeout(() => { _suppressHover = false; }, 600);
+  }
 });
 
-document.addEventListener(
-  'touchend',
-  (e) => {
-    const el = e.target.closest(CLICK_SOUND_SELECTOR);
-    if (el && !el.disabled) playHoverClick();
-  },
-  { passive: true },
-);
+document.addEventListener('touchend', (e) => {
+  if (_lastWasTouch) return;
+  const el = e.target.closest(CLICK_SOUND_SELECTOR);
+  if (el && !el.disabled) {
+    playHoverClick();
+    _lastWasTouch = true;
+    setTimeout(() => { _lastWasTouch = false; }, 600); // 600 > 300ms del click sintético
+  }
+}, { passive: true });
 
 // ── Keyboard shortcuts ────────────────────────────────────────
 document.addEventListener('keydown', (e) => {
