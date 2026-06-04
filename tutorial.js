@@ -424,7 +424,7 @@ function renderPresets() {
     const presetTag = lang === 'es' ? preset.tagEs : preset.tagEn;
     card.innerHTML = `
             <div class="preset-header">
-                <span class="preset-name">${presetName} <span class="preset-tag">${tag}</span></span>
+                <span class="preset-name">${presetName} <span class="preset-tag">${presetTag}</span></span>
                 <span class="preset-timing">${i}-${hf}-${e}-${he}</span>
             </div>
             <p class="preset-desc">${lang === 'es' ? preset.descEs : preset.descEn}</p>`;
