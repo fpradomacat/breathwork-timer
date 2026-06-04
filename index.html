@@ -95,80 +95,6 @@
         </div>
     </div>
 
-    <!-- Modal: Ajustes -->
-    <div class="modal-overlay" id="modal-settings">
-        <div class="modal modal-settings-modal">
-            <div class="modal-header">
-                <span class="modal-title" data-i18n="settingsTitle">Configuración</span>
-                <button class="modal-close" data-close="modal-settings">✕</button>
-            </div>
-            <div class="modal-body">
-
-                <!-- Lang + Reset -->
-                <div class="settings-section lang-reset-section">
-                    <div class="lang-inline">
-                        <button class="lang-inline-btn active" data-value="es">🇪🇸 ES</button>
-                        <button class="lang-inline-btn" data-value="en">🇬🇧 EN</button>
-                    </div>
-                    <button class="reset-inline-btn" id="reset-btn" data-i18n="reset">Reset</button>
-                </div>
-
-                <div class="settings-divider"></div>
-
-                <!-- Timing controls -->
-                <div class="settings-section">
-                    <div class="timing-section-header">
-                        <span id="technique-label-modal" class="technique-label-modal">Box Breathing</span>
-                    </div>
-                    <div class="timing-grid">
-                        <div class="input-group">
-                            <label data-i18n="inhale">Inhala</label>
-                            <input type="text" inputmode="numeric" id="time-inhale" value="4" min="1" autocomplete="off">
-                        </div>
-                        <div class="input-group">
-                            <label data-i18n="holdFull">Pausa (Lleno)</label>
-                            <input type="text" inputmode="numeric" id="time-hold-full" value="4" min="0" autocomplete="off">
-                        </div>
-                        <div class="input-group">
-                            <label data-i18n="exhale">Exhala</label>
-                            <input type="text" inputmode="numeric" id="time-exhale" value="4" min="1" autocomplete="off">
-                        </div>
-                        <div class="input-group">
-                            <label data-i18n="holdEmpty">Pausa (Vacío)</label>
-                            <input type="text" inputmode="numeric" id="time-hold-empty" value="4" min="0" autocomplete="off">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="settings-divider"></div>
-
-                <!-- Session limit -->
-                <div class="settings-section">
-                    <div class="settings-section-title" data-i18n="limitTitle">Límite de sesión</div>
-                    <div class="limit-chips">
-                        <button class="limit-chip active" data-value="none" data-i18n="limitNone">Sin límite</button>
-                        <button class="limit-chip" data-value="minutes" data-i18n="limitMin">Minutos</button>
-                        <button class="limit-chip" data-value="cycles" data-i18n="limitCyc">Ciclos</button>
-                    </div>
-                    <div class="limit-value-row">
-                        <input type="text" inputmode="numeric" id="limit-value" value="10" min="1" disabled>
-                    </div>
-                </div>
-
-                <div class="settings-divider"></div>
-
-                <!-- Volume -->
-                <div class="settings-section">
-                    <div class="settings-section-title" data-i18n="vol">Vol</div>
-                    <div class="vol-row">
-                        <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5" class="gear-vol-slider">
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
     <!-- Hidden elements for JS compatibility -->
     <div style="display:none">
         <button id="lang-btn">ES</button>
@@ -197,21 +123,6 @@
     document.getElementById('tecnicas-btn').addEventListener('click', () => {
         renderPresets();
         openModal('modal-tecnicas');
-    });
-
-    // ── Ajustes pill ───────────────────────────────────────────
-    document.getElementById('settings-btn').addEventListener('click', () => {
-        if (typeof renderThemeChips === 'function') renderThemeChips();
-        openModal('modal-settings');
-    });
-
-    // ── Inline lang buttons ────────────────────────────────────
-    document.querySelectorAll('.lang-inline-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.lang-inline-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            applyLang(btn.dataset.value);
-        });
     });
 
     // ── Sync technique-label-modal with technique-label ────────

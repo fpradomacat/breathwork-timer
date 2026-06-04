@@ -132,20 +132,7 @@ h1 {
     font-size:.52rem; font-weight:500; text-transform:uppercase;
     letter-spacing:.1em; color:var(--text-muted); margin-bottom:10px;
 }
-.limit-chips { display:flex; flex-direction:column; gap:4px; }
-.limit-chip {
-    display:block; width:100%; background:transparent;
-    border:1px solid var(--divider); border-radius:8px;
-    color:var(--text-muted); font-family:'DM Sans',sans-serif;
-    font-size:.78rem; letter-spacing:.03em; padding:7px 10px;
-    text-align:left; cursor:pointer; box-shadow:none; flex:none;
-    transition:border-color .15s,color .15s,background .15s;
-}
-.limit-chip:hover { border-color:rgba(255,255,255,.15); color:var(--text-secondary); }
-.limit-chip.active {
-    border-color:rgba(176,132,245,.35); color:var(--accent-bright);
-    background:var(--accent-dim);
-}
+
 .limit-value-row { margin-top:10px; display:flex; justify-content:center; }
 .limit-value-row input {
     width:64px; padding:6px; background:var(--input-bg);
@@ -238,9 +225,6 @@ h1 {
     position:absolute; top:10px; right:10px; z-index:10;
 }
 
-.gear-vol-row {
-    display:flex; align-items:center; gap:10px; padding:12px 14px;
-}
 .gear-vol-label {
     font-family:'DM Mono',monospace; font-size:.62rem; letter-spacing:.1em;
     text-transform:uppercase; color:var(--text-muted); white-space:nowrap;
@@ -448,125 +432,6 @@ footer { display:flex; align-items:center; justify-content:center; gap:8px; }
 .controls-panel { display: none !important; }
 .button-group    { display: none !important; }
 
-/* ── Settings modal ── */
-.modal-settings-modal {
-    max-width: 380px;
-}
-
-.settings-section {
-    margin-bottom: 4px;
-}
-
-.settings-section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 12px;
-}
-
-.settings-section-title {
-    font-size: .52rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: .1em;
-    color: var(--text-muted);
-    margin-bottom: 12px;
-    display: block;
-}
-.settings-section-header .settings-section-title {
-    margin-bottom: 0;
-}
-
-.technique-label-modal {
-    font-size: .52rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: .1em;
-    color: var(--text-muted);
-    font-family: 'DM Sans', sans-serif;
-}
-.technique-label-modal.is-custom { color: var(--accent); opacity: .7; }
-
-.timing-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-}
-
-.settings-divider {
-    height: 1px;
-    background: var(--divider);
-    margin: 16px 0;
-}
-
-/* Lang + Reset row */
-.lang-reset-section {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 0;
-}
-
-.lang-inline {
-    display: flex;
-    gap: 6px;
-}
-
-.lang-inline-btn {
-    padding: 7px 14px;
-    border-radius: 100px;
-    border: 1px solid var(--divider);
-    background: transparent;
-    color: var(--text-muted);
-    font-family: 'DM Mono', monospace;
-    font-size: .68rem;
-    letter-spacing: .06em;
-    cursor: pointer;
-    box-shadow: none;
-    flex: none;
-    transition: color .2s, border-color .2s, background .2s;
-}
-.lang-inline-btn:hover {
-    color: var(--text-secondary);
-    border-color: rgba(255,255,255,.15);
-}
-.lang-inline-btn.active {
-    color: var(--accent-bright);
-    border-color: rgba(176,132,245,.35);
-    background: var(--accent-dim);
-}
-
-.reset-inline-btn {
-    padding: 7px 16px;
-    border-radius: 100px;
-    border: 1px solid var(--divider);
-    background: transparent;
-    color: var(--text-muted);
-    font-family: 'DM Sans', sans-serif;
-    font-size: .75rem;
-    letter-spacing: .06em;
-    cursor: pointer;
-    box-shadow: none;
-    flex: none;
-    transition: color .2s, border-color .2s;
-}
-.reset-inline-btn:hover {
-    color: var(--text-secondary);
-    border-color: rgba(255,255,255,.15);
-}
-
-/* Vol row inside modal */
-.vol-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-}
-.vol-row .gear-vol-slider { flex: 1; }
-
-/* Presets list inside modal */
-#presets-list .preset-card { margin-bottom: 8px; }
-#presets-list .preset-card:last-child { margin-bottom: 0; }
 
 /* ══════════════════════════════════════════════════════════════
    TEMAS, BOLITA GRANDE, STATS MINIMALISTAS, ARCO, HÁPTICA
@@ -1063,17 +928,6 @@ body::before {
     border-color: rgba(255,255,255,.18);
 }
 
-/* Timing section header: centered technique label */
-.timing-section-header {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 12px;
-}
-.timing-section-header .technique-label-modal {
-    font-size: .62rem;
-    opacity: .9;
-}
 .theme-chip:hover,
 .theme-chip.active {
     color: #fff !important;
@@ -1109,25 +963,13 @@ body::before {
 .preset-timing { font-size: .75rem !important; }
 .preset-desc { font-size: .8rem !important; }
 
-/* Settings section titles */
-.settings-section-title { font-size: .68rem !important; }
-.technique-label-modal { font-size: .68rem !important; }
-.timing-section-header .technique-label-modal { font-size: .72rem !important; }
-
 /* Input labels */
 .input-group label { font-size: .68rem !important; }
 /* Input values */
 .input-group input { font-size: 1.1rem !important; }
 
-/* Limit chips */
-.limit-chip { font-size: .875rem !important; }
-
 /* Pills */
 .pill-ajustes  { font-size: .875rem !important; }
-
-/* Lang buttons */
-.lang-inline-btn { font-size: .78rem !important; }
-.reset-inline-btn { font-size: .875rem !important; }
 
 /* Modal title */
 .modal-title { font-size: .95rem !important; }

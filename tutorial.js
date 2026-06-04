@@ -85,11 +85,18 @@ const i18n = {
 let lang = 'es';
 
 // ── DOM refs ──────────────────────────────────────────────────
+const DEFAULT_TIMES = {
+  inhale: 4,
+  holdFull: 4,
+  exhale: 4,
+  holdEmpty: 4,
+};
+
 const times = {
-  inhale: document.getElementById('time-inhale'),
-  holdFull: document.getElementById('time-hold-full'),
-  exhale: document.getElementById('time-exhale'),
-  holdEmpty: document.getElementById('time-hold-empty'),
+  inhale: 4,
+  holdFull: 4,
+  exhale: 4,
+  holdEmpty: 4,
 };
 const breathText = document.getElementById('breath-text');
 const phaseTimerDisplay = document.getElementById('phase-timer');
@@ -233,7 +240,6 @@ volSlider.addEventListener('input', playVolumeTone);
 document.getElementById('gear-dropdown').addEventListener(
   'wheel',
   (e) => {
-    if (!e.target.classList.contains('gear-vol-slider')) return;
     e.preventDefault();
     e.stopPropagation();
     volSlider.value = Math.min(
@@ -257,15 +263,12 @@ const HOVER_SELECTOR = [
   '#start-btn',
   '#presets-btn',
   '#reset-btn',
-  '#settings-btn',
-  '.limit-chip',
   '.ctrl-option',
   '.input-group input',
   '.bmc-btn',
   '.author-tag',
   '.preset-card',
   '.modal-close',
-  '.lang-inline-btn',
   '.reset-inline-btn',
   '.settings-pill',
   '#breathing-circle',
@@ -325,10 +328,6 @@ function applyLang(l) {
   document
     .querySelectorAll('#lang-dropdown .ctrl-option')
     .forEach((o) => o.classList.toggle('active', o.dataset.value === l));
-  // Sync inline lang buttons in settings modal
-  document
-    .querySelectorAll('.lang-inline-btn')
-    .forEach((b) => b.classList.toggle('active', b.dataset.value === l));
   if (!isRunning) breathText.textContent = t.ready;
   if (startBtn) startBtn.textContent = isRunning ? t.stop : t.start;
   // Re-translate the active technique name if it matches a preset
@@ -414,18 +413,6 @@ document.getElementById('session-gear-btn').addEventListener('click', (e) => {
 let limitType = 'none';
 let limitValue = 10;
 const limitInput = document.getElementById('limit-value');
-
-document.querySelectorAll('.limit-chip').forEach((chip) =>
-  chip.addEventListener('click', () => {
-    document
-      .querySelectorAll('.limit-chip')
-      .forEach((c) => c.classList.remove('active'));
-    chip.classList.add('active');
-    limitType = chip.dataset.value;
-    limitInput.disabled = limitType === 'none';
-    updateLimitBadge();
-  }),
-);
 
 limitInput.addEventListener('keydown', (e) => {
   if (limitInput.disabled) return;
@@ -527,9 +514,6 @@ function applyLimit(type, value) {
   limitValue = value;
   limitInput.value = value;
   limitInput.disabled = type === 'none';
-  document.querySelectorAll('.limit-chip').forEach((c) => {
-    c.classList.toggle('active', c.dataset.value === type);
-  });
   updateLimitBadge();
 }
 
@@ -604,10 +588,10 @@ function renderPresets() {
             </div>
             <p class="preset-desc">${lang === 'es' ? p.descEs : p.descEn}</p>`;
     card.addEventListener('click', () => {
-      times.inhale.value = i;
-      times.holdFull.value = hf;
-      times.exhale.value = e;
-      times.holdEmpty.value = he;
+      times.inhale = i;
+      times.holdFull = hf;
+      times.exhale = e;
+      times.holdEmpty = he;
       const name = lang === 'es' ? p.nameEs : p.nameEn;
       setTechniqueLabel(name);
       // Auto-limit for techniques that define it; reset for those that don't
@@ -733,100 +717,7 @@ function showToast(msg) {
   _toastTimer = setTimeout(() => toastEl.classList.remove('show'), 3500);
 }
 
-// ── Input wheels + touch drag ────────────────────────────────
-// Desktop: scroll wheel. Mobile: hold + drag up/down.
-// Every 8px of drag = ±1. Haptic feedback on each step if available.
-Object.values(times).forEach((input) => {
-  // Desktop scroll
-  input.addEventListener(
-    'wheel',
-    (e) => {
-      if (isRunning) return;
-      e.preventDefault();
-      let v = parseInt(input.value) || 0;
-      v += e.deltaY < 0 ? 1 : -1;
-      input.value = Math.max(parseInt(input.getAttribute('min')) || 0, v);
-      setTechniqueLabel('', true);
-    },
-    { passive: false },
-  );
-
-  // Mobile touch drag
-  let _touchStartY = null;
-  let _touchBaseVal = null;
-  let _lastStepVal = null;
-
-  input.addEventListener(
-    'touchstart',
-    (e) => {
-      if (isRunning) return;
-      _touchStartY = e.touches[0].clientY;
-      _touchBaseVal = parseInt(input.value) || 0;
-      _lastStepVal = _touchBaseVal;
-      input.blur(); // hide keyboard immediately
-    },
-    { passive: true },
-  );
-
-  input.addEventListener(
-    'touchmove',
-    (e) => {
-      if (isRunning || _touchStartY === null) return;
-      e.preventDefault(); // block page scroll while dragging
-      const dy = _touchStartY - e.touches[0].clientY; // up = positive
-      const min = parseInt(input.getAttribute('min')) || 0;
-      const steps = Math.round(dy / 8);
-      const next = Math.max(min, _touchBaseVal + steps);
-      if (next !== _lastStepVal) {
-        input.value = next;
-        _lastStepVal = next;
-        setTechniqueLabel('', true);
-        if (navigator.vibrate) navigator.vibrate(6);
-      }
-    },
-    { passive: false },
-  );
-
-  input.addEventListener(
-    'touchend',
-    () => {
-      _touchStartY = null;
-      _touchBaseVal = null;
-      _lastStepVal = null;
-    },
-    { passive: true },
-  );
-
-  input.addEventListener('keydown', (e) => {
-    if (
-      [
-        'Backspace',
-        'Tab',
-        'ArrowUp',
-        'ArrowDown',
-        'ArrowLeft',
-        'ArrowRight',
-        'Delete',
-      ].includes(e.key)
-    )
-      return;
-    if (!/^\d$/.test(e.key)) e.preventDefault();
-  });
-  input.addEventListener('input', () => setTechniqueLabel('', true));
-  input.addEventListener('blur', () => {
-    const min = parseInt(input.getAttribute('min')) || 0;
-    const v = parseInt(input.value);
-    if (isNaN(v) || v < min) input.value = min;
-  });
-});
-
 // ── Helpers ───────────────────────────────────────────────────
-function toggleInputs(disabled) {
-  Object.values(times).forEach((i) => (i.disabled = disabled));
-  if (resetBtn) resetBtn.disabled = disabled;
-  const grid = document.querySelector('.settings-grid');
-  if (grid) grid.classList.toggle('locked', disabled);
-}
 function formatTime(s) {
   return `${Math.floor(s / 60)
     .toString()
@@ -898,10 +789,10 @@ function runCycle() {
   if (!isRunning) return;
 
   const t = i18n[lang];
-  const tIn = parseInt(times.inhale.value) || 0;
-  const tHF = parseInt(times.holdFull.value) || 0;
-  const tOut = parseInt(times.exhale.value) || 0;
-  const tHE = parseInt(times.holdEmpty.value) || 0;
+  const tIn = parseInt(times.inhale) || 0;
+  const tHF = parseInt(times.holdFull) || 0;
+  const tOut = parseInt(times.exhale) || 0;
+  const tHE = parseInt(times.holdEmpty) || 0;
 
   // Build phase list — skip any with duration 0
   const phases = [];
@@ -975,7 +866,6 @@ function startTimer() {
   playStartSound();
   _suppressHover = true;
   startBtn.blur();
-  toggleInputs(true);
   startBtn.disabled = true;
   breathText.innerText = '';
   phaseTimerDisplay.innerText = '';
@@ -1047,7 +937,6 @@ function stopTimer(limitMsg) {
   playStopTone();
   if (limitMsg) showToast(limitMsg);
 
-  toggleInputs(true);
   startBtn.disabled = true;
   startBtn.innerText = i18n[lang].start;
   startBtn.style.background = '';
@@ -1062,7 +951,6 @@ function stopTimer(limitMsg) {
 
   setTimeout(() => {
     breathText.innerText = i18n[lang].ready;
-    toggleInputs(false);
     startBtn.disabled = false;
   }, TRANSITION_MS);
 }
@@ -1070,10 +958,10 @@ function stopTimer(limitMsg) {
 startBtn.onclick = () => (isRunning ? stopTimer() : startTimer());
 resetBtn.onclick = () => {
   if (isRunning) return;
-  times.inhale.value = 4;
-  times.holdFull.value = 4;
-  times.exhale.value = 4;
-  times.holdEmpty.value = 4;
+  times.inhale = DEFAULT_TIMES.inhale;
+  times.holdFull = DEFAULT_TIMES.holdFull;
+  times.exhale = DEFAULT_TIMES.exhale;
+  times.holdEmpty = DEFAULT_TIMES.holdEmpty;
   setTechniqueLabel(lang === 'es' ? 'Respiración cuadrada' : 'Box Breathing');
   // Reset session limit
   applyLimit('none', 10);
@@ -1087,8 +975,6 @@ const CLICK_SOUND_SELECTOR = [
   'button:not(:disabled)',
   'a',
   '.preset-card',
-  '.limit-chip',
-  '.lang-inline-btn',
   '.reset-inline-btn',
   '.pill-tecnicas',
   '.pill-ajustes',
@@ -1135,10 +1021,10 @@ document.addEventListener('keydown', (e) => {
 
 // Prevent browser session-restore from showing stale input values
 window.addEventListener('load', () => {
-  times.inhale.value = 4;
-  times.holdFull.value = 4;
-  times.exhale.value = 4;
-  times.holdEmpty.value = 4;
+  times.inhale = DEFAULT_TIMES.inhale;
+  times.holdFull = DEFAULT_TIMES.holdFull;
+  times.exhale = DEFAULT_TIMES.exhale;
+  times.holdEmpty = DEFAULT_TIMES.holdEmpty;
   setTechniqueLabel(lang === 'es' ? 'Respiración cuadrada' : 'Box Breathing');
   applyLimit('none', 10); // also resets limitInput.disabled and badge
 });
