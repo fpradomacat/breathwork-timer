@@ -552,7 +552,7 @@ function updateLimitBadge() {
 // ── Presets ───────────────────────────────────────────────────
 const PRESETS = [
   {
-    nameEs: 'Box Breathing',
+    nameEs: 'Respiración cuadrada',
     nameEn: 'Box Breathing',
     timing: [4, 4, 4, 4],
     descEs:
@@ -1073,7 +1073,7 @@ resetBtn.onclick = () => {
   times.holdFull.value = 4;
   times.exhale.value = 4;
   times.holdEmpty.value = 4;
-  setTechniqueLabel('Box Breathing');
+  setTechniqueLabel(lang === 'es' ? 'Respiración cuadrada' : 'Box Breathing');
   // Reset session limit
   applyLimit('none', 10);
   toggleDropdown('gear-dropdown');
@@ -1138,6 +1138,6 @@ window.addEventListener('load', () => {
   times.holdFull.value = 4;
   times.exhale.value = 4;
   times.holdEmpty.value = 4;
-  setTechniqueLabel('Box Breathing');
+  setTechniqueLabel(lang === 'es' ? 'Respiración cuadrada' : 'Box Breathing');
   applyLimit('none', 10); // also resets limitInput.disabled and badge
 });
