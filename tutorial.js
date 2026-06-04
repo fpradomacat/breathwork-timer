@@ -83,6 +83,7 @@ const i18n = {
 };
 
 let lang = 'es';
+let wakeLock = null;
 
 // ── DOM refs ──────────────────────────────────────────────────
 const vol = 1;
@@ -686,6 +687,7 @@ function runCycle() {
 
     const phase = phases[idx++];
     breathText.innerText = phase.label;
+    navigator.vibrate?.(40);
     if (phase.transition) breathingCircle.style.transition = phase.transition;
     if (phase.state) setCircleState(phase.state);
     playPhase(phase.sound);
