@@ -491,4 +491,72 @@
         setTimeout(() => positionCard(step.target, step.pos), 50);
     });
 
+    // MUSICA DE FONDO AMBIENTAL (con fade y toggle, sin romper el autoplay)
+    const Ambient = (() => {
+    let ctx = null;
+    let source = null;
+    let gainNode = null;
+    let buffer = null;
+    let muted = false;
+    let loaded = false;
+    const VOLUME = 0.15;
+    const FADE = 2;
+
+    async function load() {
+        ctx = new AudioContext();
+        gainNode = ctx.createGain();
+        gainNode.gain.value = 0;
+        gainNode.connect(ctx.destination);
+
+        const res = await fetch('assets/sounds/background-music.mp3');
+        const arr = await res.arrayBuffer();
+        buffer = await ctx.decodeAudioData(arr);
+        loaded = true;
+    }
+
+    function play() {
+        if (!loaded || !buffer) return;
+        source = ctx.createBufferSource();
+        source.buffer = buffer;
+        source.loop = true;
+        source.connect(gainNode);
+        source.start(0);
+        if (!muted) fadeTo(VOLUME);
+    }
+
+    function fadeTo(target) {
+        gainNode.gain.cancelScheduledValues(ctx.currentTime);
+        gainNode.gain.setValueAtTime(gainNode.gain.value, ctx.currentTime);
+        gainNode.gain.linearRampToValueAtTime(target, ctx.currentTime + FADE);
+    }
+
+    async function init() {
+        await load();
+        play();
+    }
+
+    function toggle() {
+        muted = !muted;
+        fadeTo(muted ? 0 : VOLUME);
+        document.getElementById('ambient-btn')?.classList.toggle('muted', muted);
+    }
+
+    function bootstrap() {
+        const events = ['click', 'touchend', 'keydown'];
+        const handler = () => {
+        init();
+        events.forEach(ev => document.removeEventListener(ev, handler));
+        };
+        events.forEach(ev => document.addEventListener(ev, handler, { once: true, passive: true }));
+    }
+
+    return { bootstrap, toggle };
+    })();
+
+    Ambient.bootstrap();
+
+    document.getElementById('ambient-btn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    Ambient.toggle();
+    });
 })();
