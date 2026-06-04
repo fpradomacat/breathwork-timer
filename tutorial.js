@@ -230,11 +230,8 @@ const HOVER_SELECTOR = [
   '.preset-card',
   '.modal-close',
   '.reset-inline-btn',
-  '.settings-pill',
   '#breathing-circle',
   '.pill-tecnicas',
-  '.pill-ajustes',
-  '.theme-chip',
 ].join(', ');
 
 let _lastHoverEl = null;
@@ -794,8 +791,6 @@ const CLICK_SOUND_SELECTOR = [
   '.preset-card',
   '.reset-inline-btn',
   '.pill-tecnicas',
-  '.pill-ajustes',
-  '.theme-chip',
   '.modal-close',
   '.bmc-btn',
 ].join(', ');

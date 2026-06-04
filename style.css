@@ -78,26 +78,6 @@ h1 {
 }
 .ctrl-btn.gear-sm:hover { border-color:transparent; color:var(--text-secondary); background:rgba(255,255,255,.04); }
 
-/* ── Shared dropdown ── */
-.lang-wrap, .session-gear-wrap, .gear-wrap { position:relative; }
-
-.ctrl-dropdown {
-    position:absolute; right:0; top:calc(100% + 6px);
-    background:var(--dropdown-bg);
-    border:1px solid rgba(255,255,255,.1);
-    border-radius:12px; overflow:hidden; z-index:200;
-    min-width:170px; box-shadow:0 8px 32px rgba(0,0,0,.5);
-    opacity:0; pointer-events:none;
-    transform-origin:top right; transform:translateY(-6px) scale(.97);
-    transition:opacity .18s ease,transform .18s ease;
-}
-.ctrl-dropdown.dropdown-up {
-    top:auto; bottom:calc(100% + 6px);
-    transform-origin:bottom right; transform:translateY(6px) scale(.97);
-}
-.ctrl-dropdown.dropdown-left { right:0; }
-.ctrl-dropdown.open { opacity:1; pointer-events:auto; transform:translateY(0) scale(1); }
-
 .ctrl-option {
     display:block; width:100%; background:none;
     border:none; border-bottom:1px solid var(--divider);
@@ -123,25 +103,6 @@ h1 {
 .stat-label { font-size:.5rem; font-weight:500; text-transform:uppercase; letter-spacing:.1em; color:var(--text-muted); }
 .stat-value { font-family:'DM Mono',monospace; font-size:.82rem; color:var(--text-primary); letter-spacing:.04em; }
 .stat-divider { width:1px; height:28px; background:var(--divider); flex-shrink:0; }
-.session-gear-wrap { flex-shrink:0; }
-
-/* Session limit form inside dropdown */
-.dropdown-form { padding:14px 16px; }
-.dropdown-form-title {
-    font-size:.52rem; font-weight:500; text-transform:uppercase;
-    letter-spacing:.1em; color:var(--text-muted); margin-bottom:10px;
-}
-
-.limit-value-row { margin-top:10px; display:flex; justify-content:center; }
-.limit-value-row input {
-    width:64px; padding:6px; background:var(--input-bg);
-    border:1px solid var(--input-border); border-radius:10px;
-    text-align:center; font-family:'DM Mono',monospace;
-    font-size:1rem; color:var(--text-primary);
-    transition:border-color .2s,box-shadow .2s,opacity .2s;
-}
-.limit-value-row input:not(:disabled):focus { border-color:var(--accent); outline:none; box-shadow:0 0 0 3px var(--accent-dim); }
-.limit-value-row input:disabled { opacity:.3; cursor:not-allowed; }
 
 /* ── Breathing circle ── */
 #breathing-circle-container {
@@ -185,16 +146,6 @@ h1 {
 }
 .container.session #phase-timer:empty { visibility:hidden; }
 
-/* ── Settings grid ── */
-.settings-grid {
-    display:grid; grid-template-columns:1fr 1fr; gap:8px;
-    padding:12px; padding-top:32px; background:var(--panel-bg);
-    border:1px solid var(--divider); border-radius:16px;
-    position:relative; width:100%; overflow:visible;
-}
-.settings-grid.locked::after {
-    content:''; position:absolute; inset:0; border-radius:16px; cursor:not-allowed;
-}
 
 /* Technique label — top center inside grid */
 .technique-label-wrap {
@@ -385,38 +336,6 @@ footer { display:flex; align-items:center; justify-content:center; gap:8px; }
 #breathing-circle:hover:not(.active):not(.collapsed) {
     opacity: .7;
 }
-
-/* Bottom bar with settings pill */
-.bottom-bar {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 18px;
-}
-
-.settings-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    padding: 10px 22px;
-    border-radius: 100px;
-    border: 1px solid var(--divider);
-    background: var(--panel-bg);
-    color: var(--text-muted);
-    font-family: 'DM Sans', sans-serif;
-    font-size: .75rem;
-    font-weight: 400;
-    letter-spacing: .08em;
-    cursor: pointer;
-    transition: color .2s, border-color .2s, background .2s;
-    flex: none;
-    box-shadow: none;
-}
-.settings-pill:hover {
-    color: var(--text-secondary);
-    border-color: rgba(255,255,255,.15);
-    background: rgba(255,255,255,.04);
-}
-.settings-pill svg { flex-shrink: 0; }
 
 /* Hide the old bottom bar elements */
 .button-group    { display: none !important; }
@@ -636,59 +555,11 @@ body::before {
 }
 .stat-divider { display: none; }
 
-/* ── Settings pill minimalista: solo ícono ── */
-.settings-pill {
-    padding: 9px;
-    border-radius: 50%;
-    gap: 0;
-    width: 36px;
-    height: 36px;
-    justify-content: center;
-}
-.settings-pill span[data-i18n] {
-    display: none;
-}
-
-/* ── Theme chips ── */
-.theme-chips-wrap {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-}
-.theme-chip {
-    padding: 7px 14px;
-    border-radius: 100px;
-    border: 1px solid var(--divider);
-    background: transparent;
-    color: var(--text-muted);
-    font-family: 'DM Sans', sans-serif;
-    font-size: .72rem;
-    letter-spacing: .04em;
-    cursor: pointer;
-    box-shadow: none;
-    flex: none;
-    transition: color .2s, border-color .2s, background .2s;
-}
-.theme-chip:hover {
-    color: var(--text-secondary);
-    border-color: rgba(128,128,128,.25);
-}
-.theme-chip.active {
-    color: var(--accent-bright);
-    border-color: var(--accent);
-    background: var(--accent-dim);
-}
-
 /* ── Arc SVG container needs relative positioning ── */
 #breathing-circle-container {
     position: relative;
 }
 
-/* ══════════════════════════════════════════════════════════════
-   STATS + SETTINGS ROW · BOLITA GRANDE · ARCO EXTERIOR
-   ══════════════════════════════════════════════════════════════ */
-
-/* Stats row con settings integrado */
 .stats-box {
     display: flex;
     align-items: center;
@@ -718,15 +589,6 @@ body::before {
 .stat-value  { font-size: .70rem; color: var(--text-secondary); font-family: 'DM Mono', monospace; letter-spacing: .03em; }
 .stat-divider { display: none; }
 
-/* Settings pill dentro del row */
-.stats-box .settings-pill {
-    margin-left: 4px;
-    flex-shrink: 0;
-}
-
-/* Ocultar el bottom-bar si quedara vacío */
-.bottom-bar { display: none !important; }
-
 /* Bolita más grande */
 #breathing-circle {
     width: 220px;
@@ -740,89 +602,8 @@ body::before {
 }
 .container.session #breathing-circle-container { height: 400px; }
 
-/* ── Arco exterior: fuera de la bolita, decorativo ── */
-/* El SVG cubre todo el container; el arco tiene radio mayor que la bolita */
-/* Bolita = 220px → radio = 110px en coords del container */
-/* El SVG viewBox es 400×400, bolita centrada en 200,200, radio bolita ≈ 110 unidades */
-/* El arco se dibuja en r=155 → queda ~45 unidades fuera del borde de la bolita */
-#phase-arc {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    overflow: visible;
-}
-
-/* ══════════════════════════════════════════════════════════════
-   SETTINGS PILL → ESTILO BMC · TEMA CLARO APPLE
-   ══════════════════════════════════════════════════════════════ */
-
-/* Settings pill = mismo estilo que bmc-btn */
-.settings-pill {
-    font-family: 'DM Sans', sans-serif;
-    font-size: .72rem;
-    letter-spacing: .06em;
-    color: var(--text-muted);
-    text-decoration: none;
-    padding: 7px 12px;
-    border-radius: 100px;
-    border: 1px solid var(--divider);
-    background: transparent;
-    transition: color .2s, border-color .2s;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    box-shadow: none;
-    flex-shrink: 0;
-    width: auto;
-    height: auto;
-}
-.settings-pill:hover {
-    color: var(--text-secondary);
-    border-color: rgba(128,128,128,.2);
-    background: transparent;
-}
-.settings-pill svg { flex-shrink: 0; opacity: .7; }
-.settings-pill span[data-i18n] { display: none; }
-
 /* Arc SVG dentro de la bolita */
 #breathing-circle { overflow: visible; }
-#phase-arc {
-    position: absolute;
-    width: 220px; height: 220px;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    overflow: visible;
-}
-
-/* ── Theme chips: contraste garantizado en todos los temas ── */
-.theme-chip {
-    color: var(--text-secondary);
-    border-color: var(--input-border);
-}
-.theme-chip:hover {
-    color: var(--text-primary);
-    border-color: var(--accent);
-}
-
-/* ── Theme chips: visibles en todos los temas ── */
-.theme-chip {
-    color: var(--text-primary);
-    border-color: var(--input-border);
-    opacity: 0.6;
-}
-.theme-chip:hover {
-    opacity: 1;
-    border-color: var(--accent);
-    color: var(--text-primary);
-    background: var(--accent-dim);
-}
-.theme-chip.active {
-    opacity: 1;
-}
 
 /* ── Limit badge in main screen ── */
 .limit-badge {
@@ -896,35 +677,6 @@ body::before {
     border-color: rgba(176,132,245,.55);
 }
 
-/* Ajustes pill — quiet */
-.pill-ajustes {
-    padding: 9px 20px;
-    border-radius: 100px;
-    border: 1px solid var(--divider);
-    background: transparent;
-    color: var(--text-muted);
-    font-family: 'DM Sans', sans-serif;
-    font-size: .78rem;
-    font-weight: 400;
-    letter-spacing: .07em;
-    cursor: pointer;
-    box-shadow: none;
-    flex: none;
-    transition: color .2s, border-color .2s;
-}
-.pill-ajustes:hover {
-    color: var(--text-secondary);
-    border-color: rgba(255,255,255,.18);
-}
-
-.theme-chip:hover,
-.theme-chip.active {
-    color: #fff !important;
-    opacity: 1;
-}
-.theme-chip { border-color: rgba(255,255,255,.25); }
-.theme-chip:hover { border-color: rgba(255,255,255,.5); background: rgba(255,255,255,.08); }
-.theme-chip.active { border-color: rgba(255,255,255,.7); background: rgba(255,255,255,.15); }
 /* ══════════════════════════════════════════════════════════════
    LEGIBILITY PASS — minimum sizes per web standards
    Body/interactive min 14px, labels min 12px, meta min 11px
@@ -956,9 +708,6 @@ body::before {
 .input-group label { font-size: .68rem !important; }
 /* Input values */
 .input-group input { font-size: 1.1rem !important; }
-
-/* Pills */
-.pill-ajustes  { font-size: .875rem !important; }
 
 /* Modal title */
 .modal-title { font-size: .95rem !important; }
