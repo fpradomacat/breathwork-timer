@@ -700,7 +700,8 @@ function runCycle() {
 // ── Start / Stop ──────────────────────────────────────────────
 const TRANSITION_MS = 1200;
 
-function startTimer() {
+async function startTimer() {
+  await acquireWakeLock();
   resumeAudio();
   playStartSound();
   _suppressHover = true;
@@ -746,8 +747,9 @@ function startTimer() {
   }, TRANSITION_MS);
 }
 
-function stopTimer(limitMsg) {
+async function stopTimer(limitMsg) {
   isRunning = false;
+  await releaseWakeLock();
 
   // Cancel all timers
   clearTimeout(_sessionTimer);
@@ -853,4 +855,33 @@ window.addEventListener('load', () => {
   times.holdEmpty = DEFAULT_TIMES.holdEmpty;
   setTechniqueLabel(lang === 'es' ? 'Respiración cuadrada' : 'Box Breathing');
   applyLimit('none', 10);
+});
+
+let wakeLock = null;
+
+async function acquireWakeLock() {
+  if (!('wakeLock' in navigator)) return;
+  try {
+    wakeLock = await navigator.wakeLock.request('screen');
+    wakeLock.addEventListener('release', () => {
+      wakeLock = null;
+    });
+  } catch (e) {
+    console.warn('Wake lock failed:', e.name, e.message);
+  }
+}
+
+async function releaseWakeLock() {
+  if (!wakeLock) return;
+  try {
+    await wakeLock.release();
+  } catch (e) {}
+  wakeLock = null;
+}
+
+// Re-adquirir si el usuario vuelve a la página
+document.addEventListener('visibilitychange', async () => {
+  if (document.visibilityState === 'visible' && isRunning) {
+    await acquireWakeLock();
+  }
 });
