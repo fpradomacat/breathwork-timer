@@ -371,6 +371,8 @@ const PRESETS = [
   {
     nameEs: 'Respiración cuadrada',
     nameEn: 'Box Breathing',
+    tagEs: 'Equilibrio',
+    tagEn: 'Balance',
     timing: [4, 4, 4, 4],
     descEs:
       'Inhala, retén, exhala, retén — 4 segundos cada paso. Calma la mente rápido.',
@@ -380,6 +382,8 @@ const PRESETS = [
   {
     nameEs: 'Coherencia Cardíaca',
     nameEn: 'Cardiac Coherence',
+    tagEs: 'Calma',
+    tagEn: 'Calm',
     timing: [5, 0, 5, 0],
     descEs:
       '5 segundos adentro, 5 afuera. Sincroniza el corazón y la mente. Ideal para el día a día.',
@@ -389,6 +393,8 @@ const PRESETS = [
   {
     nameEs: '4-7-8 Relajante',
     nameEn: '4-7-8 Relaxing',
+    tagEs: 'Sueño',
+    tagEn: 'Sleep',
     timing: [4, 7, 8, 0],
     descEs:
       'Inhala 4, retén 7, exhala 8. Reduce la ansiedad y ayuda a conciliar el sueño.',
@@ -398,6 +404,8 @@ const PRESETS = [
   {
     nameEs: 'Fuego',
     nameEn: 'Fire Breath',
+    tagEs: 'Energía',
+    tagEn: 'Energy',
     timing: [1, 0, 1, 0],
     autoLimitCycles: 30,
     descEs: 'Respiración rápida y rítmica para activarte. Máximo 30 ciclos.',
@@ -408,32 +416,34 @@ const PRESETS = [
 function renderPresets() {
   const list = document.getElementById('presets-list');
   list.innerHTML = '';
-  PRESETS.forEach((p) => {
-    const [i, hf, e, he] = p.timing;
+  PRESETS.forEach((preset) => {
+    const [i, hf, e, he] = preset.timing;
     const card = document.createElement('div');
     card.className = 'preset-card';
-    const hasAutoLimit = !!p.autoLimitCycles;
+    const hasAutoLimit = !!preset.autoLimitCycles;
+    const presetName = lang === 'es' ? preset.nameEs : preset.nameEn;
+    const presetTag = lang === 'es' ? preset.tagEs : preset.tagEn;
     card.innerHTML = `
             <div class="preset-header">
-                <span class="preset-name">${lang === 'es' ? p.nameEs : p.nameEn}</span>
+                <span class="preset-name">${presetName} <span class="preset-tag">${presetTag}</span></span>
                 <span class="preset-timing">${i}-${hf}-${e}-${he}</span>
             </div>
-            <p class="preset-desc">${lang === 'es' ? p.descEs : p.descEn}</p>`;
+            <p class="preset-desc">${lang === 'es' ? preset.descEs : preset.descEn}</p>`;
     card.addEventListener('click', () => {
       times.inhale = i;
       times.holdFull = hf;
       times.exhale = e;
       times.holdEmpty = he;
-      const name = lang === 'es' ? p.nameEs : p.nameEn;
+      const name = lang === 'es' ? preset.nameEs : preset.nameEn;
       setTechniqueLabel(name);
       // Auto-limit for techniques that define it; reset for those that don't
       if (hasAutoLimit) {
-        applyLimit('cycles', p.autoLimitCycles);
-        const techName = lang === 'es' ? p.nameEs : p.nameEn;
+        applyLimit('cycles', preset.autoLimitCycles);
+        const techName = lang === 'es' ? preset.nameEs : preset.nameEn;
         setTimeout(
           () =>
             showToast(
-              `${techName} — ${i18n[lang].fireBreathAutoLimit(p.autoLimitCycles)}`,
+              `${techName} — ${i18n[lang].fireBreathAutoLimit(preset.autoLimitCycles)}`,
             ),
           300,
         );

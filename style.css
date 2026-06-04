@@ -270,6 +270,21 @@ footer { display:flex; align-items:center; justify-content:center; gap:8px; }
 .preset-name{font-size:.82rem;font-weight:500;color:var(--text-primary);}
 .preset-timing{font-family:'DM Mono',monospace;font-size:.65rem;color:var(--accent-bright);opacity:.7;}
 .preset-desc{font-size:.72rem;color:var(--text-muted);line-height:1.5;margin:0;}
+.preset-tag {
+  display: inline-block;
+  font-size: .58rem;
+  font-weight: 500;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 100px;
+  background: var(--accent-dim);
+  color: var(--accent-bright);
+  border: 1px solid rgba(176,132,245,.2);
+  vertical-align: middle;
+  margin-left: 6px;
+  opacity: .85;
+}
 
 /* Sound chips */
 .sound-section{margin-bottom:18px;}
