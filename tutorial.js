@@ -245,7 +245,9 @@ document.addEventListener('mouseover', (e) => {
     playHoverClick();
     _lastHoverEl = el;
     _suppressHover = true;
-    setTimeout(() => { _suppressHover = false; }, 150);
+    setTimeout(() => {
+      _suppressHover = false;
+    }, 150);
   }
 });
 
@@ -312,9 +314,7 @@ function applyLang(l) {
 }
 
 // ── Dropdowns ────────────────────────────────────────────────
-const allDropdowns = [
-  'lang-dropdown',
-];
+const allDropdowns = ['lang-dropdown'];
 
 function toggleDropdown(id) {
   const isOpen = document.getElementById(id).classList.contains('open');
@@ -333,7 +333,6 @@ document.addEventListener('click', () =>
 // ── Session limit ─────────────────────────────────────────────
 let limitType = 'none';
 let limitValue = 10;
-
 
 function checkLimit() {
   if (limitType === 'none') return false;
@@ -425,7 +424,7 @@ function renderPresets() {
     const presetTag = lang === 'es' ? preset.tagEs : preset.tagEn;
     card.innerHTML = `
             <div class="preset-header">
-                <span class="preset-name">${presetName} <span class="preset-tag">${presetTag}</span></span>
+                <span class="preset-name">${presetName} <span class="preset-tag">${tag}</span></span>
                 <span class="preset-timing">${i}-${hf}-${e}-${he}</span>
             </div>
             <p class="preset-desc">${lang === 'es' ? preset.descEs : preset.descEn}</p>`;
@@ -804,19 +803,27 @@ document.addEventListener('click', (e) => {
   if (el) {
     playHoverClick();
     _suppressHover = true;
-    setTimeout(() => { _suppressHover = false; }, 600);
+    setTimeout(() => {
+      _suppressHover = false;
+    }, 600);
   }
 });
 
-document.addEventListener('touchend', (e) => {
-  if (_lastWasTouch) return;
-  const el = e.target.closest(CLICK_SOUND_SELECTOR);
-  if (el && !el.disabled) {
-    playHoverClick();
-    _lastWasTouch = true;
-    setTimeout(() => { _lastWasTouch = false; }, 600); // 600 > 300ms del click sintético
-  }
-}, { passive: true });
+document.addEventListener(
+  'touchend',
+  (e) => {
+    if (_lastWasTouch) return;
+    const el = e.target.closest(CLICK_SOUND_SELECTOR);
+    if (el && !el.disabled) {
+      playHoverClick();
+      _lastWasTouch = true;
+      setTimeout(() => {
+        _lastWasTouch = false;
+      }, 600); // 600 > 300ms del click sintético
+    }
+  },
+  { passive: true },
+);
 
 // ── Keyboard shortcuts ────────────────────────────────────────
 document.addEventListener('keydown', (e) => {
