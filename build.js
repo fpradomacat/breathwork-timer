@@ -4,7 +4,7 @@ const { minify: minifyJS } = require('terser');
 const fs = require('fs');
 
 // ── Config ──
-const SITE_URL = process.env.SITE_URL || 'https://breathspace.netlify.app';
+const SITE_URL = process.env.SITE_URL || 'https://neyenbreath.netlify.app';
 
 const dist = './dist';
 if (!fs.existsSync(dist)) fs.mkdirSync(dist);

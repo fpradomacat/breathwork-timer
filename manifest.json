@@ -1,7 +1,7 @@
 {
-  "name": "Breathspace",
-  "short_name": "Breathspace",
-  "description": "Tu espacio para respirar con intención.",
+  "name": "Neyen | the art of breathing",
+  "short_name": "Neyen",
+  "description": "Guided breathing techniques to calm, focus, or energize you.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#06030f",

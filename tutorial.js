@@ -1,7 +1,7 @@
 // ── i18n ──────────────────────────────────────────────────────
 const i18n = {
   es: {
-    title: 'Breathspace',
+    title: 'Neyen | el arte de respirar',
     statSession: 'Sesión',
     statCycles: 'Ciclos',
     statLast: 'Última',
@@ -41,7 +41,7 @@ const i18n = {
     fireBreathAutoLimit: (n) => `límite automático: ${n} ciclos`,
   },
   en: {
-    title: 'Breathspace',
+    title: 'Neyen | the art of breathing',
     statSession: 'Session',
     statCycles: 'Cycles',
     statLast: 'Last',

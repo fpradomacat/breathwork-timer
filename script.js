@@ -1,4 +1,4 @@
-// ── Breathspace Tutorial ──────────────────────────────────────
+// ── Neyen Tutorial ──────────────────────────────────────
 // Drop-in file. Just add <script src="tutorial.js"></script>
 // before </body> in index.html (after script.js).
 // No changes to existing code needed.
@@ -19,12 +19,12 @@
             pos: 'center',
             langPicker: true,
             es: {
-                title: '👋 Bienvenido a Breathspace',
-                body:  'Tu espacio para respirar con intención. Primero, elige tu idioma:',
+                title: '👋 Bienvenido a Neyen',
+                body:  'Técnicas de respiración guiadas para calmar, enfocar o energizarte. Primero, elige tu idioma:',
             },
             en: {
-                title: '👋 Welcome to Breathspace',
-                body:  'Your space to breathe with intention. First, choose your language:',
+                title: '👋 Welcome to Neyen',
+                body:  'Guided breathing techniques to calm, focus, or energize you. First, choose your language:',
             },
         },
         {
