@@ -349,6 +349,7 @@ function applyLang(l) {
   }
   // Re-render presets so descriptions update in the open modal
   if (document.getElementById('presets-list')) renderPresets();
+  document.title = t.title;
   updateLimitBadge();
 }
 
