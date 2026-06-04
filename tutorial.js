@@ -467,9 +467,9 @@ function renderPresets() {
 // missing file, or browser decode error) so desktop always works.
 const PHASE_SOUND_SRCS = [
   'assets/sounds/inhala.mp3',
-  'assets/sounds/pausa_lleno.mp3',
+  'assets/sounds/pausa.mp3',
   'assets/sounds/exhala.mp3',
-  'assets/sounds/pausa_vacio.mp3',
+  'assets/sounds/pausa.mp3',
 ];
 
 const _phaseBuffers = new Array(PHASE_SOUND_SRCS.length).fill(null);
