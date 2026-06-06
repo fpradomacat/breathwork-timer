@@ -520,7 +520,7 @@
     let muted = false;
     let loaded = false;
     const VOLUME = 0.15;
-    const FADE = 2;
+    const FADE = 1;
 
     async function load() {
       ctx = new AudioContext();
