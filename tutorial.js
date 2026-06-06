@@ -104,7 +104,7 @@ let _suppressHover = false;
 let _lastWasTouch = false;
 
 // ── DOM refs ──────────────────────────────────────────────────
-const vol = 1;
+const vol = 0.55;
 const DEFAULT_TIMES = {
   inhale: 4,
   holdFull: 4,
@@ -301,6 +301,9 @@ function applyLang(l) {
     if (preset) {
       activeTechniqueName = l === 'es' ? preset.nameEs : preset.nameEn;
       techniqueLabel.textContent = activeTechniqueName;
+      // Reload loops so the helper uses the new language next session
+      _loopLoadedPreset = null; // force reload
+      loadTechniqueLoops(preset);
     } else {
       setTechniqueLabel(activeTechniqueName, false);
     }
@@ -373,6 +376,12 @@ const PRESETS = [
     tagEs: 'Equilibrio',
     tagEn: 'Balance',
     timing: [4, 4, 4, 4],
+    // soundFile: base loop (no voice). helperCycles: how many cycles the
+    // voiced version plays before switching to the clean loop.
+    soundFile:    'assets/sounds/box-breathing.mp3',
+    soundFileEs:  'assets/sounds/box-breathing-helper-es.mp3',
+    soundFileEn:  'assets/sounds/box-breathing-helper-en.mp3',
+    helperCycles: 3,
     descEs:
       'Inhala, retén, exhala, retén — 4 segundos cada paso. Calma la mente rápido.',
     descEn:
@@ -384,6 +393,10 @@ const PRESETS = [
     tagEs: 'Calma',
     tagEn: 'Calm',
     timing: [5, 0, 5, 0],
+    soundFile:    'assets/sounds/coherence-breathing.mp3',
+    soundFileEs:  'assets/sounds/coherence-breathing-helper-es.mp3',
+    soundFileEn:  'assets/sounds/coherence-breathing-helper-en.mp3',
+    helperCycles: 3,
     descEs:
       '5 segundos adentro, 5 afuera. Sincroniza el corazón y la mente. Ideal para el día a día.',
     descEn:
@@ -395,6 +408,10 @@ const PRESETS = [
     tagEs: 'Sueño',
     tagEn: 'Sleep',
     timing: [4, 7, 8, 0],
+    soundFile:    'assets/sounds/478-breathing.mp3',
+    soundFileEs:  'assets/sounds/478-breathing-helper-es.mp3',
+    soundFileEn:  'assets/sounds/478-breathing-helper-en.mp3',
+    helperCycles: 3,
     descEs:
       'Inhala 4, retén 7, exhala 8. Reduce la ansiedad y ayuda a conciliar el sueño.',
     descEn:
@@ -407,6 +424,10 @@ const PRESETS = [
     tagEn: 'Energy',
     timing: [1, 0, 1, 0],
     autoLimitCycles: 30,
+    soundFile:    'assets/sounds/fire-breath.mp3',
+    soundFileEs:  'assets/sounds/fire-breath-helper-es.mp3',
+    soundFileEn:  'assets/sounds/fire-breath-helper-en.mp3',
+    helperCycles: 5,
     descEs: 'Respiración rápida y rítmica para activarte. Máximo 30 ciclos.',
     descEn: 'Fast rhythmic breathing to energize you. Max 30 cycles.',
   },
@@ -435,6 +456,8 @@ function renderPresets() {
       times.holdEmpty = he;
       const name = lang === 'es' ? preset.nameEs : preset.nameEn;
       setTechniqueLabel(name);
+      // Pre-load all three loop buffers for the selected technique
+      loadTechniqueLoops(preset);
       // Auto-limit for techniques that define it; reset for those that don't
       if (hasAutoLimit) {
         applyLimit('cycles', preset.autoLimitCycles);
@@ -461,63 +484,151 @@ function renderPresets() {
   });
 }
 
-// ── Phase sounds ─────────────────────────────────────────────
-// Primary path: fetch + decodeAudioData into AudioBuffers (Web Audio API).
-// This bypasses the OS audio stack, eliminating Bluetooth dropouts on mobile.
-// Fallback path: HTMLAudioElement, used if decode fails (e.g. file:// protocol,
-// missing file, or browser decode error) so desktop always works.
-const PHASE_SOUND_SRCS = [
-  'assets/sounds/inhala.mp3',
-  'assets/sounds/pausa.mp3',
-  'assets/sounds/exhala.mp3',
-  'assets/sounds/pausa.mp3',
-];
+// ── Per-technique loop audio ──────────────────────────────────
+//
+// Each technique has 3 audio files:
+//   - base loop (no voice cues)
+//   - helper ES (voice cues in Spanish)
+//   - helper EN (voice cues in English)
+//
+// When a session starts:
+//   1. The voiced helper (matching current lang) loops for `helperCycles` cycles.
+//   2. After that, the clean base loop takes over for the rest of the session.
+//
+// Both the cycle count and the crossover are tracked purely via the `cycles`
+// variable that runCycle() already increments — no separate timing needed.
+//
+// Primary path: Web Audio API (Bluetooth-safe, gapless looping).
+// Fallback: HTMLAudioElement if decode fails (file:// or missing file).
 
-const _phaseBuffers = new Array(PHASE_SOUND_SRCS.length).fill(null);
-const _phaseAudioEls = PHASE_SOUND_SRCS.map((src) => {
-  const a = new Audio(src);
-  a.preload = 'auto';
-  a.load();
-  return a;
-});
+// Holds decoded AudioBuffers for the current technique.
+// { base, helper } — each may be null if decode failed.
+let _loopBuffers = { base: null, helper: null };
 
-// Only attempt fetch/decode when served over http(s) — file:// blocks fetch with CORS errors.
-if (location.protocol !== 'file:') {
-  PHASE_SOUND_SRCS.forEach((src, i) => {
-    fetch(src)
-      .then((r) => {
-        if (!r.ok) throw new Error(r.status);
-        return r.arrayBuffer();
-      })
-      .then((ab) => audioCtx.decodeAudioData(ab))
-      .then((buf) => {
-        _phaseBuffers[i] = buf;
-      })
-      .catch(() => {
-        /* decode failed — fallback HTMLAudioElement will be used */
-      });
-  });
-}
+// Holds HTMLAudioElement fallbacks (always available).
+let _loopFallbacks = { base: null, helper: null };
 
-function playPhase(pi) {
-  if (_phaseBuffers[pi]) {
-    // Web Audio path — zero latency, no OS stack, Bluetooth-safe
-    const src = audioCtx.createBufferSource();
-    const gain = audioCtx.createGain();
-    src.buffer = _phaseBuffers[pi];
-    gain.gain.value = vol;
-    src.connect(gain);
-    gain.connect(audioCtx.destination);
-    src.start();
-  } else {
-    // Fallback: HTMLAudioElement (decode not ready or failed)
-    const a = _phaseAudioEls[pi];
-    if (!a) return;
-    a.volume = vol;
-    a.currentTime = 0;
-    a.play().catch(() => {});
+// Currently active Web Audio nodes (null when stopped).
+let _loopSource = null;
+let _loopGain   = null;
+
+// Currently active HTMLAudioElement fallback (null when using Web Audio).
+let _loopFallbackActive = null;
+
+// Which preset is loaded (to avoid redundant fetches).
+let _loopLoadedPreset = null;
+
+// How many helper cycles the active preset requests.
+let _loopHelperCycles = 3;
+
+// Decode one src into an AudioBuffer; resolve null on any error.
+async function _decodeAudio(src) {
+  try {
+    const res = await fetch(src);
+    if (!res.ok) throw new Error(res.status);
+    return await audioCtx.decodeAudioData(await res.arrayBuffer());
+  } catch (e) {
+    return null;
   }
 }
+
+// Pre-load all audio for a preset. Safe to call multiple times — skips
+// reload if the same preset is already loaded.
+async function loadTechniqueLoops(preset) {
+  if (preset === _loopLoadedPreset) return;
+  _loopLoadedPreset = preset;
+  _loopHelperCycles = preset.helperCycles ?? 3;
+
+  const helperSrc = lang === 'es' ? preset.soundFileEs : preset.soundFileEn;
+
+  // Always create HTMLAudioElement fallbacks immediately (work on file://).
+  const mkFallback = (src) => {
+    if (!src) return null;
+    const a = new Audio(src);
+    a.loop    = true;
+    a.preload = 'auto';
+    a.volume  = vol;
+    a.load();
+    return a;
+  };
+  _loopFallbacks.base   = mkFallback(preset.soundFile);
+  _loopFallbacks.helper = mkFallback(helperSrc);
+
+  // Web Audio decode (http/https only).
+  if (location.protocol === 'file:') return;
+  const [base, helper] = await Promise.all([
+    _decodeAudio(preset.soundFile),
+    _decodeAudio(helperSrc),
+  ]);
+  // Only commit if the preset is still the active one (user didn't switch mid-load).
+  if (preset !== _loopLoadedPreset) return;
+  _loopBuffers.base   = base;
+  _loopBuffers.helper = helper;
+}
+
+// Start looping one of the two buffers/fallbacks.
+// `which` is 'helper' or 'base'.
+function _playLoopTrack(which) {
+  stopLoop();
+  const buf      = _loopBuffers[which];
+  const fallback = _loopFallbacks[which];
+
+  if (buf) {
+    // Web Audio path — gapless, Bluetooth-safe.
+    _loopGain = audioCtx.createGain();
+    _loopGain.gain.value = vol;
+    _loopGain.connect(audioCtx.destination);
+    _loopSource = audioCtx.createBufferSource();
+    _loopSource.buffer = buf;
+    _loopSource.loop   = true;
+    _loopSource.connect(_loopGain);
+    _loopSource.start();
+  } else if (fallback) {
+    // HTMLAudioElement fallback.
+    fallback.currentTime = 0;
+    fallback.play().catch(() => {});
+    _loopFallbackActive = fallback;
+  }
+}
+
+// Called from startTimer(). Decides which track to start based on cycles.
+// Also called from runCycle() whenever a cycle completes, to switch tracks.
+function updateLoop() {
+  if (!isRunning) return;
+  const which = cycles < _loopHelperCycles ? 'helper' : 'base';
+
+  // If we're already playing the right track, do nothing.
+  if (_loopSource || _loopFallbackActive) {
+    // Check if we need to switch (helper → base crossover point).
+    if (cycles === _loopHelperCycles) {
+      _playLoopTrack('base');
+    }
+    return;
+  }
+
+  // Nothing playing yet — first call from startTimer().
+  _playLoopTrack(which);
+}
+
+// Stop whatever loop track is currently playing.
+function stopLoop() {
+  if (_loopSource) {
+    try { _loopSource.stop(); } catch (e) {}
+    _loopSource = null;
+  }
+  if (_loopGain) {
+    _loopGain.disconnect();
+    _loopGain = null;
+  }
+  if (_loopFallbackActive) {
+    _loopFallbackActive.pause();
+    _loopFallbackActive.currentTime = 0;
+    _loopFallbackActive = null;
+  }
+}
+
+// Pre-load the default preset (Box Breathing) immediately on script parse.
+loadTechniqueLoops(PRESETS[0]);
 
 // ── Modals ────────────────────────────────────────────────────
 function openModal(id) {
@@ -639,7 +750,6 @@ function runCycle() {
       dur: tIn,
       label: t.inhaling,
       state: 'active',
-      sound: 0,
       transition: `transform ${tIn}s cubic-bezier(.4,0,.2,1),opacity ${tIn}s cubic-bezier(.4,0,.2,1),box-shadow ${tIn}s cubic-bezier(.4,0,.2,1)`,
     });
   if (tHF > 0)
@@ -647,7 +757,6 @@ function runCycle() {
       dur: tHF,
       label: t.holding,
       state: null,
-      sound: 1,
       transition: null,
     });
   if (tOut > 0)
@@ -655,15 +764,13 @@ function runCycle() {
       dur: tOut,
       label: t.exhaling,
       state: 'collapsed',
-      sound: 2,
       transition: `transform ${tOut}s cubic-bezier(.4,0,.2,1),opacity ${tOut}s cubic-bezier(.4,0,.2,1),box-shadow ${tOut}s cubic-bezier(.4,0,.2,1)`,
     });
   if (tHE > 0)
     phases.push({
       dur: tHE,
-      label: t.waiting,
+      label: t.holding,
       state: null,
-      sound: 3,
       transition: null,
     });
 
@@ -678,6 +785,8 @@ function runCycle() {
       // Cycle complete
       cycles++;
       cycleCounter.innerText = cycles;
+      // Switch from helper to base loop at the crossover point
+      updateLoop();
       if (checkLimit()) {
         stopTimer(i18n[lang].limitMsg(limitType, limitValue));
         return;
@@ -690,7 +799,6 @@ function runCycle() {
     navigator.vibrate?.(40);
     if (phase.transition) breathingCircle.style.transition = phase.transition;
     if (phase.state) setCircleState(phase.state);
-    playPhase(phase.sound);
     waitPhase(phase.dur, nextPhase);
   }
 
@@ -737,7 +845,8 @@ async function startTimer() {
     _kaGain.connect(audioCtx.destination);
     _keepAliveNode.start();
 
-    // Start breathing flow
+    // Start breathing flow — kick off loop audio then visual cycle
+    updateLoop();
     runCycle();
 
     setTimeout(() => {
@@ -766,6 +875,9 @@ async function stopTimer(limitMsg) {
     } catch (e) {}
     _keepAliveNode = null;
   }
+
+  // Stop technique loop
+  stopLoop();
 
   lastSession.innerText = `${formatTime(totalSeconds)} (${cycles})`;
   playStopTone();
@@ -855,6 +967,8 @@ window.addEventListener('load', () => {
   times.holdEmpty = DEFAULT_TIMES.holdEmpty;
   setTechniqueLabel(lang === 'es' ? 'Respiración cuadrada' : 'Box Breathing');
   applyLimit('none', 10);
+  // Ensure default preset loops are pre-loaded (no-op if already done at parse time)
+  loadTechniqueLoops(PRESETS[0]);
 });
 
 let wakeLock = null;

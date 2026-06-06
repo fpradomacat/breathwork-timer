@@ -20,11 +20,11 @@
       langPicker: true,
       es: {
         title: '👋 Bienvenido a Neyen',
-        body: 'Técnicas de respiración guiadas para calmar, enfocar o energizarte. Primero, elige tu idioma:',
+        body: 'Técnicas de respiración guiadas para calmar, enfocar o energizarte.<br><br>🎙️ Mi voz te acompañará en los primeros ciclos para guiarte — luego se va y respirás en silencio.<br><br>🌬️ <strong>Nariz o boca:</strong> respirar por la nariz activa más el sistema nervioso parasimpático y profundiza la calma. Por la boca es más activante e inmediato. Probá los dos.<br><br>Primero, elige tu idioma:',
       },
       en: {
         title: '👋 Welcome to Neyen',
-        body: 'Guided breathing techniques to calm, focus, or energize you. First, choose your language:',
+        body: 'Guided breathing techniques to calm, focus, or energize you.<br><br>🎙️ My voice will guide you through the first few cycles — then it fades and you breathe in silence.<br><br>🌬️ <strong>Nose or mouth:</strong> breathing through the nose engages the parasympathetic nervous system more deeply, amplifying calm. Through the mouth is more activating and immediate. Try both.<br><br>First, choose your language:',
       },
     },
     {
@@ -520,7 +520,7 @@
     let muted = false;
     let loaded = false;
     const VOLUME = 0.15;
-    const FADE = 1;
+    const FADE = 2;
 
     async function load() {
       ctx = new AudioContext();
