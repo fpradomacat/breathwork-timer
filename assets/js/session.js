@@ -36,6 +36,7 @@ import {
 
 // ── Session state (module-private) ───────────────────────────
 let _isRunning = false;
+let _isTransitioning = false; // true during the CSS transition window (start or stop)
 let _cycles = 0;
 let _totalSecs = 0;
 let _sessionTimer = null; // setTimeout — ticks every 1 s
@@ -49,6 +50,9 @@ export const TRANSITION_MS = 1200;
 // ── Public accessors (read-only) ──────────────────────────────
 export function isRunning() {
   return _isRunning;
+}
+export function isTransitioning() {
+  return _isTransitioning;
 }
 export function getCycles() {
   return _cycles;
@@ -191,6 +195,8 @@ function _runCycle() {
 
 // ── Start / Stop ──────────────────────────────────────────────
 export async function startTimer() {
+  if (_isRunning || _isTransitioning) return;
+  _isTransitioning = true;
   await acquireWakeLock();
   resumeAudio();
   playStartSound();
@@ -209,6 +215,7 @@ export async function startTimer() {
 
   setTimeout(() => {
     _isRunning = true;
+    _isTransitioning = false;
     _totalSecs = 0;
     _cycles = 0;
     document.getElementById('session-counter').innerText = '00:00';
@@ -231,7 +238,9 @@ export async function startTimer() {
 }
 
 export async function stopTimer(limitMsg) {
+  if (!_isRunning || _isTransitioning) return;
   _isRunning = false;
+  _isTransitioning = true;
   await releaseWakeLock();
 
   clearTimeout(_sessionTimer);
@@ -267,5 +276,6 @@ export async function stopTimer(limitMsg) {
 
   setTimeout(() => {
     breathText.innerText = i18n[lang].ready;
+    _isTransitioning = false;
   }, TRANSITION_MS);
 }

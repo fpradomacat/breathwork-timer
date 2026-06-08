@@ -23,6 +23,7 @@ import {
 } from './ui.js';
 import {
   isRunning,
+  isTransitioning,
   startTimer,
   stopTimer,
   setSessionTimes,
@@ -67,7 +68,9 @@ window.addEventListener('load', () => {
 
   // Wire up interaction listeners
   initInteractions({
-    onStartStop: () => (isRunning() ? stopTimer() : startTimer()),
+    onStartStop: () => {
+      if (!isTransitioning()) isRunning() ? stopTimer() : startTimer();
+    },
     onCloseModals: () =>
       document
         .querySelectorAll('.modal-overlay.open')
@@ -95,7 +98,7 @@ window.addEventListener('load', () => {
 
 // ── Circle tap → start / stop ─────────────────────────────────
 document.getElementById('breathing-circle').addEventListener('click', () => {
-  isRunning() ? stopTimer() : startTimer();
+  if (!isTransitioning()) isRunning() ? stopTimer() : startTimer();
 });
 
 // ── Técnicas pill ─────────────────────────────────────────────
