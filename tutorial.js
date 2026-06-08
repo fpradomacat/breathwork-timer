@@ -1,1001 +1,345 @@
-// ── i18n ──────────────────────────────────────────────────────
-const i18n = {
-  es: {
-    title: 'Neyen | el arte de respirar',
-    statSession: 'Sesión',
-    statCycles: 'Ciclos',
-    statLast: 'Última',
-    inhale: 'Inhala',
-    holdFull: 'Pausa (Lleno)',
-    exhale: 'Exhala',
-    holdEmpty: 'Pausa (Vacío)',
-    vol: 'Vol',
-    start: 'Iniciar',
-    stop: 'Detener',
-    reset: 'Reset',
-    ready: 'Listo',
-    inhaling: 'Inhala',
-    holding: 'Mantén',
-    exhaling: 'Exhala',
-    waiting: 'Espera',
-    menuPresets: 'Técnicas',
-    menuSounds: '🔔 Sonidos',
-    presetApply: 'Aplicar',
-    limitTitle: 'Límite de sesión',
-    limitNone: 'Sin límite',
-    limitMin: 'Minutos',
-    limitCyc: 'Ciclos',
-    soundPhases: ['Inhalar', 'Pausa (Lleno)', 'Exhalar', 'Pausa (Vacío)'],
-    limitMsg: (type, val) =>
-      type === 'minutes'
-        ? `⏱ ${val} min alcanzados`
-        : `🔄 ${val} ciclos completados`,
-    limitBadgeMin: (val) => `⏱ ${val} min`,
-    limitBadgeCyc: (val) => `🔄 ${val} ciclos`,
-    custom: 'Personalizado',
-    sectionTheme: 'Tema',
-    settingsTitle: 'Configuración',
-    settingsLabel: 'Ajustes',
-    sectionTiming: 'Tiempos',
-    donate: '😊 Dona',
-    fireBreathAutoLimit: (n) => `límite automático: ${n} ciclos`,
-  },
-  en: {
-    title: 'Neyen | the art of breathing',
-    statSession: 'Session',
-    statCycles: 'Cycles',
-    statLast: 'Last',
-    inhale: 'Inhale',
-    holdFull: 'Hold (Full)',
-    exhale: 'Exhale',
-    holdEmpty: 'Hold (Empty)',
-    vol: 'Vol',
-    start: 'Start',
-    stop: 'Stop',
-    reset: 'Reset',
-    ready: 'Ready',
-    inhaling: 'Inhale',
-    holding: 'Hold',
-    exhaling: 'Exhale',
-    waiting: 'Wait',
-    menuPresets: 'Techniques',
-    menuSounds: '🔔 Sounds',
-    presetApply: 'Apply',
-    limitTitle: 'Session limit',
-    limitNone: 'No limit',
-    limitMin: 'Minutes',
-    limitCyc: 'Cycles',
-    soundPhases: ['Inhale', 'Hold (Full)', 'Exhale', 'Hold (Empty)'],
-    limitMsg: (type, val) =>
-      type === 'minutes'
-        ? `⏱ ${val} min reached`
-        : `🔄 ${val} cycles completed`,
-    limitBadgeMin: (val) => `⏱ ${val} min`,
-    limitBadgeCyc: (val) => `🔄 ${val} cycles`,
-    custom: 'Custom',
-    sectionTheme: 'Theme',
-    settingsTitle: 'Settings',
-    settingsLabel: 'Settings',
-    sectionTiming: 'Timings',
-    donate: '😊 Donate',
-    fireBreathAutoLimit: (n) => `auto-limit: ${n} cycles`,
-  },
-};
+// ── Neyen Tutorial ────────────────────────────────────────────
+//
+// Self-contained IIFE. No imports needed — it reads `applyLang`
+// from window (exposed by main.js) and reads the lang button to
+// detect the current language.
+//
+// Add <script src="tutorial.js"></script> after the module script
+// in index.html. The tutorial resolves the AudioContext autoplay
+// issue: the user must interact (click "Siguiente") before anything
+// else can play.
+// ─────────────────────────────────────────────────────────────
 
-let lang = 'es';
+(function () {
+  'use strict';
 
-// ── Hover click ───────────────────────────────────────────────
-const HOVER_SELECTOR = [
-  '#start-btn',
-  '#presets-btn',
-  '.ctrl-option',
-  '.input-group input',
-  '.bmc-btn',
-  '.author-tag',
-  '.preset-card',
-  '.modal-close',
-  '.reset-inline-btn',
-  '#breathing-circle',
-  '.pill-tecnicas',
-].join(', ');
+  // ── Steps ────────────────────────────────────────────────────
+  // target: CSS selector to spotlight  (null = center, no spotlight)
+  // pos:    card position relative to spotlight
+  //         'bottom' | 'top' | 'left' | 'right' | 'center'
+  const STEPS = [
+    {
+      target: null,
+      pos: 'center',
+      langPicker: true,
+      es: {
+        title: '👋 Bienvenido a Neyen',
+        body: 'Técnicas de respiración guiadas para calmar, enfocar o energizarte.<br><br>🎙️ Mi voz te acompañará en los primeros ciclos para guiarte — luego se va y respirás en silencio.<br><br>🌬️ <strong>Nariz o boca:</strong> respirar por la nariz activa más el sistema nervioso parasimpático y profundiza la calma. Por la boca es más activante e inmediato. Probá los dos.<br><br>Primero, elige tu idioma:',
+      },
+      en: {
+        title: '👋 Welcome to Neyen',
+        body: 'Guided breathing techniques to calm, focus, or energize you.<br><br>🎙️ My voice will guide you through the first few cycles — then it fades and you breathe in silence.<br><br>🌬️ <strong>Nose or mouth:</strong> breathing through the nose engages the parasympathetic nervous system more deeply, amplifying calm. Through the mouth is more activating and immediate. Try both.<br><br>First, choose your language:',
+      },
+    },
+    {
+      target: '#breathing-circle-container',
+      pos: 'bottom',
+      es: {
+        title: '🫁 El círculo te guía',
+        body: 'El círculo crece al inhalar y se contrae al exhalar. Seguí su ritmo.<br><br><strong>Tocalo</strong> para iniciar la sesión. Tocalo de nuevo para detenerla.',
+      },
+      en: {
+        title: '🫁 The circle guides you',
+        body: 'The circle expands as you inhale and shrinks as you exhale. Follow its rhythm.<br><br><strong>Tap it</strong> to start the session. Tap again to stop.',
+      },
+    },
+    {
+      target: '.stats-box',
+      pos: 'bottom',
+      es: {
+        title: '📊 Tus estadísticas',
+        body: 'Aquí ves el tiempo de sesión, los ciclos completados y la última sesión.',
+      },
+      en: {
+        title: '📊 Your stats',
+        body: 'Session time, completed cycles and last session at a glance.',
+      },
+    },
+    {
+      target: '.action-pills',
+      pos: 'top',
+      es: {
+        title: '✦ Técnicas',
+        body: 'Explora diferentes técnicas de respiración y elige la que mejor se adapte a tus necesidades. Cada técnica está diseñada para ayudarte a alcanzar un objetivo distinto, como relajarte, concentrarte o recuperar energía.',
+      },
+      en: {
+        title: '✦ Techniques',
+        body: 'Explore different breathing techniques and choose the one that best fits your needs. Each technique is designed to support a different goal, such as relaxation, focus, or renewed energy.',
+      },
+    },
+  ];
 
-let _lastHoverEl = null;
-let _suppressHover = false;
-let _lastWasTouch = false;
-
-// ── DOM refs ──────────────────────────────────────────────────
-const vol = 0.55;
-const DEFAULT_TIMES = {
-  inhale: 4,
-  holdFull: 4,
-  exhale: 4,
-  holdEmpty: 4,
-};
-
-const times = {
-  inhale: 4,
-  holdFull: 4,
-  exhale: 4,
-  holdEmpty: 4,
-};
-const breathText = document.getElementById('breath-text');
-const phaseTimerDisplay = document.getElementById('phase-timer');
-const breathingCircle = document.getElementById('breathing-circle');
-const startBtn = document.getElementById('start-btn');
-const techniquesBtn = document.getElementById('techniques-btn');
-const sessionCounter = document.getElementById('session-counter');
-const cycleCounter = document.getElementById('cycle-counter');
-const lastSession = document.getElementById('last-session');
-const techniqueLabel = document.getElementById('technique-label');
-
-// ── Audio context ─────────────────────────────────────────────
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-function resumeAudio() {
-  if (audioCtx.state === 'suspended') audioCtx.resume();
-}
-document.addEventListener('mousedown', resumeAudio);
-document.addEventListener('touchstart', resumeAudio, { passive: true });
-document.addEventListener('keydown', resumeAudio);
-
-// ── Technique label ───────────────────────────────────────────
-let activeTechniqueName = 'Box Breathing';
-
-function setTechniqueLabel(name, isCustom = false) {
-  if (!isCustom) activeTechniqueName = name;
-  techniqueLabel.textContent = isCustom ? i18n[lang].custom : name;
-  techniqueLabel.classList.toggle('is-custom', isCustom);
-}
-
-// ── UI sounds (all synthetic, Web Audio API) ──────────────────
-function playTone(freq, duration, vol) {
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-  osc.type = 'sine';
-  osc.frequency.value = freq;
-  const t = audioCtx.currentTime;
-  gain.gain.setValueAtTime(0, t);
-  gain.gain.linearRampToValueAtTime(vol, t + 0.02);
-  gain.gain.linearRampToValueAtTime(0, t + duration);
-  osc.start(t);
-  osc.stop(t + duration + 0.05);
-}
-
-function playHoverClick() {
-  const len = Math.floor(audioCtx.sampleRate * 0.012);
-  const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
-  const data = buf.getChannelData(0);
-  for (let i = 0; i < len; i++)
-    data[i] =
-      (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.002));
-  const src = audioCtx.createBufferSource();
-  const gain = audioCtx.createGain();
-  const hpf = audioCtx.createBiquadFilter();
-  hpf.type = 'highpass';
-  hpf.frequency.value = 2400;
-  src.buffer = buf;
-  src.connect(hpf);
-  hpf.connect(gain);
-  gain.connect(audioCtx.destination);
-  src.start();
-}
-
-function playStartSound() {
-  if (vol <= 0) return;
-  [
-    [440, 0],
-    [554, 0.1],
-  ].forEach(([freq, delay]) => {
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.type = 'sine';
-    osc.frequency.value = freq;
-    const t = audioCtx.currentTime + delay;
-    gain.gain.setValueAtTime(0, t);
-    gain.gain.linearRampToValueAtTime(vol * 0.28, t + 0.015);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
-    osc.start(t);
-    osc.stop(t + 0.4);
-  });
-}
-
-function playStopTone() {
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-  osc.type = 'sine';
-  osc.frequency.setValueAtTime(300, audioCtx.currentTime);
-  osc.frequency.exponentialRampToValueAtTime(140, audioCtx.currentTime + 0.18);
-  gain.gain.setValueAtTime(vol * 0.35, audioCtx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.22);
-  osc.start(audioCtx.currentTime);
-  osc.stop(audioCtx.currentTime + 0.25);
-}
-
-function playSelectChime() {
-  [
-    [520, 0],
-    [660, 0.07],
-    [800, 0.14],
-  ].forEach(([freq, delay]) => {
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.type = 'sine';
-    osc.frequency.value = freq;
-    const t = audioCtx.currentTime + delay;
-    gain.gain.setValueAtTime(0, t);
-    gain.gain.linearRampToValueAtTime(vol, t + 0.015);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.38);
-    osc.start(t);
-    osc.stop(t + 0.4);
-  });
-}
-
-document.addEventListener('mouseover', (e) => {
-  if (_suppressHover || _lastWasTouch) return;
-  const el = e.target.closest(HOVER_SELECTOR);
-  if (el && el !== _lastHoverEl) {
-    playHoverClick();
-    _lastHoverEl = el;
-    _suppressHover = true;
-    setTimeout(() => {
-      _suppressHover = false;
-    }, 150);
+  // ── Detect current language ───────────────────────────────────
+  function getLang() {
+    const btn = document.getElementById('lang-btn');
+    return btn && btn.textContent.trim().toLowerCase() === 'en' ? 'en' : 'es';
   }
-});
 
-document.addEventListener('mouseout', (e) => {
-  const el = e.target.closest(HOVER_SELECTOR);
-  if (el && !el.contains(e.relatedTarget)) _lastHoverEl = null;
-});
+  // ── Build DOM ─────────────────────────────────────────────────
+  const overlay = document.createElement('div');
+  overlay.id = 'tut-overlay';
 
-// On touch: haptic only (no sound — avoids double-firing with synthetic mouseover)
-document.addEventListener(
-  'touchstart',
-  (e) => {
-    _lastWasTouch = true;
-    const el = e.target.closest(HOVER_SELECTOR);
-    if (el && !el.disabled) {
-      if (navigator.vibrate) navigator.vibrate(8);
+  const canvas = document.createElement('canvas');
+  canvas.id = 'tut-canvas';
+  document.body.appendChild(canvas);
+
+  const card = document.createElement('div');
+  card.id = 'tut-card';
+  const cardStep = document.createElement('div');
+  cardStep.id = 'tut-step-indicator';
+  const cardTitle = document.createElement('h2');
+  cardTitle.id = 'tut-title';
+  const cardBody = document.createElement('p');
+  cardBody.id = 'tut-body';
+  const btnRow = document.createElement('div');
+  btnRow.id = 'tut-btn-row';
+  const btnSkip = document.createElement('button');
+  btnSkip.id = 'tut-skip';
+  const btnNext = document.createElement('button');
+  btnNext.id = 'tut-next';
+
+  btnRow.appendChild(btnSkip);
+  btnRow.appendChild(btnNext);
+  card.appendChild(cardStep);
+  card.appendChild(cardTitle);
+  card.appendChild(cardBody);
+  card.appendChild(btnRow);
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+
+  // ── State ─────────────────────────────────────────────────────
+  let currentStep = 0;
+
+  // ── Canvas spotlight ──────────────────────────────────────────
+  const PADDING = 14;
+  const RADIUS = 16;
+  let _spotRect = null;
+  let _spotTarget = null;
+  let _spotRAF = null;
+
+  function drawMask(x, y, w, h) {
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = window.innerWidth * dpr;
+    canvas.height = window.innerHeight * dpr;
+    canvas.style.width = window.innerWidth + 'px';
+    canvas.style.height = window.innerHeight + 'px';
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = 'rgba(0,0,0,0.72)';
+    ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+
+    if (w > 0 && h > 0) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.beginPath();
+      ctx.roundRect(x, y, w, h, RADIUS);
+      ctx.fill();
+      ctx.restore();
+
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255,255,255,0.22)';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.roundRect(x - 1, y - 1, w + 2, h + 2, RADIUS + 1);
+      ctx.stroke();
+      ctx.restore();
     }
-  },
-  { passive: true },
-);
+  }
 
-// Reset touch flag on real mouse movement (desktop)
-document.addEventListener(
-  'mousemove',
-  () => {
-    _lastWasTouch = false;
-  },
-  { passive: true },
-);
+  function lerp(a, b, t) {
+    return a + (b - a) * t;
+  }
 
-// ── i18n ─────────────────────────────────────────────────────
-function applyLang(l) {
-  lang = l;
-  const t = i18n[l];
-  document.querySelectorAll('[data-i18n]').forEach((el) => {
-    const key = el.dataset.i18n;
-    if (t[key] && typeof t[key] === 'string') el.textContent = t[key];
-  });
-  document.getElementById('lang-btn').textContent = l.toUpperCase();
-  document
-    .querySelectorAll('#lang-dropdown .ctrl-option')
-    .forEach((o) => o.classList.toggle('active', o.dataset.value === l));
-  if (!isRunning) breathText.textContent = t.ready;
-  // Re-translate the active technique name if it matches a preset
-  const isCustom = techniqueLabel.classList.contains('is-custom');
-  if (!isCustom && activeTechniqueName) {
-    const preset = PRESETS.find(
-      (p) =>
-        p.nameEs === activeTechniqueName || p.nameEn === activeTechniqueName,
-    );
-    if (preset) {
-      activeTechniqueName = l === 'es' ? preset.nameEs : preset.nameEn;
-      techniqueLabel.textContent = activeTechniqueName;
-      // Reload loops so the helper uses the new language next session
-      _loopLoadedPreset = null; // force reload
-      loadTechniqueLoops(preset);
+  function animateSpotlight() {
+    if (!_spotTarget) {
+      drawMask(0, 0, 0, 0);
+      return;
+    }
+    const el = document.querySelector(_spotTarget);
+    if (!el) {
+      drawMask(0, 0, 0, 0);
+      return;
+    }
+
+    const r = el.getBoundingClientRect();
+    const tx = r.left - PADDING,
+      ty = r.top - PADDING;
+    const tw = r.width + PADDING * 2,
+      th = r.height + PADDING * 2;
+
+    if (!_spotRect) {
+      _spotRect = { x: tx, y: ty, w: tw, h: th };
     } else {
-      setTechniqueLabel(activeTechniqueName, false);
+      const sp = 0.12;
+      _spotRect.x = lerp(_spotRect.x, tx, sp);
+      _spotRect.y = lerp(_spotRect.y, ty, sp);
+      _spotRect.w = lerp(_spotRect.w, tw, sp);
+      _spotRect.h = lerp(_spotRect.h, th, sp);
     }
-  } else if (isCustom) {
-    techniqueLabel.textContent = t.custom;
+
+    drawMask(_spotRect.x, _spotRect.y, _spotRect.w, _spotRect.h);
+
+    if (Math.abs(_spotRect.x - tx) > 0.5 || Math.abs(_spotRect.y - ty) > 0.5) {
+      _spotRAF = requestAnimationFrame(animateSpotlight);
+    }
   }
-  // Re-render presets so descriptions update in the open modal
-  if (document.getElementById('presets-list')) renderPresets();
-  document.title = t.title;
-  updateLimitBadge();
-}
 
-// ── Dropdowns ────────────────────────────────────────────────
-const allDropdowns = ['lang-dropdown'];
+  function positionSpotlight(selector) {
+    cancelAnimationFrame(_spotRAF);
+    _spotTarget = selector || null;
+    if (!selector) {
+      drawMask(0, 0, 0, 0);
+      return;
+    }
+    animateSpotlight();
+    _spotRAF = requestAnimationFrame(animateSpotlight);
+  }
 
-function toggleDropdown(id) {
-  const isOpen = document.getElementById(id).classList.contains('open');
-  allDropdowns.forEach((d) =>
-    document.getElementById(d).classList.remove('open'),
-  );
-  if (!isOpen) document.getElementById(id).classList.add('open');
-}
+  // ── Card positioning ──────────────────────────────────────────
+  const CARD_GAP = 18;
 
-document.addEventListener('click', () =>
-  allDropdowns.forEach((d) =>
-    document.getElementById(d).classList.remove('open'),
-  ),
-);
+  function positionCard(selector, pos) {
+    card.style.left = card.style.top = card.style.transform = '';
 
-// ── Session limit ─────────────────────────────────────────────
-let limitType = 'none';
-let limitValue = 10;
+    if (!selector || pos === 'center') {
+      card.style.left = '50%';
+      card.style.top = '50%';
+      card.style.transform = 'translate(-50%, -50%)';
+      return;
+    }
 
-function checkLimit() {
-  if (limitType === 'none') return false;
-  if (limitType === 'minutes' && totalSeconds >= limitValue * 60) return true;
-  if (limitType === 'cycles' && cycles >= limitValue) return true;
-  return false;
-}
+    const el = document.querySelector(selector);
+    if (!el) {
+      card.style.left = '50%';
+      card.style.top = '50%';
+      card.style.transform = 'translate(-50%, -50%)';
+      return;
+    }
 
-// Apply a limit programmatically (used by Fire Breath auto-limit)
-function applyLimit(type, value) {
-  limitType = type;
-  limitValue = value;
-  updateLimitBadge();
-}
+    const r = el.getBoundingClientRect();
+    const cW = card.offsetWidth || 360;
+    const cH = card.offsetHeight || 200;
+    const vW = window.innerWidth;
+    const vH = window.innerHeight;
+    const PAD = 16;
+    let left, top;
 
-// Show/hide the limit badge in the meta-row
-function updateLimitBadge() {
-  const badge = document.getElementById('limit-badge');
-  if (!badge) return;
-  if (limitType === 'none') {
-    badge.textContent = '';
-    badge.style.display = 'none';
+    if (pos === 'bottom') {
+      top = r.bottom + PADDING + CARD_GAP;
+      left = r.left + r.width / 2 - cW / 2;
+    } else if (pos === 'top') {
+      top = r.top - PADDING - CARD_GAP - cH;
+      left = r.left + r.width / 2 - cW / 2;
+    } else if (pos === 'left') {
+      left = r.left - PADDING - CARD_GAP - cW;
+      top = r.top + r.height / 2 - cH / 2;
+    } else {
+      left = r.right + PADDING + CARD_GAP;
+      top = r.top + r.height / 2 - cH / 2;
+    }
+
+    left = Math.max(PAD, Math.min(left, vW - cW - PAD));
+    top = Math.max(PAD, Math.min(top, vH - cH - PAD));
+    card.style.left = left + 'px';
+    card.style.top = top + 'px';
+    card.style.transform = 'none';
+  }
+
+  // ── Render step ───────────────────────────────────────────────
+  function renderStep(index) {
+    const step = STEPS[index];
+    const l = getLang();
+    const t = step[l] || step['es'];
+    const isLast = index === STEPS.length - 1;
+
+    const dots = STEPS.map(
+      (_, i) => `<span class="tut-dot${i === index ? ' active' : ''}"></span>`,
+    ).join('');
+    cardStep.innerHTML = `<div class="tut-dots">${dots}</div>`;
+
+    cardTitle.textContent = t.title;
+    cardBody.innerHTML = t.body;
+
+    if (step.langPicker) {
+      const picker = document.createElement('div');
+      picker.id = 'tut-lang-picker';
+      picker.innerHTML =
+        '<button class="tut-lang-btn" data-lang="es">🇪🇸 Español</button>' +
+        '<button class="tut-lang-btn" data-lang="en">🇬🇧 English</button>';
+      cardBody.appendChild(picker);
+      picker.querySelectorAll('.tut-lang-btn').forEach((btn) => {
+        if (btn.dataset.lang === l) btn.classList.add('tut-lang-active');
+        btn.addEventListener('click', () => {
+          picker
+            .querySelectorAll('.tut-lang-btn')
+            .forEach((b) => b.classList.remove('tut-lang-active'));
+          btn.classList.add('tut-lang-active');
+          // applyLang is exposed on window by main.js
+          if (typeof window.applyLang === 'function')
+            window.applyLang(btn.dataset.lang);
+          renderStep(index);
+        });
+      });
+    }
+
+    btnNext.textContent = isLast
+      ? l === 'es'
+        ? '¡Empezar! 🎉'
+        : "Let's go! 🎉"
+      : l === 'es'
+        ? 'Siguiente →'
+        : 'Next →';
+    btnSkip.textContent = l === 'es' ? 'Saltar tutorial' : 'Skip tutorial';
+
+    positionSpotlight(step.target);
+    setTimeout(() => positionCard(step.target, step.pos), 50);
+  }
+
+  // ── Navigation ────────────────────────────────────────────────
+  function advance() {
+    if (currentStep < STEPS.length - 1) {
+      currentStep++;
+      renderStep(currentStep);
+    } else {
+      closeTutorial();
+    }
+  }
+
+  function closeTutorial() {
+    overlay.classList.add('tut-hiding');
+    canvas.style.transition = 'opacity 0.35s';
+    canvas.style.opacity = '0';
+    setTimeout(() => {
+      overlay.remove();
+      canvas.remove();
+    }, 400);
+  }
+
+  btnNext.addEventListener('click', advance);
+  btnSkip.addEventListener('click', closeTutorial);
+
+  // ── Init ──────────────────────────────────────────────────────
+  function init() {
+    renderStep(0);
+  }
+
+  if (
+    document.readyState === 'complete' ||
+    document.readyState === 'interactive'
+  ) {
+    requestAnimationFrame(() => setTimeout(init, 80));
   } else {
-    const t = i18n[lang];
-    badge.textContent =
-      limitType === 'minutes'
-        ? t.limitBadgeMin(limitValue)
-        : t.limitBadgeCyc(limitValue);
-    badge.style.display = 'inline-flex';
+    window.addEventListener('DOMContentLoaded', () =>
+      requestAnimationFrame(() => setTimeout(init, 80)),
+    );
   }
-}
 
-// ── Presets ───────────────────────────────────────────────────
-const PRESETS = [
-  {
-    nameEs: 'Respiración cuadrada',
-    nameEn: 'Box Breathing',
-    tagEs: 'Equilibrio',
-    tagEn: 'Balance',
-    timing: [4, 4, 4, 4],
-    // soundFile: base loop (no voice). helperCycles: how many cycles the
-    // voiced version plays before switching to the clean loop.
-    soundFile:    'assets/sounds/box-breathing.mp3',
-    soundFileEs:  'assets/sounds/box-breathing-helper-es.mp3',
-    soundFileEn:  'assets/sounds/box-breathing-helper-en.mp3',
-    helperCycles: 3,
-    descEs:
-      'Inhala, retén, exhala, retén — 4 segundos cada paso. Calma la mente rápido.',
-    descEn:
-      'Inhale, hold, exhale, hold — 4 seconds each. Quickly calms the mind.',
-  },
-  {
-    nameEs: 'Coherencia Cardíaca',
-    nameEn: 'Cardiac Coherence',
-    tagEs: 'Calma',
-    tagEn: 'Calm',
-    timing: [5, 0, 5, 0],
-    soundFile:    'assets/sounds/coherence-breathing.mp3',
-    soundFileEs:  'assets/sounds/coherence-breathing-helper-es.mp3',
-    soundFileEn:  'assets/sounds/coherence-breathing-helper-en.mp3',
-    helperCycles: 3,
-    descEs:
-      '5 segundos adentro, 5 afuera. Sincroniza el corazón y la mente. Ideal para el día a día.',
-    descEn:
-      '5 seconds in, 5 out. Syncs heart and mind. Great for daily practice.',
-  },
-  {
-    nameEs: '4-7-8 Relajante',
-    nameEn: '4-7-8 Relaxing',
-    tagEs: 'Sueño',
-    tagEn: 'Sleep',
-    timing: [4, 7, 8, 0],
-    soundFile:    'assets/sounds/478-breathing.mp3',
-    soundFileEs:  'assets/sounds/478-breathing-helper-es.mp3',
-    soundFileEn:  'assets/sounds/478-breathing-helper-en.mp3',
-    helperCycles: 3,
-    descEs:
-      'Inhala 4, retén 7, exhala 8. Reduce la ansiedad y ayuda a conciliar el sueño.',
-    descEn:
-      'Inhale 4, hold 7, exhale 8. Eases anxiety and helps you fall asleep.',
-  },
-  {
-    nameEs: 'Fuego',
-    nameEn: 'Fire Breath',
-    tagEs: 'Energía',
-    tagEn: 'Energy',
-    timing: [1, 0, 1, 0],
-    autoLimitCycles: 30,
-    soundFile:    'assets/sounds/fire-breath.mp3',
-    soundFileEs:  'assets/sounds/fire-breath-helper-es.mp3',
-    soundFileEn:  'assets/sounds/fire-breath-helper-en.mp3',
-    helperCycles: 5,
-    descEs: 'Respiración rápida y rítmica para activarte. Máximo 30 ciclos.',
-    descEn: 'Fast rhythmic breathing to energize you. Max 30 cycles.',
-  },
-];
-
-function renderPresets() {
-  const list = document.getElementById('presets-list');
-  list.innerHTML = '';
-  PRESETS.forEach((preset) => {
-    const [i, hf, e, he] = preset.timing;
-    const card = document.createElement('div');
-    card.className = 'preset-card';
-    const hasAutoLimit = !!preset.autoLimitCycles;
-    const presetName = lang === 'es' ? preset.nameEs : preset.nameEn;
-    const presetTag = lang === 'es' ? preset.tagEs : preset.tagEn;
-    card.innerHTML = `
-            <div class="preset-header">
-                <span class="preset-name">${presetName} <span class="preset-tag">${presetTag}</span></span>
-                <span class="preset-timing">${i}-${hf}-${e}-${he}</span>
-            </div>
-            <p class="preset-desc">${lang === 'es' ? preset.descEs : preset.descEn}</p>`;
-    card.addEventListener('click', () => {
-      times.inhale = i;
-      times.holdFull = hf;
-      times.exhale = e;
-      times.holdEmpty = he;
-      const name = lang === 'es' ? preset.nameEs : preset.nameEn;
-      setTechniqueLabel(name);
-      // Pre-load all three loop buffers for the selected technique
-      loadTechniqueLoops(preset);
-      // Auto-limit for techniques that define it; reset for those that don't
-      if (hasAutoLimit) {
-        applyLimit('cycles', preset.autoLimitCycles);
-        const techName = lang === 'es' ? preset.nameEs : preset.nameEn;
-        setTimeout(
-          () =>
-            showToast(
-              `${techName} — ${i18n[lang].fireBreathAutoLimit(preset.autoLimitCycles)}`,
-            ),
-          300,
-        );
-      } else {
-        applyLimit('none', 10);
-      }
-      playSelectChime();
-      closeModal('modal-tecnicas');
-      // Si hay sesión activa, pararla y arrancar de nuevo con los nuevos tiempos
-      if (isRunning) {
-        stopTimer();
-        setTimeout(() => startTimer(), 1300);
-      }
-    });
-    list.appendChild(card);
+  window.addEventListener('resize', () => {
+    _spotRect = null;
+    const step = STEPS[currentStep];
+    positionSpotlight(step.target);
+    setTimeout(() => positionCard(step.target, step.pos), 50);
   });
-}
-
-// ── Per-technique loop audio ──────────────────────────────────
-//
-// Each technique has 3 audio files:
-//   - base loop (no voice cues)
-//   - helper ES (voice cues in Spanish)
-//   - helper EN (voice cues in English)
-//
-// When a session starts:
-//   1. The voiced helper (matching current lang) loops for `helperCycles` cycles.
-//   2. After that, the clean base loop takes over for the rest of the session.
-//
-// Both the cycle count and the crossover are tracked purely via the `cycles`
-// variable that runCycle() already increments — no separate timing needed.
-//
-// Primary path: Web Audio API (Bluetooth-safe, gapless looping).
-// Fallback: HTMLAudioElement if decode fails (file:// or missing file).
-
-// Holds decoded AudioBuffers for the current technique.
-// { base, helper } — each may be null if decode failed.
-let _loopBuffers = { base: null, helper: null };
-
-// Holds HTMLAudioElement fallbacks (always available).
-let _loopFallbacks = { base: null, helper: null };
-
-// Currently active Web Audio nodes (null when stopped).
-let _loopSource = null;
-let _loopGain   = null;
-
-// Currently active HTMLAudioElement fallback (null when using Web Audio).
-let _loopFallbackActive = null;
-
-// Which preset is loaded (to avoid redundant fetches).
-let _loopLoadedPreset = null;
-
-// How many helper cycles the active preset requests.
-let _loopHelperCycles = 3;
-
-// Decode one src into an AudioBuffer; resolve null on any error.
-async function _decodeAudio(src) {
-  try {
-    const res = await fetch(src);
-    if (!res.ok) throw new Error(res.status);
-    return await audioCtx.decodeAudioData(await res.arrayBuffer());
-  } catch (e) {
-    return null;
-  }
-}
-
-// Pre-load all audio for a preset. Safe to call multiple times — skips
-// reload if the same preset is already loaded.
-async function loadTechniqueLoops(preset) {
-  if (preset === _loopLoadedPreset) return;
-  _loopLoadedPreset = preset;
-  _loopHelperCycles = preset.helperCycles ?? 3;
-
-  const helperSrc = lang === 'es' ? preset.soundFileEs : preset.soundFileEn;
-
-  // Always create HTMLAudioElement fallbacks immediately (work on file://).
-  const mkFallback = (src) => {
-    if (!src) return null;
-    const a = new Audio(src);
-    a.loop    = true;
-    a.preload = 'auto';
-    a.volume  = vol;
-    a.load();
-    return a;
-  };
-  _loopFallbacks.base   = mkFallback(preset.soundFile);
-  _loopFallbacks.helper = mkFallback(helperSrc);
-
-  // Web Audio decode (http/https only).
-  if (location.protocol === 'file:') return;
-  const [base, helper] = await Promise.all([
-    _decodeAudio(preset.soundFile),
-    _decodeAudio(helperSrc),
-  ]);
-  // Only commit if the preset is still the active one (user didn't switch mid-load).
-  if (preset !== _loopLoadedPreset) return;
-  _loopBuffers.base   = base;
-  _loopBuffers.helper = helper;
-}
-
-// Start looping one of the two buffers/fallbacks.
-// `which` is 'helper' or 'base'.
-function _playLoopTrack(which) {
-  stopLoop();
-  const buf      = _loopBuffers[which];
-  const fallback = _loopFallbacks[which];
-
-  if (buf) {
-    // Web Audio path — gapless, Bluetooth-safe.
-    _loopGain = audioCtx.createGain();
-    _loopGain.gain.value = vol;
-    _loopGain.connect(audioCtx.destination);
-    _loopSource = audioCtx.createBufferSource();
-    _loopSource.buffer = buf;
-    _loopSource.loop   = true;
-    _loopSource.connect(_loopGain);
-    _loopSource.start();
-  } else if (fallback) {
-    // HTMLAudioElement fallback.
-    fallback.currentTime = 0;
-    fallback.play().catch(() => {});
-    _loopFallbackActive = fallback;
-  }
-}
-
-// Called from startTimer(). Decides which track to start based on cycles.
-// Also called from runCycle() whenever a cycle completes, to switch tracks.
-function updateLoop() {
-  if (!isRunning) return;
-  const which = cycles < _loopHelperCycles ? 'helper' : 'base';
-
-  // If we're already playing the right track, do nothing.
-  if (_loopSource || _loopFallbackActive) {
-    // Check if we need to switch (helper → base crossover point).
-    if (cycles === _loopHelperCycles) {
-      _playLoopTrack('base');
-    }
-    return;
-  }
-
-  // Nothing playing yet — first call from startTimer().
-  _playLoopTrack(which);
-}
-
-// Stop whatever loop track is currently playing.
-function stopLoop() {
-  if (_loopSource) {
-    try { _loopSource.stop(); } catch (e) {}
-    _loopSource = null;
-  }
-  if (_loopGain) {
-    _loopGain.disconnect();
-    _loopGain = null;
-  }
-  if (_loopFallbackActive) {
-    _loopFallbackActive.pause();
-    _loopFallbackActive.currentTime = 0;
-    _loopFallbackActive = null;
-  }
-}
-
-// Pre-load the default preset (Box Breathing) immediately on script parse.
-loadTechniqueLoops(PRESETS[0]);
-
-// ── Modals ────────────────────────────────────────────────────
-function openModal(id) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.classList.add('open');
-  // Always scroll to top
-  const body = el.querySelector('.modal-body');
-  if (body) body.scrollTop = 0;
-}
-function closeModal(id) {
-  const el = document.getElementById(id);
-  if (el) el.classList.remove('open');
-}
-document
-  .querySelectorAll('.modal-close')
-  .forEach((btn) =>
-    btn.addEventListener('click', () => closeModal(btn.dataset.close)),
-  );
-document.querySelectorAll('.modal-overlay').forEach((el) =>
-  el.addEventListener('click', (e) => {
-    if (e.target === el) closeModal(el.id);
-  }),
-);
-
-// ── Toast ─────────────────────────────────────────────────────
-const toastEl = document.createElement('div');
-toastEl.className = 'limit-toast';
-document.body.appendChild(toastEl);
-let _toastTimer;
-function showToast(msg) {
-  toastEl.textContent = msg;
-  toastEl.classList.add('show');
-  clearTimeout(_toastTimer);
-  _toastTimer = setTimeout(() => toastEl.classList.remove('show'), 3500);
-}
-
-// ── Helpers ───────────────────────────────────────────────────
-function formatTime(s) {
-  return `${Math.floor(s / 60)
-    .toString()
-    .padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
-}
-function setCircleState(state) {
-  breathingCircle.classList.remove('idle', 'collapsed', 'active');
-  if (state !== 'idle') breathingCircle.classList.add(state);
-}
-
-// ── Session state ─────────────────────────────────────────────
-let isRunning = false;
-let cycles = 0;
-let totalSeconds = 0;
-let _sessionTimer = null; // setTimeout handle — ticks every 1 s
-let _phaseTimer = null; // setTimeout handle — fires when phase ends
-let _displayRAF = null; // rAF handle — only used for phase countdown display
-let _keepAliveNode = null; // silent oscillator — keeps AudioContext alive on Bluetooth
-
-// ─────────────────────────────────────────────────────────────
-// TIMING STRATEGY
-//
-// All critical timing (phase advances, session counter, limit checks)
-// runs on plain setTimeout chains.  setTimeout keeps firing even when
-// the browser tab is in the background or the screen is off — unlike
-// requestAnimationFrame, which is paused by every mobile browser.
-//
-// rAF is used only for the phase countdown number inside the circle
-// (purely cosmetic).  If it pauses, the number just stops updating;
-// the phase still ends at the right time because _phaseTimer fires.
-// ─────────────────────────────────────────────────────────────
-
-// Session clock — fires every 1 000 ms, increments totalSeconds
-function _sessionTick() {
-  if (!isRunning) return;
-  totalSeconds++;
-  sessionCounter.innerText = formatTime(totalSeconds);
-  if (limitType === 'minutes' && checkLimit()) {
-    stopTimer(i18n[lang].limitMsg(limitType, limitValue));
-    return;
-  }
-  _sessionTimer = setTimeout(_sessionTick, 1000);
-}
-
-// Phase countdown display — rAF loop, purely visual
-// phaseEndsAt is a performance.now() timestamp
-let _phaseEndsAt = 0;
-function _displayTick() {
-  if (!isRunning) return;
-  const rem = Math.ceil((_phaseEndsAt - performance.now()) / 1000);
-  phaseTimerDisplay.innerText = rem > 0 ? rem : '';
-  _displayRAF = requestAnimationFrame(_displayTick);
-}
-
-// Wait `seconds` then call `cb`. Stores handle in _phaseTimer so it
-// can be cancelled cleanly. Also kicks off the display loop.
-function waitPhase(seconds, cb) {
-  clearTimeout(_phaseTimer);
-  cancelAnimationFrame(_displayRAF);
-  _phaseEndsAt = performance.now() + seconds * 1000;
-  _phaseTimer = setTimeout(cb, seconds * 1000);
-  _displayRAF = requestAnimationFrame(_displayTick);
-}
-
-// ── Flow ──────────────────────────────────────────────────────
-// Flat callback chain — no async/await, no Promises.
-// Each phase calls the next one directly via waitPhase().
-function runCycle() {
-  if (!isRunning) return;
-
-  const t = i18n[lang];
-  const tIn = parseInt(times.inhale) || 0;
-  const tHF = parseInt(times.holdFull) || 0;
-  const tOut = parseInt(times.exhale) || 0;
-  const tHE = parseInt(times.holdEmpty) || 0;
-
-  // Build phase list — skip any with duration 0
-  const phases = [];
-  if (tIn > 0)
-    phases.push({
-      dur: tIn,
-      label: t.inhaling,
-      state: 'active',
-      transition: `transform ${tIn}s cubic-bezier(.4,0,.2,1),opacity ${tIn}s cubic-bezier(.4,0,.2,1),box-shadow ${tIn}s cubic-bezier(.4,0,.2,1)`,
-    });
-  if (tHF > 0)
-    phases.push({
-      dur: tHF,
-      label: t.holding,
-      state: null,
-      transition: null,
-    });
-  if (tOut > 0)
-    phases.push({
-      dur: tOut,
-      label: t.exhaling,
-      state: 'collapsed',
-      transition: `transform ${tOut}s cubic-bezier(.4,0,.2,1),opacity ${tOut}s cubic-bezier(.4,0,.2,1),box-shadow ${tOut}s cubic-bezier(.4,0,.2,1)`,
-    });
-  if (tHE > 0)
-    phases.push({
-      dur: tHE,
-      label: t.holding,
-      state: null,
-      transition: null,
-    });
-
-  if (phases.length === 0) return;
-
-  let idx = 0;
-
-  function nextPhase() {
-    if (!isRunning) return;
-
-    if (idx >= phases.length) {
-      // Cycle complete
-      cycles++;
-      cycleCounter.innerText = cycles;
-      // Switch from helper to base loop at the crossover point
-      updateLoop();
-      if (checkLimit()) {
-        stopTimer(i18n[lang].limitMsg(limitType, limitValue));
-        return;
-      }
-      idx = 0; // restart cycle
-    }
-
-    const phase = phases[idx++];
-    breathText.innerText = phase.label;
-    navigator.vibrate?.(40);
-    if (phase.transition) breathingCircle.style.transition = phase.transition;
-    if (phase.state) setCircleState(phase.state);
-    waitPhase(phase.dur, nextPhase);
-  }
-
-  nextPhase();
-}
-
-// ── Start / Stop ──────────────────────────────────────────────
-const TRANSITION_MS = 1200;
-
-async function startTimer() {
-  await acquireWakeLock();
-  resumeAudio();
-  playStartSound();
-  _suppressHover = true;
-  breathText.innerText = '';
-  phaseTimerDisplay.innerText = '';
-  breathingCircle.style.transition = '';
-  setCircleState('collapsed');
-  const _container = document.querySelector('.container');
-  _container.classList.add('session');
-  // After animation completes, snap last-stat to display:none (no phantom space)
-  setTimeout(
-    () => _container.classList.add('session-hide-last'),
-    TRANSITION_MS,
-  );
-
-  setTimeout(() => {
-    isRunning = true;
-    totalSeconds = 0;
-    cycles = 0;
-    sessionCounter.innerText = '00:00';
-    cycleCounter.innerText = '0';
-
-    // Start session clock
-    _sessionTimer = setTimeout(_sessionTick, 1000);
-
-    // Keep AudioContext alive for the whole session.
-    // Without this, mobile browsers (especially with Bluetooth) suspend
-    // the context during silent gaps, causing audible dropouts on resume.
-    _keepAliveNode = audioCtx.createOscillator();
-    const _kaGain = audioCtx.createGain();
-    _kaGain.gain.value = 0; // completely silent
-    _keepAliveNode.connect(_kaGain);
-    _kaGain.connect(audioCtx.destination);
-    _keepAliveNode.start();
-
-    // Start breathing flow — kick off loop audio then visual cycle
-    updateLoop();
-    runCycle();
-
-    setTimeout(() => {
-      _suppressHover = false;
-      _lastHoverEl = null;
-    }, 100);
-  }, TRANSITION_MS);
-}
-
-async function stopTimer(limitMsg) {
-  isRunning = false;
-  await releaseWakeLock();
-
-  // Cancel all timers
-  clearTimeout(_sessionTimer);
-  clearTimeout(_phaseTimer);
-  cancelAnimationFrame(_displayRAF);
-  _sessionTimer = null;
-  _phaseTimer = null;
-  _displayRAF = null;
-
-  // Stop the keep-alive oscillator
-  if (_keepAliveNode) {
-    try {
-      _keepAliveNode.stop();
-    } catch (e) {}
-    _keepAliveNode = null;
-  }
-
-  // Stop technique loop
-  stopLoop();
-
-  lastSession.innerText = `${formatTime(totalSeconds)} (${cycles})`;
-  playStopTone();
-  if (limitMsg) showToast(limitMsg);
-
-  phaseTimerDisplay.innerText = '';
-  breathText.innerText = '';
-  breathingCircle.style.transition = '';
-  setCircleState('idle');
-  const _container = document.querySelector('.container');
-  _container.classList.remove('session-hide-last'); // restore before animation
-  _container.classList.remove('session');
-
-  setTimeout(() => {
-    breathText.innerText = i18n[lang].ready;
-  }, TRANSITION_MS);
-}
-
-startBtn.onclick = () => (isRunning ? stopTimer() : startTimer());
-
-// ── Click sound on all interactive elements ───────────────────
-// Plays on mouse click (desktop) and touch tap (mobile, via touchend
-// so it doesn't double-fire with the touchstart haptic).
-const CLICK_SOUND_SELECTOR = [
-  'button:not(:disabled)',
-  'a',
-  '.preset-card',
-  '.reset-inline-btn',
-  '.pill-tecnicas',
-  '.modal-close',
-  '.bmc-btn',
-].join(', ');
-
-document.addEventListener('click', (e) => {
-  if (_lastWasTouch) return;
-  const el = e.target.closest(CLICK_SOUND_SELECTOR);
-  if (el) {
-    playHoverClick();
-    _suppressHover = true;
-    setTimeout(() => {
-      _suppressHover = false;
-    }, 600);
-  }
-});
-
-document.addEventListener(
-  'touchend',
-  (e) => {
-    if (_lastWasTouch) return;
-    const el = e.target.closest(CLICK_SOUND_SELECTOR);
-    if (el && !el.disabled) {
-      playHoverClick();
-      _lastWasTouch = true;
-      setTimeout(() => {
-        _lastWasTouch = false;
-      }, 600); // 600 > 300ms del click sintético
-    }
-  },
-  { passive: true },
-);
-
-// ── Keyboard shortcuts ────────────────────────────────────────
-document.addEventListener('keydown', (e) => {
-  // Escape: close any open modal
-  if (e.key === 'Escape') {
-    document
-      .querySelectorAll('.modal-overlay.open')
-      .forEach((m) => closeModal(m.id));
-    return;
-  }
-  // Space: start / stop — only when no modal is open and no input is focused
-  if (e.key === ' ' || e.code === 'Space') {
-    const modalOpen = document.querySelector('.modal-overlay.open');
-    const focused = document.activeElement;
-    const isInput =
-      focused && ['INPUT', 'TEXTAREA', 'SELECT'].includes(focused.tagName);
-    if (modalOpen || isInput) return;
-    e.preventDefault(); // prevent page scroll
-  }
-});
-
-// Prevent browser session-restore from showing stale input values
-window.addEventListener('load', () => {
-  times.inhale = DEFAULT_TIMES.inhale;
-  times.holdFull = DEFAULT_TIMES.holdFull;
-  times.exhale = DEFAULT_TIMES.exhale;
-  times.holdEmpty = DEFAULT_TIMES.holdEmpty;
-  setTechniqueLabel(lang === 'es' ? 'Respiración cuadrada' : 'Box Breathing');
-  applyLimit('none', 10);
-  // Ensure default preset loops are pre-loaded (no-op if already done at parse time)
-  loadTechniqueLoops(PRESETS[0]);
-});
-
-let wakeLock = null;
-
-async function acquireWakeLock() {
-  if (!('wakeLock' in navigator)) return;
-  try {
-    wakeLock = await navigator.wakeLock.request('screen');
-    wakeLock.addEventListener('release', () => {
-      wakeLock = null;
-    });
-  } catch (e) {
-    console.warn('Wake lock failed:', e.name, e.message);
-  }
-}
-
-async function releaseWakeLock() {
-  if (!wakeLock) return;
-  try {
-    await wakeLock.release();
-  } catch (e) {}
-  wakeLock = null;
-}
-
-// Re-adquirir si el usuario vuelve a la página
-document.addEventListener('visibilitychange', async () => {
-  if (document.visibilityState === 'visible' && isRunning) {
-    await acquireWakeLock();
-  }
-});
+})();

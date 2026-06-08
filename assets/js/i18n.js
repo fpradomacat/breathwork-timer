@@ -1,0 +1,90 @@
+// ── Translations ──────────────────────────────────────────────
+// Add a new language by adding a key here that matches the lang codes
+// used in applyLang(). All keys must be present in every language.
+
+export const i18n = {
+  es: {
+    title: 'Neyen | el arte de respirar',
+    statSession: 'Sesión',
+    statCycles: 'Ciclos',
+    statLast: 'Última',
+    inhale: 'Inhala',
+    holdFull: 'Pausa (Lleno)',
+    exhale: 'Exhala',
+    holdEmpty: 'Pausa (Vacío)',
+    vol: 'Vol',
+    start: 'Iniciar',
+    stop: 'Detener',
+    reset: 'Reset',
+    ready: 'Listo',
+    inhaling: 'Inhala',
+    holding: 'Mantén',
+    exhaling: 'Exhala',
+    waiting: 'Espera',
+    menuPresets: 'Técnicas',
+    menuSounds: '🔔 Sonidos',
+    presetApply: 'Aplicar',
+    limitTitle: 'Límite de sesión',
+    limitNone: 'Sin límite',
+    limitMin: 'Minutos',
+    limitCyc: 'Ciclos',
+    soundPhases: ['Inhalar', 'Pausa (Lleno)', 'Exhalar', 'Pausa (Vacío)'],
+    custom: 'Personalizado',
+    sectionTheme: 'Tema',
+    settingsTitle: 'Configuración',
+    settingsLabel: 'Ajustes',
+    sectionTiming: 'Tiempos',
+    donate: '😊 Dona',
+
+    // Functions for dynamic strings
+    limitMsg: (type, val) =>
+      type === 'minutes'
+        ? `⏱ ${val} min alcanzados`
+        : `🔄 ${val} ciclos completados`,
+    limitBadgeMin: (val) => `⏱ ${val} min`,
+    limitBadgeCyc: (val) => `🔄 ${val} ciclos`,
+    fireBreathAutoLimit: (n) => `límite automático: ${n} ciclos`,
+  },
+
+  en: {
+    title: 'Neyen | the art of breathing',
+    statSession: 'Session',
+    statCycles: 'Cycles',
+    statLast: 'Last',
+    inhale: 'Inhale',
+    holdFull: 'Hold (Full)',
+    exhale: 'Exhale',
+    holdEmpty: 'Hold (Empty)',
+    vol: 'Vol',
+    start: 'Start',
+    stop: 'Stop',
+    reset: 'Reset',
+    ready: 'Ready',
+    inhaling: 'Inhale',
+    holding: 'Hold',
+    exhaling: 'Exhale',
+    waiting: 'Wait',
+    menuPresets: 'Techniques',
+    menuSounds: '🔔 Sounds',
+    presetApply: 'Apply',
+    limitTitle: 'Session limit',
+    limitNone: 'No limit',
+    limitMin: 'Minutes',
+    limitCyc: 'Cycles',
+    soundPhases: ['Inhale', 'Hold (Full)', 'Exhale', 'Hold (Empty)'],
+    custom: 'Custom',
+    sectionTheme: 'Theme',
+    settingsTitle: 'Settings',
+    settingsLabel: 'Settings',
+    sectionTiming: 'Timings',
+    donate: '😊 Donate',
+
+    limitMsg: (type, val) =>
+      type === 'minutes'
+        ? `⏱ ${val} min reached`
+        : `🔄 ${val} cycles completed`,
+    limitBadgeMin: (val) => `⏱ ${val} min`,
+    limitBadgeCyc: (val) => `🔄 ${val} cycles`,
+    fireBreathAutoLimit: (n) => `auto-limit: ${n} cycles`,
+  },
+};

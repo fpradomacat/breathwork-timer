@@ -104,22 +104,11 @@
             <button class="ctrl-option" data-value="en">EN — English</button>
         </div>
         <button id="start-btn"></button>
-        <button id="techniques-btn"></button>
     </div>
 
-    <script src="script.js"></script>
-    <script src="tutorial.js"></script>
+    <script type="module" src="/assets/js/main.js"></script>
+    <script defer src="tutorial.js"></script>
     <script>
-    // ── Circle tap = start / stop ──────────────────────────────
-    document.getElementById('breathing-circle').addEventListener('click', () => {
-        document.getElementById('start-btn').click();
-    });
-
-    // ── Técnicas pill ──────────────────────────────────────────
-    document.getElementById('tecnicas-btn').addEventListener('click', () => {
-        renderPresets();
-        openModal('modal-tecnicas');
-    });
 
     </script>
 </body>

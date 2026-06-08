@@ -1,0 +1,228 @@
+// ── Audio ──────────────────────────────────────────────────────
+//
+// Two separate concerns live here:
+//
+//   1. audioCtx  — shared Web Audio context used by UI sounds and
+//                  technique loops. Exported so other modules can
+//                  create nodes on the same context.
+//
+//   2. ambient   — background music player with fade in/out and
+//                  mute toggle. Exported so session.js and
+//                  visibilitychange handlers can stop it cleanly.
+
+// ── Shared AudioContext ───────────────────────────────────────
+export const audioCtx = new (
+  window.AudioContext || window.webkitAudioContext
+)();
+
+export function resumeAudio() {
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+// Resume on any user gesture (needed on mobile/Safari)
+document.addEventListener('mousedown', resumeAudio);
+document.addEventListener('touchstart', resumeAudio, { passive: true });
+document.addEventListener('keydown', resumeAudio);
+
+// ── UI Sounds ─────────────────────────────────────────────────
+
+/** Generic sine tone — used internally by other sound functions. */
+export function playTone(freq, duration, volume) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.type = 'sine';
+  osc.frequency.value = freq;
+  const t = audioCtx.currentTime;
+  gain.gain.setValueAtTime(0, t);
+  gain.gain.linearRampToValueAtTime(volume, t + 0.02);
+  gain.gain.linearRampToValueAtTime(0, t + duration);
+  osc.start(t);
+  osc.stop(t + duration + 0.05);
+}
+
+/** Short high-pass noise click — hover / interaction feedback. */
+export function playHoverClick() {
+  const len = Math.floor(audioCtx.sampleRate * 0.012);
+  const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < len; i++)
+    data[i] =
+      (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.002));
+
+  const src = audioCtx.createBufferSource();
+  const gain = audioCtx.createGain();
+  const hpf = audioCtx.createBiquadFilter();
+
+  gain.gain.value = 0.2; // volumen del click
+
+  hpf.type = 'highpass';
+  hpf.frequency.value = 2400;
+  src.buffer = buf;
+  src.connect(hpf);
+  hpf.connect(gain);
+  gain.connect(audioCtx.destination);
+  src.start();
+}
+
+/** Two-note chime played when a session starts. */
+export function playStartSound() {
+  const vol = 0.55;
+  [
+    [440, 0],
+    [554, 0.1],
+  ].forEach(([freq, delay]) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    const t = audioCtx.currentTime + delay;
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(vol * 0.28, t + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
+    osc.start(t);
+    osc.stop(t + 0.4);
+  });
+}
+
+/** Descending tone played when a session stops. */
+export function playStopTone() {
+  const vol = 0.55;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(140, audioCtx.currentTime + 0.18);
+  gain.gain.setValueAtTime(vol * 0.35, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.22);
+  osc.start(audioCtx.currentTime);
+  osc.stop(audioCtx.currentTime + 0.25);
+}
+
+/** Three-note ascending chime — played when a technique is selected. */
+export function playSelectChime() {
+  const vol = 0.55;
+  [
+    [520, 0],
+    [660, 0.07],
+    [800, 0.14],
+  ].forEach(([freq, delay]) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    const t = audioCtx.currentTime + delay;
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(vol, t + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.38);
+    osc.start(t);
+    osc.stop(t + 0.4);
+  });
+}
+
+// ── Ambient music ─────────────────────────────────────────────
+//
+// Uses its own AudioContext (separate from the main one) so it
+// can be suspended/stopped independently without touching UI sounds
+// or the technique loop.
+//
+// Public API:
+//   ambient.bootstrap()  — attach first-gesture listener to init
+//   ambient.toggle()     — mute / unmute with fade
+//   ambient.stop()       — fade out then fully stop (e.g. on tab hide)
+//   ambient.isMuted()    — current mute state
+
+const AMBIENT_VOLUME = 0.15;
+const AMBIENT_FADE = 2; // seconds
+
+const _amb = {
+  ctx: null,
+  source: null,
+  gainNode: null,
+  buffer: null,
+  muted: false,
+  loaded: false,
+};
+
+async function _ambLoad() {
+  _amb.ctx = new AudioContext();
+  _amb.gainNode = _amb.ctx.createGain();
+  _amb.gainNode.gain.value = 0;
+  _amb.gainNode.connect(_amb.ctx.destination);
+
+  const res = await fetch('assets/sounds/background-music.mp3');
+  const arr = await res.arrayBuffer();
+  _amb.buffer = await _amb.ctx.decodeAudioData(arr);
+  _amb.loaded = true;
+}
+
+function _ambPlay() {
+  if (!_amb.loaded || !_amb.buffer) return;
+  _amb.source = _amb.ctx.createBufferSource();
+  _amb.source.buffer = _amb.buffer;
+  _amb.source.loop = true;
+  _amb.source.connect(_amb.gainNode);
+  _amb.source.start(0);
+  if (!_amb.muted) _ambFadeTo(AMBIENT_VOLUME);
+}
+
+function _ambFadeTo(target) {
+  const g = _amb.gainNode.gain;
+  g.cancelScheduledValues(_amb.ctx.currentTime);
+  g.setValueAtTime(g.value, _amb.ctx.currentTime);
+  g.linearRampToValueAtTime(target, _amb.ctx.currentTime + AMBIENT_FADE);
+}
+
+async function _ambInit() {
+  await _ambLoad();
+  _ambPlay();
+}
+
+export const ambient = {
+  /** Wire up the first-gesture listener that starts ambient music. */
+  bootstrap() {
+    const events = ['click', 'touchend', 'keydown'];
+    const handler = () => {
+      _ambInit();
+      events.forEach((ev) => document.removeEventListener(ev, handler));
+    };
+    events.forEach((ev) =>
+      document.addEventListener(ev, handler, { once: true, passive: true }),
+    );
+  },
+
+  /** Toggle mute / unmute with a fade. */
+  toggle() {
+    _amb.muted = !_amb.muted;
+    _ambFadeTo(_amb.muted ? 0 : AMBIENT_VOLUME);
+    document
+      .getElementById('ambient-btn')
+      ?.classList.toggle('muted', _amb.muted);
+  },
+
+  /**
+   * Fade out then stop playback entirely.
+   * Safe to call even if ambient hasn't loaded yet.
+   */
+  stop() {
+    if (!_amb.loaded || !_amb.source) return;
+    _ambFadeTo(0);
+    setTimeout(() => {
+      try {
+        _amb.source?.stop();
+      } catch (_) {}
+      _amb.source = null;
+    }, AMBIENT_FADE * 1000);
+  },
+
+  isMuted() {
+    return _amb.muted;
+  },
+};
