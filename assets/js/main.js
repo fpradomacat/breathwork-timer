@@ -28,6 +28,7 @@ import {
   setSessionTimes,
   registerLimitGetter,
   acquireWakeLock,
+  TRANSITION_MS,
 } from './session.js';
 import { initInteractions } from './interactions.js';
 
@@ -157,7 +158,7 @@ function _onPresetSelected(preset) {
   // Restart session with new technique if one is active
   if (isRunning()) {
     stopTimer();
-    setTimeout(() => startTimer(), TRANSITION_MS + 100);
+    setTimeout(() => startTimer(), session.TRANSITION_MS + 100);
   }
 }
 
@@ -193,5 +194,3 @@ window.applyLang = (l) =>
   applyLang(l, isRunning(), activeTechniqueName, (newName) => {
     activeTechniqueName = newName;
   });
-
-const TRANSITION_MS = 1200;

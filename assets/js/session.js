@@ -44,7 +44,7 @@ let _displayRAF = null; // rAF — phase countdown visual only
 let _phaseEndsAt = 0; // performance.now() timestamp
 let _keepAliveNode = null; // silent oscillator — keeps AudioContext alive on Bluetooth
 
-const TRANSITION_MS = 1200;
+export const TRANSITION_MS = 1200;
 
 // ── Public accessors (read-only) ──────────────────────────────
 export function isRunning() {
