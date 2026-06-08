@@ -171,15 +171,11 @@ function _onPresetSelected(preset) {
 //   - Active session    → re-acquire wake lock (released automatically on hide)
 document.addEventListener('visibilitychange', async () => {
   if (document.visibilityState === 'hidden') {
-    if (!isRunning()) {
-      ambient.stop();
-    }
-    // Session case: wake lock is auto-released on hide by the browser;
-    // we re-acquire it when the user comes back (see 'visible' branch).
+    // Don't touch music during an active session — the user chose to breathe.
+    if (!isRunning()) ambient.suspend();
   } else if (document.visibilityState === 'visible') {
-    if (isRunning()) {
-      await acquireWakeLock();
-    }
+    if (!isRunning()) ambient.resume();
+    else await acquireWakeLock();
   }
 });
 

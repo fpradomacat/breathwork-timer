@@ -201,25 +201,32 @@ export const ambient = {
   /** Toggle mute / unmute with a fade. */
   toggle() {
     _amb.muted = !_amb.muted;
+    // If the context was suspended (tab was in background), resume it first
+    // so the fade actually executes — then immediately re-suspend if muting.
+    if (_amb.ctx?.state === 'suspended') _amb.ctx.resume();
     _ambFadeTo(_amb.muted ? 0 : AMBIENT_VOLUME);
+    if (_amb.muted) setTimeout(() => _amb.ctx?.suspend(), AMBIENT_FADE * 1000);
     document
       .getElementById('ambient-btn')
       ?.classList.toggle('muted', _amb.muted);
   },
 
   /**
-   * Fade out then stop playback entirely.
-   * Safe to call even if ambient hasn't loaded yet.
+   * Suspend playback when the tab goes to the background.
+   * Skip if already muted — nothing is playing, no need to suspend.
    */
-  stop() {
-    if (!_amb.loaded || !_amb.source) return;
-    _ambFadeTo(0);
-    setTimeout(() => {
-      try {
-        _amb.source?.stop();
-      } catch (_) {}
-      _amb.source = null;
-    }, AMBIENT_FADE * 1000);
+  suspend() {
+    if (!_amb.ctx || _amb.ctx.state !== 'running' || _amb.muted) return;
+    _amb.ctx.suspend();
+  },
+
+  /**
+   * Resume playback when the tab comes back to the foreground.
+   * No-op if the user had manually muted before leaving.
+   */
+  resume() {
+    if (!_amb.ctx || _amb.ctx.state !== 'suspended' || _amb.muted) return;
+    _amb.ctx.resume();
   },
 
   isMuted() {
