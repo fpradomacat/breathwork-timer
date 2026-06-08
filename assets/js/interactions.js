@@ -14,7 +14,6 @@ import { playHoverClick } from './audio.js';
 
 // Elements that get hover/click sounds
 const INTERACTIVE_SELECTOR = [
-  '#start-btn',
   '#presets-btn',
   '.ctrl-option',
   '.input-group input',
