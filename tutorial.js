@@ -107,6 +107,83 @@
   overlay.appendChild(card);
   document.body.appendChild(overlay);
 
+  // ── Styles ────────────────────────────────────────────────────
+  const style = document.createElement('style');
+  style.textContent = `
+    #tut-overlay {
+      position: fixed; inset: 0; z-index: 9999;
+      pointer-events: all; transition: opacity 0.35s ease;
+    }
+    #tut-overlay.tut-hiding { opacity: 0; pointer-events: none; }
+
+    #tut-canvas {
+      position: fixed; inset: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 9999;
+    }
+
+    #tut-card {
+      position: fixed; z-index: 10001;
+      width: min(360px, calc(100vw - 40px));
+      background: linear-gradient(145deg, rgba(28,28,42,0.97), rgba(20,20,34,0.99));
+      border: 1px solid rgba(255,255,255,0.10); border-radius: 20px;
+      padding: 28px 26px 22px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04);
+      transition: opacity 0.4s ease, transform 0.4s cubic-bezier(.4,0,.2,1);
+      opacity: 0;
+      color: #e8e8f0; font-family: inherit;
+    }
+
+    #tut-card.tut-card-visible {
+      opacity: 1;
+    }
+
+    #tut-step-indicator {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
+      text-transform: uppercase; color: rgba(160,160,200,0.6); margin-bottom: 10px;
+    }
+    #tut-title  { font-size: 17px; font-weight: 700; margin: 0 0 10px; color: #fff; line-height: 1.3; }
+    #tut-body   { font-size: 14px; line-height: 1.65; color: rgba(210,210,230,0.85); margin: 0 0 22px; }
+
+    #tut-btn-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    }
+
+    #tut-skip {
+      background: none; border: none; color: rgba(160,160,200,0.5);
+      font-size: 13px; cursor: pointer; padding: 0;
+      transition: color 0.2s; font-family: inherit;
+    }
+    #tut-skip:hover { color: rgba(200,200,230,0.8); }
+
+    #tut-next {
+      background: linear-gradient(135deg, rgba(100,120,255,0.85), rgba(70,90,210,0.9));
+      border: 1px solid rgba(140,160,255,0.25); color: #fff;
+      font-size: 14px; font-weight: 600; padding: 10px 24px;
+      border-radius: 50px; cursor: pointer; font-family: inherit;
+      transition: transform 0.15s, box-shadow 0.15s, background 0.2s;
+      box-shadow: 0 4px 18px rgba(80,100,255,0.3);
+    }
+    #tut-next:hover  { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(80,100,255,0.45); }
+    #tut-next:active { transform: translateY(0); }
+
+    .tut-dots { display: flex; gap: 5px; align-items: center; }
+    .tut-dot  { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.18); transition: all 0.3s; }
+    .tut-dot.active { background: rgba(120,140,255,0.9); width: 18px; border-radius: 3px; }
+
+    #tut-lang-picker { display: flex; gap: 10px; margin-top: 14px; }
+    .tut-lang-btn {
+      flex: 1; padding: 10px 0; border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.05);
+      color: rgba(210,210,230,0.75); font-size: 14px; font-family: inherit;
+      cursor: pointer; transition: border-color 0.2s, background 0.2s, color 0.2s;
+    }
+    .tut-lang-btn:hover { background: rgba(255,255,255,0.09); color: #fff; }
+    .tut-lang-btn.tut-lang-active {
+      border-color: rgba(120,140,255,0.7); background: rgba(100,120,255,0.18); color: #fff;
+    }
+  `;
+  document.head.appendChild(style);
+
   // ── State ─────────────────────────────────────────────────────
   let currentStep = 0;
 
@@ -323,6 +400,9 @@
   // ── Init ──────────────────────────────────────────────────────
   function init() {
     renderStep(0);
+    // Position is calculated synchronously inside renderStep/positionCard.
+    // One rAF tick lets the browser apply the layout, then we fade in.
+    requestAnimationFrame(() => card.classList.add('tut-card-visible'));
   }
 
   if (
