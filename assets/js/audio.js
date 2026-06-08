@@ -140,7 +140,7 @@ export function playSelectChime() {
 //   ambient.isMuted()    — current mute state
 
 const AMBIENT_VOLUME = 0.15;
-const AMBIENT_FADE = 2; // seconds
+const AMBIENT_FADE = 1; // seconds
 
 const _amb = {
   ctx: null,
