@@ -151,16 +151,11 @@ const _amb = {
   loaded: false,
 };
 
-async function _ambLoad() {
-  _amb.ctx = new AudioContext();
-  _amb.gainNode = _amb.ctx.createGain();
-  _amb.gainNode.gain.value = 0;
-  _amb.gainNode.connect(_amb.ctx.destination);
-
-  const res = await fetch('assets/sounds/background-music.mp3');
-  const arr = await res.arrayBuffer();
-  _amb.buffer = await _amb.ctx.decodeAudioData(arr);
-  _amb.loaded = true;
+function _ambFadeTo(target) {
+  const g = _amb.gainNode.gain;
+  g.cancelScheduledValues(_amb.ctx.currentTime);
+  g.setValueAtTime(g.value, _amb.ctx.currentTime);
+  g.linearRampToValueAtTime(target, _amb.ctx.currentTime + AMBIENT_FADE);
 }
 
 function _ambPlay() {
@@ -173,15 +168,19 @@ function _ambPlay() {
   if (!_amb.muted) _ambFadeTo(AMBIENT_VOLUME);
 }
 
-function _ambFadeTo(target) {
-  const g = _amb.gainNode.gain;
-  g.cancelScheduledValues(_amb.ctx.currentTime);
-  g.setValueAtTime(g.value, _amb.ctx.currentTime);
-  g.linearRampToValueAtTime(target, _amb.ctx.currentTime + AMBIENT_FADE);
-}
-
 async function _ambInit() {
-  await _ambLoad();
+  // AudioContext MUST be created synchronously inside the user gesture.
+  // Any await before new AudioContext() loses the gesture context on mobile.
+  _amb.ctx = new AudioContext();
+  _amb.gainNode = _amb.ctx.createGain();
+  _amb.gainNode.gain.value = 0;
+  _amb.gainNode.connect(_amb.ctx.destination);
+
+  const res = await fetch('/assets/sounds/background-music.mp3');
+  const arr = await res.arrayBuffer();
+  _amb.buffer = await _amb.ctx.decodeAudioData(arr);
+  _amb.loaded = true;
+
   _ambPlay();
 }
 
