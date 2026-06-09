@@ -1,6 +1,7 @@
 const { minify: minifyHTML } = require('html-minifier-terser');
 const CleanCSS = require('clean-css');
 const { minify: minifyJS } = require('terser');
+const esbuild = require('esbuild');
 const fs = require('fs');
 const path = require('path');
 
@@ -10,19 +11,6 @@ const SITE_URL = process.env.SITE_URL || 'https://neyenbreath.netlify.app';
 const SRC_JS_DIR = './assets/js';
 const DIST = './dist';
 const DIST_JS = `${DIST}/assets/js`;
-
-// Order matters: each file must come after its dependencies.
-// This matches the import graph in the source.
-const JS_MODULES = [
-  'i18n.js',
-  'presets.js',
-  'audio.js',
-  'loop.js',
-  'ui.js',
-  'session.js',
-  'interactions.js',
-  'main.js',
-];
 
 // ── Helpers ───────────────────────────────────────────────────
 function ensureDir(dir) {
@@ -51,40 +39,20 @@ async function build() {
   fs.writeFileSync(`${DIST}/style.css`, minCSS);
   console.log('✓ style.css');
 
-  // ── JS modules (js/*.js) ─────────────────────────────────────
-  // Terser accepts a { name: code } map and produces a single minified
-  // output. We pass all modules together so it can cross-file mangle
-  // safely. Import/export statements are kept (module: true) so the
-  // browser still loads them as ES modules.
-  const moduleFiles = {};
-  for (const filename of JS_MODULES) {
-    const srcPath = path.join(SRC_JS_DIR, filename);
-    if (!fs.existsSync(srcPath)) {
-      console.warn(`  ⚠ ${filename} not found — skipping`);
-      continue;
-    }
-    moduleFiles[filename] = fs.readFileSync(srcPath, 'utf8');
-  }
-
-  const jsResult = await minifyJS(moduleFiles, {
-    compress: {
-      drop_console: true,
-      passes: 3,
-    },
-    mangle: {
-      // module: true lets Terser safely rename module-level names
-      // because they are not shared via globals.
-      module: true,
-    },
-    module: true,
-    format: {
-      comments: false,
-    },
+  // ── JS bundle (esbuild) ──────────────────────────────────────
+  // esbuild resolves all imports starting from main.js and produces
+  // a single self-contained IIFE — no import/export in the output,
+  // works in every browser without module support concerns.
+  ensureDir(DIST_JS);
+  await esbuild.build({
+    entryPoints: [`${SRC_JS_DIR}/main.js`],
+    bundle: true,
+    minify: true,
+    format: 'iife',
+    drop: ['console'],
+    outfile: `${DIST_JS}/main.js`,
   });
-
-  // Terser returns a single merged output when given multiple files.
-  fs.writeFileSync(`${DIST_JS}/main.js`, jsResult.code);
-  console.log('✓ assets/js/ → dist/assets/js/main.js (all modules bundled)');
+  console.log('✓ assets/js/ → dist/assets/js/main.js (bundled)');
 
   // ── tutorial.js (IIFE — processed separately) ─────────────────
   // tutorial.js is a non-module IIFE. It reads window.applyLang which
@@ -106,9 +74,17 @@ async function build() {
   console.log('✓ tutorial.js');
 
   // ── HTML ──────────────────────────────────────────────────────
-  // Update the module script src to point at the single bundled file.
+  // The JS bundle is now an IIFE — strip type="module" from the script tag.
   let html = fs.readFileSync('./index.html', 'utf8');
   html = html.replaceAll('https://TU-DOMINIO.com', SITE_URL);
+  html = html.replace(
+    '<script type="module" src="assets/js/main.js"></script>',
+    '<script src="assets/js/main.js"></script>',
+  );
+  html = html.replace(
+    '<script type="module" src="tutorial.js"></script>',
+    '<script defer src="tutorial.js"></script>',
+  );
 
   const minHTML = await minifyHTML(html, {
     collapseWhitespace: true,
