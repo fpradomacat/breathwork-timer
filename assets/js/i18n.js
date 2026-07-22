@@ -34,7 +34,7 @@ export const i18n = {
     settingsTitle: 'Configuración',
     settingsLabel: 'Ajustes',
     sectionTiming: 'Tiempos',
-    donate: '😊 Dona',
+    buymeacoffee: 'Invitame un café',
 
     // Functions for dynamic strings
     limitMsg: (type, val) =>
@@ -77,7 +77,7 @@ export const i18n = {
     settingsTitle: 'Settings',
     settingsLabel: 'Settings',
     sectionTiming: 'Timings',
-    donate: '😊 Donate',
+    buymeacoffee: 'Buy me a coffee',
 
     limitMsg: (type, val) =>
       type === 'minutes'
