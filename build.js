@@ -4,6 +4,7 @@ const { minify: minifyJS } = require('terser');
 const esbuild = require('esbuild');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 // ── Config ────────────────────────────────────────────────────
 const SITE_URL = process.env.SITE_URL || 'https://neyenbreath.netlify.app';
@@ -86,6 +87,12 @@ async function build() {
     '<script defer src="tutorial.js"></script>',
   );
 
+  // Registro del service worker (si el HTML fuente no lo tiene ya)
+  if (!html.includes('serviceWorker')) {
+    const swRegister = `<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js'));}</script>`;
+    html = html.replace('</body>', `${swRegister}</body>`);
+  }
+
   const minHTML = await minifyHTML(html, {
     collapseWhitespace: true,
     removeComments: true,
@@ -115,7 +122,106 @@ async function build() {
     console.log('✓ manifest.json');
   }
 
+  // ── Service Worker ──────────────────────────────────────────────
+  // Estrategia:
+  //  - Shell (html/css/js/íconos/manifest): cache-first → arranque instantáneo.
+  //  - assets/sounds: network-first → siempre intenta la versión más nueva,
+  //    y si no hay red, sirve la última que haya en caché.
+  // La versión del caché se deriva de un hash del contenido del shell,
+  // así solo cambia (e invalida el caché viejo) cuando algo relevante cambió.
+  generateServiceWorker();
+  console.log('✓ sw.js');
+
   console.log('\n🎉 Build listo en /dist');
+}
+
+function listFilesRecursive(dir) {
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir).flatMap((entry) => {
+    const full = path.join(dir, entry);
+    return fs.statSync(full).isDirectory()
+      ? listFilesRecursive(full)
+      : [full];
+  });
+}
+
+function generateServiceWorker() {
+  // Todo lo que va bajo "shell" (cache-first)
+  const shellFiles = [
+    `${DIST}/index.html`,
+    `${DIST}/style.css`,
+    `${DIST}/tutorial.js`,
+    `${DIST}/manifest.json`,
+    `${DIST}/assets/js/main.js`,
+    ...listFilesRecursive(`${DIST}/assets`).filter(
+      (f) => !f.startsWith(path.normalize(`${DIST}/assets/sounds`)),
+    ),
+  ].filter((f, i, arr) => fs.existsSync(f) && arr.indexOf(f) === i);
+
+  // Hash de versión: cambia solo si cambió el contenido del shell.
+  const hash = crypto.createHash('sha256');
+  shellFiles
+    .sort()
+    .forEach((f) => hash.update(fs.readFileSync(f)));
+  const version = hash.digest('hex').slice(0, 10);
+
+  const shellUrls = shellFiles.map(
+    (f) => '/' + path.relative(DIST, f).split(path.sep).join('/'),
+  );
+
+  const swSource = `// Auto-generado por build.js — no editar a mano
+const CACHE_VERSION = '${version}';
+const SHELL_CACHE = 'neyen-shell-' + CACHE_VERSION;
+const SOUNDS_CACHE = 'neyen-sounds';
+
+const SHELL_URLS = ${JSON.stringify(shellUrls, null, 2)};
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(SHELL_CACHE).then((cache) => cache.addAll(SHELL_URLS))
+  );
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys
+          .filter((key) => key.startsWith('neyen-shell-') && key !== SHELL_CACHE)
+          .map((key) => caches.delete(key))
+      )
+    )
+  );
+  self.clients.claim();
+});
+
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  const url = new URL(request.url);
+
+  if (url.pathname.startsWith('/assets/sounds/')) {
+    // Network-first: intenta traer la versión nueva; si falla, usa caché.
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          const clone = response.clone();
+          caches.open(SOUNDS_CACHE).then((cache) => cache.put(request, clone));
+          return response;
+        })
+        .catch(() => caches.match(request))
+    );
+    return;
+  }
+
+  // Cache-first para el shell.
+  event.respondWith(
+    caches.match(request).then((cached) => cached || fetch(request))
+  );
+});
+`;
+
+  fs.writeFileSync(`${DIST}/sw.js`, swSource);
 }
 
 build().catch((err) => {
