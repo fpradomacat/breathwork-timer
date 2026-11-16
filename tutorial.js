@@ -79,6 +79,18 @@
         body: 'Explore different breathing techniques and choose the one that best fits your needs. Each technique is designed to support a different goal, such as relaxation, focus, or renewed energy.',
       },
     },
+    {
+      target: '.sound-toggles',
+      pos: 'top',
+      es: {
+        title: '🎚️ Tus sonidos',
+        body: 'Activá o desactivá cada sonido cuando quieras, incluso durante la sesión:<br><br>🎵 Música ambiente<br>🗣️ Voz guía<br>🌬️ Sonido de respiración<br>⏱️ Segundos<br><br>Los sonidos que marcan cada fase siempre suenan. Tu elección se guarda para la próxima vez.',
+      },
+      en: {
+        title: '🎚️ Your sounds',
+        body: 'Turn each sound on or off anytime, even during a session:<br><br>🎵 Ambient music<br>🗣️ Voice guide<br>🌬️ Breathing sound<br>⏱️ Second ticks<br><br>The phase cues always play. Your choice is saved for next time.',
+      },
+    },
   ];
 
   // ── Detect current language ───────────────────────────────────

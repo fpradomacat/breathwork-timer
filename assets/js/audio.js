@@ -134,10 +134,11 @@ export function playSelectChime() {
 // or the technique loop.
 //
 // Public API:
-//   ambient.bootstrap()  — attach first-gesture listener to init
-//   ambient.toggle()     — mute / unmute with fade
-//   ambient.stop()       — fade out then fully stop (e.g. on tab hide)
-//   ambient.isMuted()    — current mute state
+//   ambient.bootstrap()     — attach first-gesture listener to init
+//   ambient.setMuted(bool)  — mute / unmute with fade (safe before init)
+//   ambient.suspend()       — pause on tab hide (unless muted)
+//   ambient.resume()        — resume on tab show (unless muted)
+//   ambient.isMuted()       — current mute state
 
 const AMBIENT_VOLUME = 0.15;
 const AMBIENT_FADE = 1; // seconds
@@ -149,6 +150,7 @@ const _amb = {
   buffer: null,
   muted: false,
   loaded: false,
+  suspendTimer: null,
 };
 
 function _ambFadeTo(target) {
@@ -165,7 +167,9 @@ function _ambPlay() {
   _amb.source.loop = true;
   _amb.source.connect(_amb.gainNode);
   _amb.source.start(0);
-  if (!_amb.muted) _ambFadeTo(AMBIENT_VOLUME);
+  // Muted from a saved preference → don't keep a silent context running
+  if (_amb.muted) _amb.ctx.suspend();
+  else _ambFadeTo(AMBIENT_VOLUME);
 }
 
 async function _ambInit() {
@@ -197,17 +201,23 @@ export const ambient = {
     );
   },
 
-  /** Toggle mute / unmute with a fade. */
-  toggle() {
-    _amb.muted = !_amb.muted;
-    // If the context was suspended (tab was in background), resume it first
-    // so the fade actually executes — then immediately re-suspend if muting.
-    if (_amb.ctx?.state === 'suspended') _amb.ctx.resume();
-    _ambFadeTo(_amb.muted ? 0 : AMBIENT_VOLUME);
-    if (_amb.muted) setTimeout(() => _amb.ctx?.suspend(), AMBIENT_FADE * 1000);
-    document
-      .getElementById('ambient-btn')
-      ?.classList.toggle('muted', _amb.muted);
+  /**
+   * Mute / unmute with a fade. Safe to call before the music has
+   * started — the state is then applied when it starts.
+   */
+  setMuted(muted) {
+    _amb.muted = muted;
+    clearTimeout(_amb.suspendTimer);
+    if (!_amb.ctx || !_amb.loaded) return;
+    // If the context was suspended (muted, or tab was in background),
+    // resume it first so the fade actually executes.
+    if (_amb.ctx.state === 'suspended') _amb.ctx.resume();
+    _ambFadeTo(muted ? 0 : AMBIENT_VOLUME);
+    // Suspend after the fade-out to save battery (unless unmuted meanwhile)
+    if (muted)
+      _amb.suspendTimer = setTimeout(() => {
+        if (_amb.muted) _amb.ctx.suspend();
+      }, AMBIENT_FADE * 1000);
   },
 
   /**

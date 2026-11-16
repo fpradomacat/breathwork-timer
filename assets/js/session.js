@@ -31,7 +31,7 @@ import {
   playStartSound,
   playStopTone,
 } from './audio.js';
-import { startLoop, updateLoop, stopLoop } from './loop.js';
+import { startLoop, stopLoop, loopsReady } from './loop.js';
 import {
   lang,
   checkLimit,
@@ -198,7 +198,6 @@ function _runCycle() {
       // Cycle complete
       _cycles++;
       document.getElementById('cycle-counter').innerText = _cycles;
-      updateLoop(_cycles);
 
       const { limitType, limitValue } = _getLimits();
       if (checkLimit(_totalSecs, _cycles)) {
@@ -246,7 +245,11 @@ export async function startTimer() {
   container.classList.add('session');
   setTimeout(() => container.classList.add('session-hide-last'), TRANSITION_MS);
 
-  setTimeout(() => {
+  setTimeout(async () => {
+    // Make sure the technique audio is decoded before anchoring the clock
+    // (usually already done; capped by a timeout inside loopsReady)
+    await loopsReady();
+
     _isRunning = true;
     _isTransitioning = false;
     _totalSecs = 0;

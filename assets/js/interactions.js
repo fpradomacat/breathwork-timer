@@ -23,6 +23,7 @@ const INTERACTIVE_SELECTOR = [
   '.modal-close',
   '#breathing-circle',
   '.pill-tecnicas',
+  '.sound-toggle',
 ].join(', ');
 
 const CLICK_SOUND_SELECTOR = [

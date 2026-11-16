@@ -1,219 +1,275 @@
-// ── Technique loop audio ───────────────────────────────────────
+// ── Technique audio (layered) ─────────────────────────────────
 //
-// Each technique has three audio files, each exactly ONE breathing
-// cycle long:
-//   base loop   — clean, no voice cues
-//   helper ES   — voiced cues in Spanish
-//   helper EN   — voiced cues in English
+// Each technique has its own folder under /assets/sounds/<dir>/ with
+// one file per layer, each exactly ONE breathing cycle long:
 //
-// Flow:
-//   1. The voiced helper plays for the first `helperCycles` cycles.
-//   2. After that the clean base track takes over for the rest of the session.
+//   <dir>-breathing.mp3   phase cues (inhale / hold / exhale)  — always on
+//   <dir>-breaths.mp3     the sound of the breathing itself    — toggleable
+//   <dir>-voice-es.mp3    voice guide, Spanish                 — toggleable
+//   <dir>-voice-en.mp3    voice guide, English                 — toggleable
 //
-// Timing (Web Audio path):
-//   Instead of a native looping source (whose period is the file length,
-//   which can differ by a few ms from the cycle length and drifts), each
-//   cycle is scheduled as its own one-shot source at an exact time on the
-//   AudioContext clock: t0 + n * cycleDur. The helper → base crossover is
-//   therefore sample-accurate and stays locked to the session clock in
-//   session.js, which uses the same AudioContext time as its master clock.
+// Plus a generated layer:
+//   ticks                 a soft tick on every second          — toggleable
 //
-//   A small look-ahead scheduler (setTimeout) queues upcoming cycles a few
-//   seconds in advance, so timer jitter never affects what you hear.
+// Timing:
+//   Every cycle of every layer is scheduled as a one-shot source at an
+//   exact time on the AudioContext clock: t0 + n * cycleDur. All layers
+//   therefore stay sample-locked to each other and to the session clock
+//   in session.js (which uses the same AudioContext time). A small
+//   look-ahead scheduler queues upcoming cycles a few seconds in advance.
+//
+// On / off:
+//   Layers are always scheduled; each one goes through its own GainNode
+//   and toggling just fades that gain. Toggling is instant and never
+//   re-syncs anything.
+//
+// Voice rules:
+//   - By default the voice guides the first `helperCycles` cycles, then stops.
+//   - Turning it on manually AFTER that keeps it on for the rest of the session.
 
 import { audioCtx } from './audio.js';
 
-const SESSION_VOLUME = 0.55;
+// Mix levels per layer (the files are exported at their relative mix levels)
+const LAYER_VOLUME = {
+  breathing: 0.55,
+  breaths: 0.55,
+  voice: 0.55,
+  ticks: 0.18,
+};
+const TOGGLE_FADE = 0.15; // seconds
 const LOOKAHEAD = 3; // seconds of audio scheduled ahead of currentTime
 const SCHED_INTERVAL = 250; // ms between scheduler runs
+const LOAD_TIMEOUT = 4000; // ms — max wait for audio before a session starts anyway
 
-// Decoded AudioBuffers for the currently loaded preset
-let _buffers = { base: null, helper: null };
+// User on/off state for the toggleable layers (set by sound-controls.js)
+const _enabled = { breaths: true, voice: true, ticks: false };
 
-// HTMLAudioElement fallbacks (always available, work on file://)
-let _fallbacks = { base: null, helper: null };
+// Decoded AudioBuffers for the currently loaded preset + language
+let _buffers = { breathing: null, breaths: null, voice: null };
 
-// Active Web Audio scheduler state (null when stopped)
-//   { t0, cycleDur, next, timer, gain, sources: Set<AudioBufferSourceNode> }
-let _sched = null;
-
-// Active HTMLAudioElement fallback (null when using Web Audio)
-let _fallbackActive = null;
-
-// Which preset is currently loaded (avoids redundant fetches)
 let _loadedPreset = null;
-
-// Helper cycle count for the active preset
+let _loadedLang = null;
+let _loading = Promise.resolve();
 let _helperCycles = 3;
 
-// Saving fetched sources to reduce http calls
-let fetchedSources = null;
+// Decode cache: src → Promise<AudioBuffer|null>
+const _cache = new Map();
+
+// Active scheduler state (null when stopped)
+//   { t0, cycleDur, next, timer, gains, sources, voiceKeep, voiceCycles }
+let _sched = null;
 
 // ── Internal helpers ──────────────────────────────────────────
 
-/** Decode an audio file into an AudioBuffer; returns null on any error. */
-async function _decode(src) {
-  if (fetchedSources?.[src]) {
-    return fetchedSources?.[src];
-  } else {
-    try {
-      const res = await fetch(src);
-      if (!res.ok) throw new Error(res.status);
-      if (fetchedSources === null) fetchedSources = {};
-      fetchedSources[src] = await audioCtx.decodeAudioData(await res.arrayBuffer());
-      return fetchedSources[src];
-    } catch {
-      return null;
-    }
+function _decode(src) {
+  if (!_cache.has(src)) {
+    const p = fetch(src)
+      .then((res) => {
+        if (!res.ok) throw new Error(res.status);
+        return res.arrayBuffer();
+      })
+      .then((data) => audioCtx.decodeAudioData(data))
+      .catch(() => {
+        _cache.delete(src); // allow a retry later
+        return null;
+      });
+    _cache.set(src, p);
   }
+  return _cache.get(src);
 }
 
-function _makeFallback(src) {
-  if (!src) return null;
-  const a = new Audio(src);
-  a.loop = true;
-  a.preload = 'auto';
-  a.volume = SESSION_VOLUME;
-  a.load();
-  return a;
+function _soundPath(preset, layer) {
+  const dir = preset.soundDir;
+  return `/assets/sounds/${dir}/${dir}-${layer}.mp3`;
 }
 
-/** Buffer to use for a given cycle index. */
-function _bufferFor(cycle) {
-  return cycle < _helperCycles
-    ? _buffers.helper || _buffers.base
-    : _buffers.base || _buffers.helper;
+// Generated tick: short, soft sine "tock" with a fast decay
+let _tickBuf = null;
+function _tickBuffer() {
+  if (_tickBuf) return _tickBuf;
+  const sr = audioCtx.sampleRate;
+  const len = Math.floor(sr * 0.05);
+  const buf = audioCtx.createBuffer(1, len, sr);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) {
+    const t = i / sr;
+    data[i] = Math.sin(2 * Math.PI * 1500 * t) * Math.exp(-t * 110);
+  }
+  return (_tickBuf = buf);
+}
+
+/**
+ * Schedule `buf` to play in [when, end) through `gain`.
+ * If `when` is already past, starts mid-buffer so it stays phase-locked.
+ * Returns true if something was scheduled.
+ */
+function _play(s, buf, gain, when, end, now) {
+  if (!buf || end <= now) return false;
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf;
+  src.connect(gain);
+  if (when >= now) src.start(when);
+  else src.start(now, now - when);
+  // Trim to the slot so a slightly-long file never overlaps the next one
+  src.stop(end);
+  src.onended = () => s.sources.delete(src);
+  s.sources.add(src);
+  return true;
+}
+
+function _scheduleVoice(s, cycle, now) {
+  if (s.voiceCycles.has(cycle)) return;
+  const when = s.t0 + cycle * s.cycleDur;
+  if (_play(s, _buffers.voice, s.gains.voice, when, when + s.cycleDur, now))
+    s.voiceCycles.add(cycle);
+}
+
+function _scheduleCycle(s, cycle, now) {
+  const when = s.t0 + cycle * s.cycleDur;
+  const end = when + s.cycleDur;
+
+  _play(s, _buffers.breathing, s.gains.breathing, when, end, now);
+  _play(s, _buffers.breaths, s.gains.breaths, when, end, now);
+  if (cycle < _helperCycles || s.voiceKeep) _scheduleVoice(s, cycle, now);
+
+  const tick = _tickBuffer();
+  for (let k = 0; k < s.cycleDur; k++) {
+    _play(s, tick, s.gains.ticks, when + k, when + k + tick.duration, now);
+  }
 }
 
 /** Queue every cycle that starts within the look-ahead window. */
 function _pump() {
   const s = _sched;
   if (!s) return;
-
   const now = audioCtx.currentTime;
   while (s.t0 + s.next * s.cycleDur < now + LOOKAHEAD) {
-    const when = s.t0 + s.next * s.cycleDur;
-    const end = when + s.cycleDur;
-    const buf = _bufferFor(s.next);
+    _scheduleCycle(s, s.next, now);
     s.next++;
-
-    // Skip cycles that are already over (e.g. timers were throttled)
-    if (!buf || end <= now) continue;
-
-    const src = audioCtx.createBufferSource();
-    src.buffer = buf;
-    src.connect(s.gain);
-    // If we're late, start mid-buffer so the audio stays phase-locked
-    if (when >= now) src.start(when);
-    else src.start(now, now - when);
-    // Trim to exactly one cycle so a slightly-long file never overlaps
-    // the next one (a slightly-short file just leaves a few ms of silence).
-    src.stop(end);
-    src.onended = () => s.sources.delete(src);
-    s.sources.add(src);
   }
-
   s.timer = setTimeout(_pump, SCHED_INTERVAL);
 }
 
-function _playFallback(which) {
-  if (_fallbackActive) {
-    _fallbackActive.pause();
-    _fallbackActive.currentTime = 0;
-    _fallbackActive = null;
-  }
-  const fallback = _fallbacks[which];
-  if (!fallback) return;
-  fallback.currentTime = 0;
-  fallback.play().catch(() => {});
-  _fallbackActive = fallback;
+function _layerTarget(layer) {
+  if (layer === 'breathing') return LAYER_VOLUME.breathing;
+  return _enabled[layer] ? LAYER_VOLUME[layer] : 0;
 }
 
 // ── Public API ────────────────────────────────────────────────
 
 /**
- * Pre-load all audio files for a preset.
- * Safe to call multiple times — skips reload if already loaded.
- * @param {object} preset  — entry from PRESETS
- * @param {string} lang    — 'es' | 'en'
+ * Load (fetch + decode) all layers for a preset in the given language.
+ * Safe to call repeatedly — reuses the in-flight / finished load.
+ * @param {object} preset — entry from PRESETS
+ * @param {string} lang   — 'es' | 'en'
+ * @returns {Promise<void>}
  */
-export async function loadTechniqueLoops(preset, lang) {
-  if (preset === _loadedPreset) return;
+export function loadTechniqueLoops(preset, lang) {
+  if (preset === _loadedPreset && lang === _loadedLang) return _loading;
   _loadedPreset = preset;
+  _loadedLang = lang;
   _helperCycles = preset.helperCycles ?? 3;
 
-  const helperSrc = lang === 'es' ? preset.soundFileEs : preset.soundFileEn;
-
-  // HTMLAudioElement fallbacks — immediate, no async needed
-  _fallbacks.base = _makeFallback(preset.soundFile);
-  _fallbacks.helper = _makeFallback(helperSrc);
-
-  // Web Audio decode — http/https only
-  if (location.protocol === 'file:') return;
-  const [base, helper] = await Promise.all([
-    _decode(preset.soundFile),
-    _decode(helperSrc),
-  ]);
-
-  // Discard if the user switched technique while we were decoding
-  if (preset !== _loadedPreset) return;
-  _buffers.base = base;
-  _buffers.helper = helper;
+  _loading = Promise.all([
+    _decode(_soundPath(preset, 'breathing')),
+    _decode(_soundPath(preset, 'breaths')),
+    _decode(_soundPath(preset, `voice-${lang}`)),
+  ]).then(([breathing, breaths, voice]) => {
+    // Discard if the user switched technique/language while decoding
+    if (preset !== _loadedPreset || lang !== _loadedLang) return;
+    _buffers = { breathing, breaths, voice };
+  });
+  return _loading;
 }
 
 /**
- * Force reload on next call to loadTechniqueLoops.
- * Call this when the language changes so the helper track updates.
+ * Resolves once the current technique's audio is decoded
+ * (or after LOAD_TIMEOUT, so a slow network never blocks a session).
  */
+export function loopsReady() {
+  return Promise.race([
+    _loading,
+    new Promise((r) => setTimeout(r, LOAD_TIMEOUT)),
+  ]);
+}
+
+/** Force a reload on the next loadTechniqueLoops call. */
 export function invalidateLoopCache() {
   _loadedPreset = null;
 }
 
 /**
  * Start the technique audio for a session.
- * @param {number} t0        — AudioContext time at which cycle 0 starts
- * @param {number} cycleDur  — length of one breathing cycle, in seconds
+ * @param {number} t0       — AudioContext time at which cycle 0 starts
+ * @param {number} cycleDur — length of one breathing cycle, in seconds
  */
 export function startLoop(t0, cycleDur) {
   stopLoop();
   if (cycleDur <= 0) return;
 
-  if (_buffers.base || _buffers.helper) {
-    const gain = audioCtx.createGain();
-    gain.gain.value = SESSION_VOLUME;
-    gain.connect(audioCtx.destination);
-    _sched = { t0, cycleDur, next: 0, timer: null, gain, sources: new Set() };
-    _pump();
-  } else {
-    // Buffers not decoded (file:// or still loading) — HTMLAudio fallback
-    _playFallback(_helperCycles > 0 ? 'helper' : 'base');
+  const gains = {};
+  for (const layer of Object.keys(LAYER_VOLUME)) {
+    const g = audioCtx.createGain();
+    g.gain.value = _layerTarget(layer);
+    g.connect(audioCtx.destination);
+    gains[layer] = g;
   }
+
+  _sched = {
+    t0,
+    cycleDur,
+    next: 0,
+    timer: null,
+    gains,
+    sources: new Set(),
+    voiceKeep: false, // true once the user turns the voice on after the guided cycles
+    voiceCycles: new Set(), // cycles that already have a voice source scheduled
+  };
+  _pump();
+}
+
+/** Stop everything currently playing or scheduled. */
+export function stopLoop() {
+  const s = _sched;
+  if (!s) return;
+  _sched = null;
+  clearTimeout(s.timer);
+  s.sources.forEach((src) => {
+    try {
+      src.stop();
+    } catch (_) {}
+  });
+  Object.values(s.gains).forEach((g) => g.disconnect());
 }
 
 /**
- * Notify that a cycle completed. Only the HTMLAudio fallback needs this
- * (to switch helper → base); the Web Audio path is pre-scheduled.
- * @param {number} cycles — completed cycle count
+ * Turn a toggleable layer on or off ('breaths' | 'voice' | 'ticks').
+ * Works before or during a session.
  */
-export function updateLoop(cycles) {
-  if (_fallbackActive && cycles === _helperCycles) _playFallback('base');
-}
+export function setLayerEnabled(layer, on) {
+  if (!(layer in _enabled)) return;
+  _enabled[layer] = on;
 
-/** Stop whatever loop track is currently playing or scheduled. */
-export function stopLoop() {
-  if (_sched) {
-    clearTimeout(_sched.timer);
-    _sched.sources.forEach((src) => {
-      try {
-        src.stop();
-      } catch (_) {}
-    });
-    _sched.gain.disconnect();
-    _sched = null;
-  }
-  if (_fallbackActive) {
-    _fallbackActive.pause();
-    _fallbackActive.currentTime = 0;
-    _fallbackActive = null;
+  const s = _sched;
+  if (!s) return;
+
+  const now = audioCtx.currentTime;
+  const g = s.gains[layer].gain;
+  g.cancelScheduledValues(now);
+  g.setValueAtTime(g.value, now);
+  g.linearRampToValueAtTime(_layerTarget(layer), now + TOGGLE_FADE);
+
+  if (layer === 'voice') {
+    if (!on) {
+      s.voiceKeep = false;
+      return;
+    }
+    // Turned on after the guided cycles → keep it on for the rest of the
+    // session, and back-fill the cycles that are already scheduled.
+    const current = Math.max(0, Math.floor((now - s.t0) / s.cycleDur));
+    if (current >= _helperCycles) {
+      s.voiceKeep = true;
+      for (let c = current; c < s.next; c++) _scheduleVoice(s, c, now);
+    }
   }
 }

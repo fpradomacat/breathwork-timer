@@ -18,7 +18,13 @@ Pick a breathing technique and tap the circle. The circle grows as you inhale an
 Other features:
 
 - Spanish and English (UI and voice guidance)
-- Ambient background music you can mute
+- Sound controls that work even during a session:
+  - 🎵 ambient music
+  - 🗣️ voice guide
+  - 🌬️ breathing sound
+  - ⏱️ a tick every second
+
+  The sounds that mark each phase always play. Your choices are remembered.
 - Session timer, cycle counter, and last-session summary
 - Keeps the screen awake during a session, with haptic feedback on phase changes
 - Keyboard shortcuts: **Space** starts or stops a session, **Esc** closes dialogs
@@ -31,15 +37,26 @@ The app is plain HTML, CSS, and vanilla JavaScript, with no framework.
 
 - **`index.html`** is the single page.
 - **`assets/js/`** holds the app logic as ES modules. `main.js` is the entry point:
-  - `presets.js`: the breathing techniques (timings and audio files)
+  - `presets.js`: the breathing techniques (timings and sound folder)
   - `session.js`: the session clock, the breathing phases, and the counters
-  - `loop.js`: plays the technique audio (the voiced helper first, then the clean loop)
+  - `loop.js`: plays the technique audio as separate layers in sync
+  - `sound-controls.js`: the sound on/off buttons and saved preferences
   - `audio.js`: UI sounds and ambient music
   - `ui.js`, `i18n.js`, `interactions.js`: the DOM, translations, and input handling
 - **`tutorial.js`** is the onboarding overlay.
 - **`build.js`** bundles and minifies everything into `dist/` and generates a service worker for offline use.
 
-Timing is driven by the Web Audio clock. The voice, the breathing circle, and the counters all follow the same timeline, so they stay in sync for the whole session.
+Each technique has its own folder in `assets/sounds/` with one file per sound layer. Each file is exactly one breathing cycle long:
+
+| File | Contents | Can be turned off |
+|---|---|---|
+| `<technique>-breathing.mp3` | Phase cues (inhale, hold, exhale) | No |
+| `<technique>-breaths.mp3` | The breathing sound | Yes |
+| `<technique>-voice-es.mp3` / `-voice-en.mp3` | Voice guide | Yes |
+
+The second ticks are generated in code.
+
+Timing is driven by the Web Audio clock. Every sound layer, the breathing circle, and the counters all follow the same timeline, so they stay in sync for the whole session. Turning a sound off just fades that layer's volume, so it can be switched at any moment without breaking the rhythm.
 
 ## Running locally
 

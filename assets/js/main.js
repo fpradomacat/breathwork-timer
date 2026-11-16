@@ -32,6 +32,7 @@ import {
   TRANSITION_MS,
 } from './session.js';
 import { initInteractions } from './interactions.js';
+import { initSoundControls } from './sound-controls.js';
 
 // ── Active technique state ────────────────────────────────────
 // Kept here (not in session.js) because it's also needed by the
@@ -65,6 +66,9 @@ window.addEventListener('load', () => {
 
   // Start ambient music on first user gesture
   ambient.bootstrap();
+
+  // Sound on/off buttons (music, voice, breaths, ticks) + saved preferences
+  initSoundControls();
 
   // Wire up interaction listeners
   initInteractions({
@@ -105,12 +109,6 @@ document.getElementById('breathing-circle').addEventListener('click', () => {
 document.getElementById('tecnicas-btn').addEventListener('click', () => {
   renderPresets(_onPresetSelected);
   openModal('modal-tecnicas');
-});
-
-// ── Ambient music button ──────────────────────────────────────
-document.getElementById('ambient-btn')?.addEventListener('click', (e) => {
-  e.stopPropagation();
-  ambient.toggle();
 });
 
 // ── Lang button / dropdown ────────────────────────────────────
@@ -161,7 +159,7 @@ function _onPresetSelected(preset) {
   // Restart session with new technique if one is active
   if (isRunning()) {
     stopTimer();
-    setTimeout(() => startTimer(), session.TRANSITION_MS + 100);
+    setTimeout(() => startTimer(), TRANSITION_MS + 100);
   }
 }
 

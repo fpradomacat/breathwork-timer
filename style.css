@@ -689,29 +689,45 @@ body::before {
     border-color: rgba(176,132,245,.55);
 }
 
-.pill-ambient {
+/* ── Sound toggles row — visible before and during the session ── */
+.sound-toggles {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  transition: opacity .6s cubic-bezier(0.4,0,0.2,1);
+}
+/* Faint during the session so it doesn't compete with the circle */
+.container.session .sound-toggles { opacity: .5; }
+.container.session .sound-toggles:hover,
+.container.session .sound-toggles:focus-within { opacity: 1; }
+
+.sound-toggle {
   flex: 0 0 auto;
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   border-radius: 100px;
   border: 1px solid rgba(176,132,245,.35);
   background: var(--accent-dim);
   color: var(--accent-bright);
+  font-size: 1.05rem;
+  line-height: 1;
   cursor: pointer;
   box-shadow: none;
-  transition: background .2s, border-color .2s, opacity .2s;
+  transition: background .2s, border-color .2s, opacity .2s, filter .2s;
   display: flex;
   align-items: center;
   justify-content: center;
-  text-align: center;
 }
-.pill-ambient:hover {
+.sound-toggle:hover {
   background: rgba(176,132,245,.2);
   border-color: rgba(176,132,245,.55);
 }
-.pill-ambient.muted {
+.sound-toggle.off {
   opacity: .35;
+  filter: grayscale(1);
+  border-style: dashed;
 }
 
 /* ══════════════════════════════════════════════════════════════

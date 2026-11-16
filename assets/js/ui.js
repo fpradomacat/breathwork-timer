@@ -41,6 +41,14 @@ export function applyLang(
     if (t[key] && typeof t[key] === 'string') el.textContent = t[key];
   });
 
+  // Icon-only buttons: translate their accessible label + tooltip
+  document.querySelectorAll('[data-i18n-label]').forEach((el) => {
+    const label = t[el.dataset.i18nLabel];
+    if (typeof label !== 'string') return;
+    el.setAttribute('aria-label', label);
+    el.title = label;
+  });
+
   document.getElementById('lang-btn').textContent = l.toUpperCase();
   document
     .querySelectorAll('#lang-dropdown .ctrl-option')

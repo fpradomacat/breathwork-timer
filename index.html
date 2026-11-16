@@ -66,10 +66,17 @@
                 </div>
             </div>
 
-            <!-- Two action pills — hidden during session -->
+            <!-- Techniques pill — hidden during session -->
             <div class="action-pills" id="action-pills">
                 <button class="pill-tecnicas" id="tecnicas-btn" data-i18n="menuPresets">Técnicas</button>
-                <button class="pill-ambient" id="ambient-btn" aria-label="Música ambiente">🎵</button>
+            </div>
+
+            <!-- Sound on/off toggles — stay available during the session -->
+            <div class="sound-toggles" id="sound-toggles">
+                <button class="sound-toggle" data-sound="music" data-i18n-label="soundMusic" aria-label="Música ambiente" title="Música ambiente" aria-pressed="true">🎵</button>
+                <button class="sound-toggle" data-sound="voice" data-i18n-label="soundVoice" aria-label="Voz guía" title="Voz guía" aria-pressed="true">🗣️</button>
+                <button class="sound-toggle" data-sound="breaths" data-i18n-label="soundBreaths" aria-label="Sonido de respiración" title="Sonido de respiración" aria-pressed="true">🌬️</button>
+                <button class="sound-toggle" data-sound="ticks" data-i18n-label="soundTicks" aria-label="Segundos" title="Segundos" aria-pressed="false">⏱️</button>
             </div>
 
             <!-- Footer -->

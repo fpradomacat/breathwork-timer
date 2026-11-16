@@ -35,6 +35,10 @@ export const i18n = {
     settingsLabel: 'Ajustes',
     sectionTiming: 'Tiempos',
     buymeacoffee: 'Invitame un café',
+    soundMusic: 'Música ambiente',
+    soundVoice: 'Voz guía',
+    soundBreaths: 'Sonido de respiración',
+    soundTicks: 'Segundos',
 
     // Functions for dynamic strings
     limitMsg: (type, val) =>
@@ -78,6 +82,10 @@ export const i18n = {
     settingsLabel: 'Settings',
     sectionTiming: 'Timings',
     buymeacoffee: 'Buy me a coffee',
+    soundMusic: 'Ambient music',
+    soundVoice: 'Voice guide',
+    soundBreaths: 'Breathing sound',
+    soundTicks: 'Second ticks',
 
     limitMsg: (type, val) =>
       type === 'minutes'

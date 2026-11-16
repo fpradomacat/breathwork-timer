@@ -31,6 +31,8 @@ function copyDirRecursive(src, dest) {
 
 // ── Build ─────────────────────────────────────────────────────
 async function build() {
+  // Start from a clean dist so removed files (e.g. old sounds) don't linger
+  fs.rmSync(DIST, { recursive: true, force: true });
   ensureDir(DIST);
   ensureDir(DIST_JS);
 
