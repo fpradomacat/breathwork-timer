@@ -30,6 +30,12 @@
     <div class="main-layout">
         <div class="container">
 
+            <!-- Corner controls (fixed top-right): language + tutorial -->
+            <div class="corner-controls" id="corner-controls">
+                <button class="corner-btn" id="lang-btn" data-i18n="langTarget" data-i18n-label="langSwitch" aria-label="Switch to English" title="Switch to English">EN</button>
+                <button class="corner-btn" id="help-btn" data-i18n-label="helpLabel" aria-label="Ver tutorial" title="Ver tutorial">?</button>
+            </div>
+
             <!-- Header -->
             <div class="header-row">
                 <h1 data-i18n="title">Neyen | el arte de respirar</h1>
@@ -99,15 +105,6 @@
             <div class="modal-body">
                 <div id="presets-list"></div>
             </div>
-        </div>
-    </div>
-
-    <!-- Hidden elements for JS compatibility -->
-    <div style="display:none">
-        <button id="lang-btn">ES</button>
-        <div id="lang-dropdown">
-            <button class="ctrl-option active" data-value="es">ES — Español</button>
-            <button class="ctrl-option" data-value="en">EN — English</button>
         </div>
     </div>
 

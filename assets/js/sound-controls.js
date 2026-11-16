@@ -13,28 +13,11 @@
 
 import { ambient } from './audio.js';
 import { setLayerEnabled } from './loop.js';
+import { load, save } from './storage.js';
 
-const STORAGE_KEY = 'neyen.sound';
 const DEFAULTS = { music: true, voice: true, breaths: true, ticks: false };
-
-function _load() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    return { ...DEFAULTS, ...saved };
-  } catch {
-    return { ...DEFAULTS };
-  }
-}
-
-function _save(prefs) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
-  } catch {
-    // Storage unavailable (private mode, blocked) — preferences just won't persist
-  }
-}
-
-const _prefs = _load();
+const _prefs = { ...DEFAULTS, ...load('sound', {}) };
+const _save = (prefs) => save('sound', prefs);
 
 function _apply(key, on) {
   if (key === 'music') ambient.setMuted(!on);

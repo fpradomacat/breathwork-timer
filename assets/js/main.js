@@ -85,15 +85,11 @@ window.addEventListener('load', () => {
 
   // Wire up modal close buttons and overlay clicks
   initModalListeners();
-
-  // Language options
-  document.querySelectorAll('#lang-dropdown .ctrl-option').forEach((opt) => {
-    opt.addEventListener('click', (e) => {
-      e.stopPropagation();
-      setLanguage(opt.dataset.value);
-    });
-  });
 });
+
+// Apply the initial language right away (the HTML ships in Spanish).
+// Runs before tutorial.js so its first card is already in the right language.
+setLanguage(lang);
 
 // ── Circle tap → start / stop ─────────────────────────────────
 document.getElementById('breathing-circle').addEventListener('click', () => {
@@ -106,19 +102,16 @@ document.getElementById('tecnicas-btn').addEventListener('click', () => {
   openModal('modal-tecnicas');
 });
 
-// ── Lang button / dropdown ────────────────────────────────────
-const langBtn = document.getElementById('lang-btn');
-const langDropdown = document.getElementById('lang-dropdown');
-
-langBtn?.addEventListener('click', (e) => {
-  e.stopPropagation();
-  const isOpen = langDropdown.classList.contains('open');
-  langDropdown.classList.toggle('open', !isOpen);
+// ── Corner buttons: language toggle + tutorial ────────────────
+document.getElementById('lang-btn').addEventListener('click', (e) => {
+  setLanguage(lang === 'es' ? 'en' : 'es');
+  e.currentTarget.blur();
 });
 
-document.addEventListener('click', () =>
-  langDropdown?.classList.remove('open'),
-);
+document.getElementById('help-btn').addEventListener('click', (e) => {
+  e.currentTarget.blur();
+  window.showTutorial?.();
+});
 
 // ── Preset selection ──────────────────────────────────────────
 function _onPresetSelected(preset) {

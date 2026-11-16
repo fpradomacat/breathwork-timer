@@ -129,7 +129,9 @@ export function initInteractions({ onStartStop, onCloseModals } = {}) {
       return;
     }
     if (e.key === ' ' || e.code === 'Space') {
-      const modalOpen = document.querySelector('.modal-overlay.open');
+      const modalOpen = document.querySelector(
+        '.modal-overlay.open, #tut-overlay',
+      );
       const focused = document.activeElement;
       const isInput =
         focused && ['INPUT', 'TEXTAREA', 'SELECT'].includes(focused.tagName);

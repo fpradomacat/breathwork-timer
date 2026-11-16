@@ -136,36 +136,41 @@ button:not(:disabled):active {
   transform: scale(0.97);
 }
 
-/* Dropdown option (language) */
-.ctrl-option {
-  display: block;
-  width: 100%;
-  background: none;
-  border: none;
-  border-bottom: 1px solid var(--divider);
-  border-radius: 0;
-  color: var(--text-muted);
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.78rem;
-  letter-spacing: 0.04em;
-  padding: 11px 16px;
-  text-align: left;
-  cursor: pointer;
-  transition:
-    background 0.15s,
-    color 0.15s;
-  box-shadow: none;
+/* ── Corner controls (language, tutorial) ────────────────────── */
+.corner-controls {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 5;
+  display: flex;
+  gap: 6px;
+  transition: opacity 0.6s var(--ease);
+}
+.corner-btn {
   flex: none;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 100px;
+  border: 1px solid var(--divider);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  transition:
+    color 0.2s,
+    border-color 0.2s;
 }
-.ctrl-option:last-child {
-  border-bottom: none;
-}
-.ctrl-option:hover {
-  background: rgba(255, 255, 255, 0.04);
+.corner-btn:hover {
   color: var(--text-secondary);
+  border-color: rgba(255, 255, 255, 0.15);
 }
-.ctrl-option.active {
-  color: var(--text-secondary);
+/* Out of the way during a session */
+.container.session .corner-controls {
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* ── Stats row ───────────────────────────────────────────────── */

@@ -11,9 +11,17 @@
 
 import { i18n } from './i18n.js';
 import { PRESETS } from './presets.js';
+import { load, save } from './storage.js';
 
 // ── Language ──────────────────────────────────────────────────
-export let lang = 'es';
+// Saved choice → browser language → English
+function _initialLang() {
+  const saved = load('lang', null);
+  if (saved in i18n) return saved;
+  const browser = (navigator.language || '').slice(0, 2).toLowerCase();
+  return browser in i18n ? browser : 'en';
+}
+export let lang = _initialLang();
 
 /** Localized value of a preset field, e.g. presetText(p, 'name') → p.nameEs */
 export function presetText(preset, field) {
@@ -28,6 +36,7 @@ export function presetText(preset, field) {
  */
 export function applyLang(l) {
   lang = l;
+  save('lang', l);
   const t = i18n[l];
   document.documentElement.lang = l;
 
@@ -43,11 +52,6 @@ export function applyLang(l) {
     el.setAttribute('aria-label', label);
     el.title = label;
   });
-
-  document.getElementById('lang-btn').textContent = l.toUpperCase();
-  document
-    .querySelectorAll('#lang-dropdown .ctrl-option')
-    .forEach((o) => o.classList.toggle('active', o.dataset.value === l));
 
   renderPresets();
   document.title = t.title;

@@ -18,6 +18,9 @@ export const i18n = {
     soundVoice: 'Voz guía',
     soundBreaths: 'Sonido de respiración',
     soundTicks: 'Segundos',
+    langTarget: 'EN',
+    langSwitch: 'Switch to English',
+    helpLabel: 'Ver tutorial',
 
     // Functions for dynamic strings
     limitMsg: (type, val) =>
@@ -44,6 +47,9 @@ export const i18n = {
     soundVoice: 'Voice guide',
     soundBreaths: 'Breathing sound',
     soundTicks: 'Second ticks',
+    langTarget: 'ES',
+    langSwitch: 'Cambiar a español',
+    helpLabel: 'Show tutorial',
 
     limitMsg: (type, val) =>
       type === 'minutes'

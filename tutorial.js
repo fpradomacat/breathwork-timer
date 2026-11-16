@@ -1,13 +1,12 @@
 // ── Neyen Tutorial ────────────────────────────────────────────
 //
-// Self-contained IIFE. No imports needed — it reads `applyLang`
-// from window (exposed by main.js) and reads the lang button to
-// detect the current language.
+// Self-contained IIFE. No imports needed — it calls `applyLang`
+// (exposed on window by main.js) and reads <html lang> to detect the
+// current language.
 //
-// Add <script src="tutorial.js"></script> after the module script
-// in index.html. The tutorial resolves the AudioContext autoplay
-// issue: the user must interact (click "Siguiente") before anything
-// else can play.
+// Shown automatically only on the first visit (localStorage flag
+// "neyen.tutorialDone"); afterwards it can be reopened with the "?"
+// button via window.showTutorial().
 // ─────────────────────────────────────────────────────────────
 
 (function () {
@@ -95,8 +94,24 @@
 
   // ── Detect current language ───────────────────────────────────
   function getLang() {
-    const btn = document.getElementById('lang-btn');
-    return btn && btn.textContent.trim().toLowerCase() === 'en' ? 'en' : 'es';
+    return document.documentElement.lang === 'en' ? 'en' : 'es';
+  }
+
+  // ── "Already seen" flag ───────────────────────────────────────
+  const DONE_KEY = 'neyen.tutorialDone';
+  function isDone() {
+    try {
+      return localStorage.getItem(DONE_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  }
+  function markDone() {
+    try {
+      localStorage.setItem(DONE_KEY, 'true');
+    } catch {
+      // storage unavailable — it will just show again next visit
+    }
   }
 
   // ── Build DOM ─────────────────────────────────────────────────
@@ -105,7 +120,6 @@
 
   const canvas = document.createElement('canvas');
   canvas.id = 'tut-canvas';
-  document.body.appendChild(canvas);
 
   const card = document.createElement('div');
   card.id = 'tut-card';
@@ -129,7 +143,7 @@
   card.appendChild(cardBody);
   card.appendChild(btnRow);
   overlay.appendChild(card);
-  document.body.appendChild(overlay);
+  // canvas + overlay are attached to the page only while the tutorial is open
 
   // ── Styles ────────────────────────────────────────────────────
   const style = document.createElement('style');
@@ -210,6 +224,7 @@
 
   // ── State ─────────────────────────────────────────────────────
   let currentStep = 0;
+  let isOpen = false;
 
   // ── Canvas spotlight ──────────────────────────────────────────
   const PADDING = 14;
@@ -409,10 +424,15 @@
   }
 
   function closeTutorial() {
+    if (!isOpen) return;
+    isOpen = false;
+    markDone();
+    cancelAnimationFrame(_spotRAF);
     overlay.classList.add('tut-hiding');
     canvas.style.transition = 'opacity 0.35s';
     canvas.style.opacity = '0';
     setTimeout(() => {
+      if (isOpen) return; // reopened during the fade-out
       overlay.remove();
       canvas.remove();
     }, 400);
@@ -421,26 +441,41 @@
   btnNext.addEventListener('click', advance);
   btnSkip.addEventListener('click', closeTutorial);
 
-  // ── Init ──────────────────────────────────────────────────────
-  function init() {
+  // ── Open ──────────────────────────────────────────────────────
+  function openTutorial() {
+    if (isOpen) return;
+    isOpen = true;
+    currentStep = 0;
+    _spotRect = null;
+    overlay.classList.remove('tut-hiding');
+    card.classList.remove('tut-card-visible');
+    canvas.style.transition = '';
+    canvas.style.opacity = '1';
+    document.body.appendChild(canvas);
+    document.body.appendChild(overlay);
     renderStep(0);
     // Position is calculated synchronously inside renderStep/positionCard.
     // One rAF tick lets the browser apply the layout, then we fade in.
     requestAnimationFrame(() => card.classList.add('tut-card-visible'));
   }
 
-  if (
-    document.readyState === 'complete' ||
-    document.readyState === 'interactive'
-  ) {
-    requestAnimationFrame(() => setTimeout(init, 80));
-  } else {
-    window.addEventListener('DOMContentLoaded', () =>
-      requestAnimationFrame(() => setTimeout(init, 80)),
-    );
+  // Reopen from the "?" button (main.js)
+  window.showTutorial = openTutorial;
+
+  // First visit only
+  if (!isDone()) {
+    const start = () => requestAnimationFrame(() => setTimeout(openTutorial, 80));
+    if (document.readyState === 'loading')
+      window.addEventListener('DOMContentLoaded', start);
+    else start();
   }
 
+  document.addEventListener('keydown', (e) => {
+    if (isOpen && e.key === 'Escape') closeTutorial();
+  });
+
   window.addEventListener('resize', () => {
+    if (!isOpen) return;
     _spotRect = null;
     const step = STEPS[currentStep];
     positionSpotlight(step.target);
