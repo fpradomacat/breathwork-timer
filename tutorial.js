@@ -59,11 +59,11 @@
       pos: 'bottom',
       es: {
         title: '📊 Tus estadísticas',
-        body: 'Aquí ves el tiempo de sesión, los ciclos completados y la última sesión.',
+        body: 'Acá ves el tiempo de sesión, los ciclos completados y tu racha 🔥 de días seguidos practicando.<br><br>Tocá la racha para ver tu historial.',
       },
       en: {
         title: '📊 Your stats',
-        body: 'Session time, completed cycles and last session at a glance.',
+        body: 'Session time, completed cycles and your 🔥 streak of consecutive days.<br><br>Tap the streak to see your history.',
       },
     },
     {

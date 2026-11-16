@@ -223,18 +223,33 @@ export function startLoop(t0, cycleDur) {
   _pump();
 }
 
-/** Stop everything currently playing or scheduled. */
-export function stopLoop() {
+/**
+ * Stop everything currently playing or scheduled.
+ * @param {number} [fade=0] — seconds to fade out before stopping
+ */
+export function stopLoop(fade = 0) {
   const s = _sched;
   if (!s) return;
   _sched = null;
   clearTimeout(s.timer);
+
+  const now = audioCtx.currentTime;
+  if (fade > 0) {
+    Object.values(s.gains).forEach((g) => {
+      g.gain.cancelScheduledValues(now);
+      g.gain.setValueAtTime(g.gain.value, now);
+      g.gain.linearRampToValueAtTime(0, now + fade);
+    });
+  }
   s.sources.forEach((src) => {
     try {
-      src.stop();
+      src.stop(now + fade);
     } catch (_) {}
   });
-  Object.values(s.gains).forEach((g) => g.disconnect());
+  setTimeout(
+    () => Object.values(s.gains).forEach((g) => g.disconnect()),
+    fade * 1000 + 100,
+  );
 }
 
 /**

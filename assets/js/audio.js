@@ -104,6 +104,36 @@ export function playStopTone() {
   osc.stop(audioCtx.currentTime + 0.25);
 }
 
+/** Soft tick for the 3-2-1 countdown before a session. */
+export function playCountTick(last = false) {
+  playTone(last ? 660 : 520, 0.18, 0.12);
+}
+
+/**
+ * Gentle descending three-note bell — played when a session ends by
+ * reaching its limit (a manual stop uses playStopTone instead).
+ */
+export function playEndChime() {
+  [
+    [784, 0],
+    [659, 0.35],
+    [523, 0.7],
+  ].forEach(([freq, delay]) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    const t = audioCtx.currentTime + delay;
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.16, t + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 1.6);
+    osc.start(t);
+    osc.stop(t + 1.7);
+  });
+}
+
 /** Three-note ascending chime — played when a technique is selected. */
 export function playSelectChime() {
   const vol = 0.55;

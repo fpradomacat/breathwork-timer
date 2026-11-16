@@ -51,10 +51,10 @@
                     <span class="stat-label" data-i18n="statCycles">Ciclos</span>
                     <span class="stat-value" id="cycle-counter">0</span>
                 </div>
-                <div class="stat-item stat-item--last">
-                    <span class="stat-label" data-i18n="statLast">Última</span>
-                    <span class="stat-value" id="last-session">--</span>
-                </div>
+                <button class="stat-item stat-item--last stat-btn" id="streak-btn" data-i18n-label="historyOpen" aria-label="Ver tu práctica" title="Ver tu práctica">
+                    <span class="stat-label" data-i18n="statStreak">Racha</span>
+                    <span class="stat-value" id="streak-value">--</span>
+                </button>
             </div>
 
             <!-- Technique name + limit badge row -->
@@ -105,6 +105,56 @@
             </div>
             <div class="modal-body">
                 <div id="presets-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: end-of-session summary -->
+    <div class="modal-overlay" id="modal-summary">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title" data-i18n="summaryTitle">Bien hecho 🙏</span>
+                <button class="modal-close" data-close="modal-summary" data-i18n-label="close" aria-label="Cerrar">✕</button>
+            </div>
+            <div class="modal-body summary">
+                <p class="summary-limit" id="summary-limit" hidden></p>
+                <div class="summary-stats">
+                    <div class="summary-stat">
+                        <span class="summary-value" id="summary-time">00:00</span>
+                        <span class="summary-label" data-i18n="summaryDuration">Duración</span>
+                    </div>
+                    <div class="summary-stat">
+                        <span class="summary-value" id="summary-cycles">0</span>
+                        <span class="summary-label" data-i18n="statCycles">Ciclos</span>
+                    </div>
+                </div>
+                <p class="summary-technique" id="summary-technique"></p>
+                <p class="summary-streak" id="summary-streak"></p>
+                <div class="mood" id="mood">
+                    <p class="mood-question" data-i18n="moodQuestion">¿Cómo te sentís?</p>
+                    <div class="mood-options">
+                        <button class="mood-btn" data-mood="calmer"><span class="mood-emoji" aria-hidden="true">😌</span><span data-i18n="moodCalmer">Más en calma</span></button>
+                        <button class="mood-btn" data-mood="same"><span class="mood-emoji" aria-hidden="true">😐</span><span data-i18n="moodSame">Igual</span></button>
+                        <button class="mood-btn" data-mood="energized"><span class="mood-emoji" aria-hidden="true">⚡</span><span data-i18n="moodEnergized">Con más energía</span></button>
+                    </div>
+                    <p class="mood-thanks" data-i18n="moodThanks">Gracias ✨</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: practice history -->
+    <div class="modal-overlay" id="modal-history">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title" data-i18n="historyTitle">Tu práctica</span>
+                <button class="modal-close" data-close="modal-history" data-i18n-label="close" aria-label="Cerrar">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="history-tiles" id="history-tiles"></div>
+                <p class="history-subtitle" data-i18n="historyRecent">Últimas sesiones</p>
+                <p class="history-empty" id="history-empty" data-i18n="historyEmpty">Todavía no hay sesiones.</p>
+                <ul class="history-list" id="history-list"></ul>
             </div>
         </div>
     </div>

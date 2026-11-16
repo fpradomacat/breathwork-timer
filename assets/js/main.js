@@ -30,8 +30,10 @@ import {
   setSessionTimes,
   registerLimitGetter,
   acquireWakeLock,
+  onSession,
   TRANSITION_MS,
 } from './session.js';
+import { initPractice, handleSessionEnd, refreshPracticeLang } from './practice.js';
 import { initInteractions } from './interactions.js';
 import { initSoundControls } from './sound-controls.js';
 import { load, save } from './storage.js';
@@ -65,6 +67,7 @@ function applySessionLimit() {
 /** Switch the whole app (UI, technique label, voice layer) to a language. */
 function setLanguage(l) {
   applyLang(l);
+  refreshPracticeLang();
   if (!isRunning())
     document.getElementById('breath-text').textContent = i18n[l].ready;
   setTechniqueLabel(activePreset);
@@ -100,6 +103,24 @@ window.addEventListener('load', () => {
 
   // Wire up modal close buttons and overlay clicks
   initModalListeners();
+
+  // Streak, history modal, end-of-session summary
+  initPractice();
+});
+
+// ── Session lifecycle ─────────────────────────────────────────
+// Remember which technique the session used (the user may switch mid-session)
+let sessionPreset = activePreset;
+let restartingSession = false;
+
+onSession('start', () => {
+  sessionPreset = activePreset;
+});
+
+onSession('end', (result) => {
+  // Switching technique mid-session restarts it: record, but no summary
+  handleSessionEnd(result, sessionPreset, restartingSession);
+  restartingSession = false;
 });
 
 // Apply the initial language right away (the HTML ships in Spanish).
@@ -164,6 +185,7 @@ function _onPresetSelected(preset) {
 
   // Restart session with new technique if one is active
   if (isRunning()) {
+    restartingSession = true;
     stopTimer();
     setTimeout(() => startTimer(), TRANSITION_MS + 100);
   }
