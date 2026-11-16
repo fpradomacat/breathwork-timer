@@ -60,7 +60,7 @@
             <!-- Technique name + limit badge row -->
             <div class="meta-row" id="meta-row">
                 <span id="technique-label">Respiración cuadrada</span>
-                <span id="limit-badge" class="limit-badge" style="display:none"></span>
+                <span id="limit-badge" class="limit-badge" hidden></span>
             </div>
 
             <!-- Breathing circle (tap to start/stop) -->
@@ -71,9 +71,10 @@
                 </div>
             </div>
 
-            <!-- Techniques pill — hidden during session -->
+            <!-- Techniques + session duration — hidden during session -->
             <div class="action-pills" id="action-pills">
                 <button class="pill-tecnicas" id="tecnicas-btn" data-i18n="menuPresets">Técnicas</button>
+                <button class="pill-duration" id="duration-btn" data-i18n-label="durationLabel" aria-label="Duración de la sesión" title="Duración de la sesión">⏱ ∞</button>
             </div>
 
             <!-- Sound on/off toggles — stay available during the session -->

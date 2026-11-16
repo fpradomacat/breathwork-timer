@@ -21,6 +21,8 @@ export const i18n = {
     langTarget: 'EN',
     langSwitch: 'Switch to English',
     helpLabel: 'Ver tutorial',
+    durationLabel: 'Duración de la sesión (tocá para cambiar)',
+    durationFree: '⏱ ∞',
 
     // Functions for dynamic strings
     limitMsg: (type, val) =>
@@ -30,6 +32,7 @@ export const i18n = {
     limitBadgeMin: (val) => `⏱ ${val} min`,
     limitBadgeCyc: (val) => `🔄 ${val} ciclos`,
     fireBreathAutoLimit: (n) => `límite automático: ${n} ciclos`,
+    durationLocked: (name, n) => `${name} tiene un límite fijo de ${n} ciclos`,
   },
 
   en: {
@@ -50,6 +53,8 @@ export const i18n = {
     langTarget: 'ES',
     langSwitch: 'Cambiar a español',
     helpLabel: 'Show tutorial',
+    durationLabel: 'Session length (tap to change)',
+    durationFree: '⏱ ∞',
 
     limitMsg: (type, val) =>
       type === 'minutes'
@@ -58,5 +63,6 @@ export const i18n = {
     limitBadgeMin: (val) => `⏱ ${val} min`,
     limitBadgeCyc: (val) => `🔄 ${val} cycles`,
     fireBreathAutoLimit: (n) => `auto-limit: ${n} cycles`,
+    durationLocked: (name, n) => `${name} has a fixed limit of ${n} cycles`,
   },
 };

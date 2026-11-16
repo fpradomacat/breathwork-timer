@@ -87,21 +87,34 @@ export function checkLimit(totalSeconds, cycles) {
   return false;
 }
 
-/** Refresh the limit badge in the meta-row. */
+/**
+ * Refresh everything that shows the limit:
+ *   - the badge in the meta-row (visible during the session)
+ *   - the duration pill next to "Techniques" (visible before it)
+ */
 export function updateLimitBadge() {
-  const badge = document.getElementById('limit-badge');
-  if (!badge) return;
-  if (limitType === 'none') {
-    badge.textContent = '';
-    badge.style.display = 'none';
-    return;
-  }
   const t = i18n[lang];
-  badge.textContent =
+  const text =
     limitType === 'minutes'
       ? t.limitBadgeMin(limitValue)
-      : t.limitBadgeCyc(limitValue);
-  badge.style.display = 'inline-flex';
+      : limitType === 'cycles'
+        ? t.limitBadgeCyc(limitValue)
+        : '';
+
+  const badge = document.getElementById('limit-badge');
+  if (badge) {
+    badge.textContent = text;
+    badge.hidden = limitType === 'none';
+  }
+
+  const pill = document.getElementById('duration-btn');
+  if (pill) {
+    // Cycle limits come from the technique itself and can't be changed here
+    const locked = limitType === 'cycles';
+    pill.textContent = limitType === 'none' ? t.durationFree : text;
+    pill.setAttribute('aria-disabled', String(locked));
+    pill.classList.toggle('locked', locked);
+  }
 }
 
 // ── Modals ────────────────────────────────────────────────────

@@ -34,6 +34,7 @@ import {
 } from './session.js';
 import { initInteractions } from './interactions.js';
 import { initSoundControls } from './sound-controls.js';
+import { load, save } from './storage.js';
 
 // ── Active technique ──────────────────────────────────────────
 let activePreset = PRESETS[0];
@@ -45,6 +46,20 @@ function _timesOf(preset) {
 
 // Give session.js a way to read limit state without circular imports
 registerLimitGetter(() => ({ limitType, limitValue }));
+
+// ── Session duration ──────────────────────────────────────────
+// Chosen with the duration pill (0 = no limit). A technique with its own
+// cycle limit (Fire Breath) overrides it.
+const DURATIONS = [0, 3, 5, 10, 15];
+let durationMin = load('duration', 0);
+if (!DURATIONS.includes(durationMin)) durationMin = 0;
+
+function applySessionLimit() {
+  if (activePreset.autoLimitCycles)
+    applyLimit('cycles', activePreset.autoLimitCycles);
+  else if (durationMin) applyLimit('minutes', durationMin);
+  else applyLimit('none', 0);
+}
 
 // ── Language ──────────────────────────────────────────────────
 /** Switch the whole app (UI, technique label, voice layer) to a language. */
@@ -61,7 +76,7 @@ function setLanguage(l) {
 window.addEventListener('load', () => {
   setSessionTimes(_timesOf(activePreset));
   setTechniqueLabel(activePreset);
-  applyLimit('none', 10);
+  applySessionLimit();
 
   // Pre-load default preset audio
   loadTechniqueLoops(activePreset, lang);
@@ -102,6 +117,19 @@ document.getElementById('tecnicas-btn').addEventListener('click', () => {
   openModal('modal-tecnicas');
 });
 
+// ── Duration pill: tap to cycle ∞ → 3 → 5 → 10 → 15 min ──────
+document.getElementById('duration-btn').addEventListener('click', () => {
+  if (limitType === 'cycles') {
+    showToast(
+      i18n[lang].durationLocked(presetText(activePreset, 'name'), limitValue),
+    );
+    return;
+  }
+  durationMin = DURATIONS[(DURATIONS.indexOf(durationMin) + 1) % DURATIONS.length];
+  save('duration', durationMin);
+  applySessionLimit();
+});
+
 // ── Corner buttons: language toggle + tutorial ────────────────
 document.getElementById('lang-btn').addEventListener('click', (e) => {
   setLanguage(lang === 'es' ? 'en' : 'es');
@@ -120,8 +148,8 @@ function _onPresetSelected(preset) {
   setTechniqueLabel(preset);
   loadTechniqueLoops(preset, lang);
 
+  applySessionLimit();
   if (preset.autoLimitCycles) {
-    applyLimit('cycles', preset.autoLimitCycles);
     setTimeout(
       () =>
         showToast(
@@ -129,8 +157,6 @@ function _onPresetSelected(preset) {
         ),
       300,
     );
-  } else {
-    applyLimit('none', 10);
   }
 
   playSelectChime();
