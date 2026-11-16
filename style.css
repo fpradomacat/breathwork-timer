@@ -12,8 +12,10 @@
   --accent-bright: #d4adff;
   --accent-dim: rgba(176, 132, 245, 0.12);
   --text-primary: rgba(255, 255, 255, 0.92);
-  --text-secondary: rgba(255, 255, 255, 0.38);
-  --text-muted: rgba(255, 255, 255, 0.22);
+  /* Contrast ≥ 4.5:1 on the dark background (WCAG AA) */
+  --text-secondary: rgba(255, 255, 255, 0.62);
+  --text-muted: rgba(255, 255, 255, 0.5);
+  --warn: #f5c784;
   --divider: rgba(255, 255, 255, 0.07);
   --panel-bg: rgba(255, 255, 255, 0.03);
   --transition: 1.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -670,11 +672,18 @@ footer {
   -webkit-backdrop-filter: blur(8px);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.25s ease;
+  /* hidden (not just transparent) so closed dialogs leave the Tab order;
+     visibility flips after the fade-out */
+  visibility: hidden;
+  transition:
+    opacity 0.25s ease,
+    visibility 0s linear 0.25s;
 }
 .modal-overlay.open {
   opacity: 1;
   pointer-events: auto;
+  visibility: visible;
+  transition: opacity 0.25s ease;
 }
 .modal {
   background: var(--modal-bg);
@@ -770,6 +779,13 @@ footer {
   line-height: 1.5;
   margin: 0;
 }
+.preset-warn {
+  margin: 8px 0 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--warn);
+  opacity: 0.85;
+}
 .preset-tag {
   display: inline-block;
   font-size: 0.58rem;
@@ -784,6 +800,25 @@ footer {
   vertical-align: middle;
   margin-left: 6px;
   opacity: 0.85;
+}
+
+/* ── Safety notice ───────────────────────────────────────────── */
+.warning-technique {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+.warning-text {
+  margin: 0 0 18px;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--warn);
+}
+.warning-ok {
+  width: 100%;
+  padding: 12px;
+  border-radius: 100px;
 }
 
 /* ── End-of-session summary ──────────────────────────────────── */
@@ -1001,4 +1036,35 @@ footer {
 .limit-toast.show {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
+}
+
+/* ── Accessibility ───────────────────────────────────────────── */
+/* Visible focus ring for keyboard users only */
+:focus-visible {
+  outline: 2px solid var(--accent-bright);
+  outline-offset: 3px;
+}
+#breathing-circle:focus-visible {
+  outline-offset: 8px;
+}
+.mixer-slider:focus-visible {
+  outline-offset: 2px;
+}
+
+/* Less motion: keep the breathing circle (it IS the guide), drop the rest */
+@media (prefers-reduced-motion: reduce) {
+  body::before {
+    animation: none;
+  }
+  .modal,
+  .modal-overlay,
+  .limit-toast,
+  .action-pills,
+  .stat-item,
+  #breathing-circle-container {
+    transition: none;
+  }
+  #breathing-circle.active {
+    box-shadow: 0 0 12px 6px var(--circle-glow-a);
+  }
 }

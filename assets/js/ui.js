@@ -118,17 +118,32 @@ export function updateLimitBadge() {
 }
 
 // ── Modals ────────────────────────────────────────────────────
+// Focus moves into the dialog when it opens and back to whatever opened
+// it when it closes (keyboard and screen-reader users don't get lost).
+const _returnFocus = new Map();
+
 export function openModal(id) {
   const el = document.getElementById(id);
   if (!el) return;
+  _returnFocus.set(id, document.activeElement);
   el.classList.add('open');
+  el.setAttribute('aria-hidden', 'false');
   const body = el.querySelector('.modal-body');
   if (body) body.scrollTop = 0;
+  // Focus the first control after the open transition starts
+  setTimeout(() => el.querySelector('.modal-close')?.focus({ preventScroll: true }), 50);
 }
 
 export function closeModal(id) {
   const el = document.getElementById(id);
-  if (el) el.classList.remove('open');
+  if (!el || !el.classList.contains('open')) return;
+  el.classList.remove('open');
+  el.setAttribute('aria-hidden', 'true');
+  const back = _returnFocus.get(id);
+  _returnFocus.delete(id);
+  if (back && document.contains(back) && back !== document.body)
+    back.focus({ preventScroll: true });
+  else document.activeElement?.blur?.();
 }
 
 export function initModalListeners() {
@@ -182,14 +197,27 @@ export function renderPresets(onSelect) {
   PRESETS.forEach((preset) => {
     const card = document.createElement('div');
     card.className = 'preset-card';
+    card.setAttribute('role', 'button');
+    card.tabIndex = 0;
     card.innerHTML = `
       <div class="preset-header">
         <span class="preset-name">${presetText(preset, 'name')} <span class="preset-tag">${presetText(preset, 'tag')}</span></span>
         <span class="preset-timing">${preset.timing.join('-')}</span>
       </div>
-      <p class="preset-desc">${presetText(preset, 'desc')}</p>`;
+      <p class="preset-desc">${presetText(preset, 'desc')}</p>${
+        preset.warnEs
+          ? `<p class="preset-warn"><span aria-hidden="true">⚠️</span> ${presetText(preset, 'warn')}</p>`
+          : ''
+      }`;
 
     card.addEventListener('click', () => _onPresetSelect?.(preset));
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        e.stopPropagation(); // Space must not also start/stop the session
+        _onPresetSelect?.(preset);
+      }
+    });
     list.appendChild(card);
   });
 }

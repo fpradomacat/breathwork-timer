@@ -65,9 +65,9 @@
 
             <!-- Breathing circle (tap to start/stop) -->
             <div id="breathing-circle-container">
-                <div id="breathing-circle">
-                    <span id="breath-text" data-i18n="ready">Listo</span>
-                    <div id="phase-timer"></div>
+                <div id="breathing-circle" role="button" tabindex="0" data-i18n-label="circleLabel" aria-label="Iniciar o detener la sesión" title="Iniciar o detener la sesión">
+                    <span id="breath-text" data-i18n="ready" aria-live="polite">Listo</span>
+                    <div id="phase-timer" aria-hidden="true"></div>
                 </div>
             </div>
 
@@ -98,11 +98,11 @@
     </div>
 
     <!-- Modal: Técnicas -->
-    <div class="modal-overlay" id="modal-tecnicas">
-        <div class="modal modal-tecnicas-modal">
+    <div class="modal-overlay" id="modal-tecnicas" aria-hidden="true">
+        <div class="modal modal-tecnicas-modal" role="dialog" aria-modal="true" aria-labelledby="modal-tecnicas-title">
             <div class="modal-header">
-                <span class="modal-title" data-i18n="menuPresets">Técnicas</span>
-                <button class="modal-close" data-close="modal-tecnicas">✕</button>
+                <span class="modal-title" id="modal-tecnicas-title" data-i18n="menuPresets">Técnicas</span>
+                <button class="modal-close" data-close="modal-tecnicas" data-i18n-label="close" aria-label="Cerrar">✕</button>
             </div>
             <div class="modal-body">
                 <div id="presets-list"></div>
@@ -111,10 +111,10 @@
     </div>
 
     <!-- Modal: sound panel (on/off + volume per channel) -->
-    <div class="modal-overlay" id="modal-sound">
-        <div class="modal">
+    <div class="modal-overlay" id="modal-sound" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-sound-title">
             <div class="modal-header">
-                <span class="modal-title" data-i18n="mixerTitle">Sonido</span>
+                <span class="modal-title" id="modal-sound-title" data-i18n="mixerTitle">Sonido</span>
                 <button class="modal-close" data-close="modal-sound" data-i18n-label="close" aria-label="Cerrar">✕</button>
             </div>
             <div class="modal-body">
@@ -123,11 +123,26 @@
         </div>
     </div>
 
-    <!-- Modal: end-of-session summary -->
-    <div class="modal-overlay" id="modal-summary">
-        <div class="modal">
+    <!-- Modal: safety notice, shown the first time a technique with a warning is chosen -->
+    <div class="modal-overlay" id="modal-warning" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-warning-title">
             <div class="modal-header">
-                <span class="modal-title" data-i18n="summaryTitle">Bien hecho 🙏</span>
+                <span class="modal-title" id="modal-warning-title" data-i18n="warningTitle">Antes de empezar</span>
+                <button class="modal-close" data-close="modal-warning" data-i18n-label="close" aria-label="Cerrar">✕</button>
+            </div>
+            <div class="modal-body">
+                <p class="warning-technique" id="warning-technique"></p>
+                <p class="warning-text" id="warning-text"></p>
+                <button class="warning-ok" id="warning-ok" data-i18n="warningOk">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: end-of-session summary -->
+    <div class="modal-overlay" id="modal-summary" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-summary-title">
+            <div class="modal-header">
+                <span class="modal-title" id="modal-summary-title" data-i18n="summaryTitle">Bien hecho 🙏</span>
                 <button class="modal-close" data-close="modal-summary" data-i18n-label="close" aria-label="Cerrar">✕</button>
             </div>
             <div class="modal-body summary">
@@ -158,10 +173,10 @@
     </div>
 
     <!-- Modal: practice history -->
-    <div class="modal-overlay" id="modal-history">
-        <div class="modal">
+    <div class="modal-overlay" id="modal-history" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-history-title">
             <div class="modal-header">
-                <span class="modal-title" data-i18n="historyTitle">Tu práctica</span>
+                <span class="modal-title" id="modal-history-title" data-i18n="historyTitle">Tu práctica</span>
                 <button class="modal-close" data-close="modal-history" data-i18n-label="close" aria-label="Cerrar">✕</button>
             </div>
             <div class="modal-body">

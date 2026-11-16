@@ -141,8 +141,13 @@ onSession('end', (result) => {
 setLanguage(lang);
 
 // ── Circle tap → start / stop ─────────────────────────────────
-document.getElementById('breathing-circle').addEventListener('click', () => {
+// (Space is handled globally in interactions.js; Enter works when focused)
+const circle = document.getElementById('breathing-circle');
+circle.addEventListener('click', () => {
   if (!isTransitioning()) isRunning() ? stopTimer() : startTimer();
+});
+circle.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') circle.click();
 });
 
 // ── Técnicas pill ─────────────────────────────────────────────
@@ -201,14 +206,35 @@ function _onPresetSelected(preset) {
 
   playSelectChime();
   closeModal('modal-tecnicas');
+  const warned = _maybeShowWarning(preset);
 
-  // Restart session with new technique if one is active
+  // Restart session with new technique if one is active — unless a safety
+  // notice is showing: then just stop, so it's read before starting.
   if (isRunning()) {
     restartingSession = true;
     stopTimer();
-    setTimeout(() => startTimer(), TRANSITION_MS + 100);
+    if (!warned) setTimeout(() => startTimer(), TRANSITION_MS + 100);
   }
 }
+
+// ── Safety notice ─────────────────────────────────────────────
+// Shown once per technique that has a warning (Fire Breath, 4-7-8).
+// Returns true if the notice was shown.
+function _maybeShowWarning(preset) {
+  if (!preset.warnEs) return false;
+  const seen = load('warningsSeen', []);
+  if (seen.includes(preset.soundDir)) return false;
+  save('warningsSeen', [...seen, preset.soundDir]);
+  document.getElementById('warning-technique').textContent = presetText(preset, 'name');
+  document.getElementById('warning-text').textContent = presetText(preset, 'warn');
+  // after the techniques modal has closed
+  setTimeout(() => openModal('modal-warning'), 300);
+  return true;
+}
+
+document.getElementById('warning-ok').addEventListener('click', () =>
+  closeModal('modal-warning'),
+);
 
 // ── Visibility change ─────────────────────────────────────────
 // When the user switches tabs or minimizes the browser:

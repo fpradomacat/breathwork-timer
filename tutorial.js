@@ -35,11 +35,11 @@
       pos: 'center',
       es: {
         title: '🕐 Cuándo y cuánto',
-        body: 'Con <strong>5 minutos</strong> alcanza para empezar. Con el tiempo podés ir a 10–15.<br><br>🌀 <strong>Ansiedad o estrés</strong> — Coherencia Cardíaca o 4-7-8<br>😴 <strong>Dormir</strong> — 4-7-8<br>⚖️ <strong>Equilibrio general</strong> — Respiración Cuadrada<br>⚡ <strong>Activarte</strong> — Fuego',
+        body: 'Con <strong>5 minutos</strong> alcanza para empezar. Con el tiempo podés ir a 10–15.<br><br>🌀 <strong>Ansiedad o estrés</strong> — Coherencia Cardíaca o 4-7-8<br>😴 <strong>Dormir</strong> — 4-7-8<br>⚖️ <strong>Equilibrio general</strong> — Respiración Cuadrada<br>⚡ <strong>Activarte</strong> — Fuego<br><br><small>⚠️ Neyen no reemplaza el consejo médico. Si te mareás o te sentís mal, pará y volvé a respirar normal.</small>',
       },
       en: {
         title: '🕐 When and how long',
-        body: '<strong>5 minutes</strong> is enough to start. Over time you can go up to 10–15.<br><br>🌀 <strong>Anxiety or stress</strong> — Cardiac Coherence or 4-7-8<br>😴 <strong>Sleep</strong> — 4-7-8<br>⚖️ <strong>Balance & reset</strong> — Box Breathing<br>⚡ <strong>Energy boost</strong> — Fire Breath',
+        body: '<strong>5 minutes</strong> is enough to start. Over time you can go up to 10–15.<br><br>🌀 <strong>Anxiety or stress</strong> — Cardiac Coherence or 4-7-8<br>😴 <strong>Sleep</strong> — 4-7-8<br>⚖️ <strong>Balance & reset</strong> — Box Breathing<br>⚡ <strong>Energy boost</strong> — Fire Breath<br><br><small>⚠️ Neyen is not a substitute for medical advice. If you feel dizzy or unwell, stop and breathe normally.</small>',
       },
     },
     {
