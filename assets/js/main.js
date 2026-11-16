@@ -151,6 +151,12 @@ document.getElementById('duration-btn').addEventListener('click', () => {
   applySessionLimit();
 });
 
+// ── Sound panel ───────────────────────────────────────────────
+document.getElementById('mixer-btn').addEventListener('click', (e) => {
+  e.currentTarget.blur();
+  openModal('modal-sound');
+});
+
 // ── Corner buttons: language toggle + tutorial ────────────────
 document.getElementById('lang-btn').addEventListener('click', (e) => {
   setLanguage(lang === 'es' ? 'en' : 'es');

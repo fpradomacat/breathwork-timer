@@ -83,6 +83,7 @@
                 <button class="sound-toggle" data-sound="voice" data-i18n-label="soundVoice" aria-label="Voz guía" title="Voz guía" aria-pressed="true">🗣️</button>
                 <button class="sound-toggle" data-sound="breaths" data-i18n-label="soundBreaths" aria-label="Sonido de respiración" title="Sonido de respiración" aria-pressed="true">🌬️</button>
                 <button class="sound-toggle" data-sound="ticks" data-i18n-label="soundTicks" aria-label="Segundos" title="Segundos" aria-pressed="false">⏱️</button>
+                <button class="sound-toggle mixer-btn" id="mixer-btn" data-i18n-label="mixerOpen" aria-label="Ajustar volúmenes" title="Ajustar volúmenes">🎚️</button>
             </div>
 
             <!-- Footer -->
@@ -105,6 +106,19 @@
             </div>
             <div class="modal-body">
                 <div id="presets-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: sound panel (on/off + volume per channel) -->
+    <div class="modal-overlay" id="modal-sound">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title" data-i18n="mixerTitle">Sonido</span>
+                <button class="modal-close" data-close="modal-sound" data-i18n-label="close" aria-label="Cerrar">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="mixer-list"></div>
             </div>
         </div>
     </div>

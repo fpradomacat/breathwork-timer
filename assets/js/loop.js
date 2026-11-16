@@ -43,6 +43,8 @@ const LOAD_TIMEOUT = 4000; // ms — max wait for audio before a session starts 
 
 // User on/off state for the toggleable layers (set by sound-controls.js)
 const _enabled = { breaths: true, voice: true, ticks: false };
+// User volume factor per layer (1 = default mix level)
+const _volume = { breathing: 1, breaths: 1, voice: 1, ticks: 1 };
 
 // Decoded AudioBuffers for the currently loaded preset + language
 let _buffers = { breathing: null, breaths: null, voice: null };
@@ -151,8 +153,17 @@ function _pump() {
 }
 
 function _layerTarget(layer) {
-  if (layer === 'breathing') return LAYER_VOLUME.breathing;
-  return _enabled[layer] ? LAYER_VOLUME[layer] : 0;
+  const on = layer === 'breathing' || _enabled[layer];
+  return on ? LAYER_VOLUME[layer] * _volume[layer] : 0;
+}
+
+/** Fade a running layer's gain to its current target. */
+function _rampLayer(s, layer, seconds = TOGGLE_FADE) {
+  const now = audioCtx.currentTime;
+  const g = s.gains[layer].gain;
+  g.cancelScheduledValues(now);
+  g.setValueAtTime(g.value, now);
+  g.linearRampToValueAtTime(_layerTarget(layer), now + seconds);
 }
 
 // ── Public API ────────────────────────────────────────────────
@@ -264,10 +275,7 @@ export function setLayerEnabled(layer, on) {
   if (!s) return;
 
   const now = audioCtx.currentTime;
-  const g = s.gains[layer].gain;
-  g.cancelScheduledValues(now);
-  g.setValueAtTime(g.value, now);
-  g.linearRampToValueAtTime(_layerTarget(layer), now + TOGGLE_FADE);
+  _rampLayer(s, layer);
 
   if (layer === 'voice') {
     if (!on) {
@@ -282,4 +290,14 @@ export function setLayerEnabled(layer, on) {
       for (let c = current; c < s.next; c++) _scheduleVoice(s, c, now);
     }
   }
+}
+
+/**
+ * Scale a layer's volume (1 = default mix level). Works before or during
+ * a session; 'breathing' (phase cues) can be scaled but not turned off.
+ */
+export function setLayerVolume(layer, factor) {
+  if (!(layer in _volume)) return;
+  _volume[layer] = factor;
+  if (_sched) _rampLayer(_sched, layer, 0.05);
 }

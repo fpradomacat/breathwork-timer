@@ -25,6 +25,18 @@ document.addEventListener('touchstart', resumeAudio, { passive: true });
 document.addEventListener('keydown', resumeAudio);
 
 // ── UI Sounds ─────────────────────────────────────────────────
+//
+// Interface feedback (hover/click clicks, technique-select chime) can be
+// turned off or scaled from the sound panel. Session cues (start/stop,
+// countdown, end bell) are not affected — they carry information.
+
+const _ui = { on: true, volume: 1 };
+
+/** Enable/disable and scale the interface sounds (sound-controls.js). */
+export function setUiSounds(on, volume = 1) {
+  _ui.on = on;
+  _ui.volume = volume;
+}
 
 /** Generic sine tone — used internally by other sound functions. */
 export function playTone(freq, duration, volume) {
@@ -44,6 +56,7 @@ export function playTone(freq, duration, volume) {
 
 /** Short high-pass noise click — hover / interaction feedback. */
 export function playHoverClick() {
+  if (!_ui.on || _ui.volume <= 0) return;
   const len = Math.floor(audioCtx.sampleRate * 0.012);
   const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
   const data = buf.getChannelData(0);
@@ -55,7 +68,7 @@ export function playHoverClick() {
   const gain = audioCtx.createGain();
   const hpf = audioCtx.createBiquadFilter();
 
-  gain.gain.value = 0.2; // volumen del click
+  gain.gain.value = 0.12 * _ui.volume; // subtle by default
 
   hpf.type = 'highpass';
   hpf.frequency.value = 2400;
@@ -136,7 +149,8 @@ export function playEndChime() {
 
 /** Three-note ascending chime — played when a technique is selected. */
 export function playSelectChime() {
-  const vol = 0.55;
+  if (!_ui.on || _ui.volume <= 0) return;
+  const vol = 0.4 * _ui.volume;
   [
     [520, 0],
     [660, 0.07],
@@ -166,6 +180,7 @@ export function playSelectChime() {
 // Public API:
 //   ambient.bootstrap()     — attach first-gesture listener to init
 //   ambient.setMuted(bool)  — mute / unmute with fade (safe before init)
+//   ambient.setVolume(f)    — volume factor (1 = default), safe before init
 //   ambient.suspend()       — pause on tab hide (unless muted)
 //   ambient.resume()        — resume on tab show (unless muted)
 //   ambient.isMuted()       — current mute state
@@ -179,16 +194,19 @@ const _amb = {
   gainNode: null,
   buffer: null,
   muted: false,
+  volume: 1, // user factor from the sound panel
   loaded: false,
   suspendTimer: null,
 };
 
-function _ambFadeTo(target) {
+function _ambFadeTo(target, seconds = AMBIENT_FADE) {
   const g = _amb.gainNode.gain;
   g.cancelScheduledValues(_amb.ctx.currentTime);
   g.setValueAtTime(g.value, _amb.ctx.currentTime);
-  g.linearRampToValueAtTime(target, _amb.ctx.currentTime + AMBIENT_FADE);
+  g.linearRampToValueAtTime(target, _amb.ctx.currentTime + seconds);
 }
+
+const _ambTarget = () => AMBIENT_VOLUME * _amb.volume;
 
 function _ambPlay() {
   if (!_amb.loaded || !_amb.buffer) return;
@@ -199,7 +217,7 @@ function _ambPlay() {
   _amb.source.start(0);
   // Muted from a saved preference → don't keep a silent context running
   if (_amb.muted) _amb.ctx.suspend();
-  else _ambFadeTo(AMBIENT_VOLUME);
+  else _ambFadeTo(_ambTarget());
 }
 
 async function _ambInit() {
@@ -242,12 +260,18 @@ export const ambient = {
     // If the context was suspended (muted, or tab was in background),
     // resume it first so the fade actually executes.
     if (_amb.ctx.state === 'suspended') _amb.ctx.resume();
-    _ambFadeTo(muted ? 0 : AMBIENT_VOLUME);
+    _ambFadeTo(muted ? 0 : _ambTarget());
     // Suspend after the fade-out to save battery (unless unmuted meanwhile)
     if (muted)
       _amb.suspendTimer = setTimeout(() => {
         if (_amb.muted) _amb.ctx.suspend();
       }, AMBIENT_FADE * 1000);
+  },
+
+  /** Scale the music volume (1 = default). Applied quickly, without the long fade. */
+  setVolume(factor) {
+    _amb.volume = factor;
+    if (_amb.ctx && _amb.loaded && !_amb.muted) _ambFadeTo(_ambTarget(), 0.15);
   },
 
   /**
