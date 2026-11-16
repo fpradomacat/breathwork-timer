@@ -6,7 +6,7 @@ A guided breathing timer that runs in the browser and can be installed on your p
 
 ## What it does
 
-Pick a breathing technique and tap the circle. The circle grows as you inhale and shrinks as you exhale, and a voice guides you through the first few cycles. After that the voice drops out and you keep breathing to the rhythm.
+Pick a breathing technique and tap the circle. After a short 3-2-1 countdown, the circle grows as you inhale and shrinks as you exhale, and a voice guides you through the first few cycles. After that the voice drops out and you keep breathing to the rhythm.
 
 | Technique         | Pattern (in · hold · out · hold)           | Good for |
 | ----------------- | ------------------------------------------ | -------- |
@@ -15,23 +15,30 @@ Pick a breathing technique and tap the circle. The circle grows as you inhale an
 | 4-7-8 Relaxing    | 4 · 7 · 8 · 0                              | Sleep    |
 | Fire Breath       | 1 · 0 · 1 · 0 (auto-stops after 30 cycles) | Energy   |
 
+Fire Breath and 4-7-8 show a safety note on their card, and a short notice the first time you pick them.
+
 Other features:
 
-- Spanish and English (UI and voice guidance)
-- Sound controls that work even during a session:
+- **Spanish and English** (UI and voice guidance). The language is detected from your browser; switch it with the button in the top-right corner.
+- **Session length:** tap the ⏱ pill next to "Techniques" to pick ∞ / 3 / 5 / 10 / 15 minutes.
+- **Sound controls** that work even during a session:
 
   - 🎵 ambient music
   - 🗣️ voice guide
   - 🌬️ breathing sound
   - ⏱️ a tick every second
 
-  The sounds that mark each phase always play. Your choices are remembered.
+  🎚️ opens a panel with a volume slider for each one, plus the interface sounds. The sounds that mark each phase always play.
 
-- Session timer, cycle counter, and last-session summary
-- Keeps the screen awake during a session, with haptic feedback on phase changes
-- Keyboard shortcuts: **Space** starts or stops a session, **Esc** closes dialogs
-- A short onboarding tutorial on launch
-- Works offline once installed
+- **After each session:** a short summary, and a "how do you feel?" question.
+- **Your practice:** a 🔥 day streak, plus a history of your sessions (tap the streak). Everything stays on your device; there are no accounts.
+- Lock-screen controls on phones (technique name + stop button).
+- Keeps the screen awake during a session, with haptic feedback on phase changes.
+- **Keyboard:** **Space** starts or stops a session, **Esc** closes dialogs, and everything is reachable with **Tab**.
+- An onboarding tutorial on your first visit (**?** in the top-right corner shows it again).
+- Works fully offline once loaded, sounds included.
+
+Your preferences (language, sounds, session length) are remembered between visits.
 
 ## How it works
 
@@ -39,12 +46,14 @@ The app is plain HTML, CSS, and vanilla JavaScript, with no framework.
 
 - **`index.html`** is the single page.
 - **`assets/js/`** holds the app logic as ES modules. `main.js` is the entry point:
-  - `presets.js`: the breathing techniques (timings and sound folder)
-  - `session.js`: the session clock, the breathing phases, and the counters
+  - `presets.js`: the breathing techniques (timings, sound folder, safety notes)
+  - `session.js`: the session clock, countdown, breathing phases and counters
   - `loop.js`: plays the technique audio as separate layers in sync
-  - `sound-controls.js`: the sound on/off buttons and saved preferences
+  - `sound-controls.js`: the sound buttons, the volume panel, and saved preferences
   - `audio.js`: UI sounds and ambient music
-  - `ui.js`, `i18n.js`, `interactions.js`: the DOM, translations, and input handling
+  - `history.js` / `practice.js`: session history, streak, summary and history screens
+  - `media-session.js`: lock-screen controls
+  - `ui.js`, `i18n.js`, `interactions.js`, `storage.js`: the DOM, translations, input handling, saved preferences
 - **`tutorial.js`** is the onboarding overlay.
 - **`build.js`** bundles and minifies everything into `dist/` and generates a service worker for offline use.
 
@@ -94,7 +103,29 @@ Testing on a real phone is the best way to check audio, wake lock, and vibration
 
 Browsers only allow the service worker and screen wake lock on `localhost` or HTTPS. Over a LAN IP they won't work, but everything else will.
 
-There are no automated tests. Testing means running the app and trying it out.
+### Tests and formatting
+
+```bash
+npm test               # unit tests (audio scheduler, history/streak, translations & presets)
+npm run format         # format the code with Prettier
+npm run format:check   # check formatting without changing files
+```
+
+The unit tests cover the logic. For anything visual or audio-related, run the app and try it.
+
+### Adding a technique
+
+1. Export one file per layer from Audacity into `assets/sounds/<name>/`:
+
+   - `<name>-breathing.mp3`
+   - `<name>-breaths.mp3`
+   - `<name>-voice-es.mp3`
+   - `<name>-voice-en.mp3`
+
+   Each file must be **exactly one cycle long** and start at the beginning of the inhale.
+
+2. Add an entry to `assets/js/presets.js` with `soundDir: '<name>'` and its timings. Timings can be fractional, for example 5.5 s.
+3. Run `npm test`. It checks that the preset is complete and that its 4 files exist.
 
 ## Support
 

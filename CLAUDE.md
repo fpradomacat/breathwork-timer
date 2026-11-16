@@ -4,88 +4,151 @@ Guidance for Claude Code when working in this repository.
 
 ## What this is
 
-**Neyen** ("the art of breathing"): a guided breathwork timer, built as a static, framework-free PWA in vanilla JS. It is deployed to Netlify at https://neyenbreath.netlify.app. The UI is bilingual (Spanish is the default, plus English). It is mobile-first and runs in portrait orientation.
+**Neyen** ("the art of breathing"): a guided breathwork timer, built as a static, framework-free PWA in vanilla JS. It is deployed to Netlify at https://neyenbreath.netlify.app. The UI is bilingual (Spanish and English). The language is detected from the browser, can be switched from the top-right button, and is remembered. It is mobile-first and runs in portrait orientation.
 
-The user taps the breathing circle to start or stop a session. The circle expands and contracts through each phase (inhale, hold full, exhale, hold empty). The technique audio is made of layers that play in sync: phase cues (always on), the breathing sound, a voice guide (first N cycles by default), and generated second ticks. Ambient background music plays separately. The user can turn music, voice, breathing sound, and ticks on or off at any time, including during a session, and their choices are saved in localStorage.
+The user taps the breathing circle to start a session. A 3-2-1 countdown runs first. Then the circle expands and contracts through each phase (inhale, hold full, exhale, hold empty).
+
+The technique audio is made of layers that play in sync:
+
+- phase cues (always on)
+- the breathing sound
+- a voice guide (first N cycles by default)
+- second ticks, generated in code
+
+Ambient music plays separately. Each sound can be turned on or off, and its volume adjusted, from a quick row of buttons or from the 🎚️ sound panel.
+
+Sessions end manually or at a limit: the duration pill (∞/3/5/10/15 min), or a technique's own cycle limit. Sessions of 30 s or more are recorded in localStorage, and they feed the day streak and the history modal. A summary with a "how do you feel?" question follows each session.
 
 ## Commands
 
 ```bash
 npm install
-npm run build        # node build.js → produces ./dist (gitignored)
+npm run build          # node build.js → ./dist (gitignored)
+npm test               # unit tests (node --test), see test/
+npm run format         # prettier --write .
+npm run format:check
 ```
 
-- There are no tests (`npm test` is the npm placeholder) and no linter config.
-- There is no dev server script. Serve the repo root over **http** to develop, for example `npx serve .` or VS Code Live Server. Asset paths are absolute (`/assets/...`), so the server root must be the repo root. On `file://`, `fetch` fails, so no technique audio or music plays.
-- To check production output, serve `./dist`. The service worker is only generated there.
-- `SITE_URL` env var (default `https://neyenbreath.netlify.app`) replaces the `https://TU-DOMINIO.com` placeholder in the HTML at build time. The current `index.html` already hardcodes the real URL, so this step is effectively a no-op.
+- **No dev server script.** Serve the repo root over **http**, for example with VS Code Live Server or `npx serve .`.
+  - Asset paths are absolute (`/assets/...`), so the server root must be the repo root.
+  - On `file://`, `fetch` fails, so no audio plays.
+- **Production output:** serve `./dist`. The service worker only exists there.
+- **`SITE_URL` env var** (default `https://neyenbreath.netlify.app`) replaces the `https://TU-DOMINIO.com` placeholder at build time. `index.html` already hardcodes the real URL, so this is effectively a no-op.
 
 ## Layout
 
 ```
 index.html          single page; loads /assets/js/main.js and tutorial.js as modules
-style.css           all app styles (CSS custom properties at :root)
+style.css           all app styles (design tokens at :root)
 tutorial.js         standalone IIFE onboarding overlay (injects its own CSS, canvas spotlight)
 manifest.json       PWA manifest
 build.js            build pipeline + service-worker generator
-assets/js/          ES modules (source of truth for app logic)
+assets/js/          ES modules (app logic); has its own package.json {"type":"module"} for Node tests
 assets/sounds/      background-music.mp3 + one folder per technique (<dir>/<dir>-{breathing,breaths,voice-es,voice-en}.mp3)
 assets/icons/       PWA icons + og-image
-dist/               build output (gitignored; wiped and rebuilt on every build)
+test/               unit tests + setup (audio mock, localStorage shim)
+dist/               build output (gitignored; emptied and rebuilt on every build)
 ```
 
 ### JS modules (`assets/js/`)
 
-`main.js` is the entry point and the only module that imports everything. It wires the modules together and holds the active technique state (`activeTechniqueName`, `times`).
+`main.js` is the entry point and the only module that imports everything. It wires the modules together and holds the app state: `activePreset`, the chosen duration, and which preset the running session uses.
 
-| Module              | Responsibility                                                                                                                                                                                                                                                                                                                                                            |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `presets.js`        | `PRESETS` array: names, tags, and descriptions (Es/En); `timing: [inhale, holdFull, exhale, holdEmpty]` in seconds; `soundDir` (folder under `assets/sounds/`); `helperCycles` (cycles the voice guides by default); optional `autoLimitCycles`                                                                                                                           |
-| `i18n.js`           | `i18n.es` / `i18n.en` string tables. Some entries are functions for dynamic strings. Every key must exist in both languages                                                                                                                                                                                                                                               |
-| `ui.js`             | DOM-only concerns: `lang` (exported `let`), `applyLang`, technique label, session limits (`limitType`/`limitValue`/`checkLimit`), modals, toast, preset card rendering, `formatTime`, `setCircleState`                                                                                                                                                                    |
-| `session.js`        | Session state machine and timing: start/stop, phase cycle, counters, wake lock, a silent keep-alive oscillator (prevents Bluetooth audio dropouts)                                                                                                                                                                                                                        |
-| `loop.js`           | Layered technique audio: loads and decodes the layers for the active preset and language, and schedules them every cycle. Each layer has its own GainNode; `setLayerEnabled()` fades a layer in or out. Ticks are generated in code. Voice rules: it plays for the first `helperCycles` cycles; turning it on manually after that keeps it on for the rest of the session |
-| `sound-controls.js` | The `.sound-toggle[data-sound]` buttons (music, voice, breaths, ticks): applies and saves preferences (localStorage key `neyen.sound`) and calls `ambient.setMuted()` or `setLayerEnabled()`                                                                                                                                                                              |
-| `audio.js`          | Shared `audioCtx` plus synthesized UI sounds (tones, clicks, chimes). Also `ambient`, the background music player, which has its **own separate AudioContext** so it can be suspended independently. `ambient.setMuted()` is safe to call before the music has started                                                                                                    |
-| `interactions.js`   | Hover/click sounds, haptics, and keyboard shortcuts (Space = start/stop, Esc = close modals). Never owns session state; it calls callbacks                                                                                                                                                                                                                                |
+| Module              | Responsibility                                                                                                                                                                                                                     |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `presets.js`        | `PRESETS`: names/tags/descs (Es/En), `timing` `[inhale, holdFull, exhale, holdEmpty]` in seconds (fractions allowed), `soundDir`, `helperCycles`, optional `autoLimitCycles`, optional `warnEs`/`warnEn` safety note               |
+| `i18n.js`           | `i18n.es` / `i18n.en` string tables. Some entries are functions. Every key must exist in both languages (enforced by `test/content.test.mjs`)                                                                                      |
+| `ui.js`             | DOM helpers: `lang` (exported `let`; saved → browser → English), `applyLang`, `presetText(preset, field)`, limits + duration pill/badge, modals (focus management), toast (optional action button), preset cards                   |
+| `session.js`        | Session state and timing: countdown, phases, counters, limit checks, wake lock, keep-alive oscillator, audio fade-out on stop. Emits `onSession('starting' \| 'start' \| 'end', fn)`                                               |
+| `loop.js`           | Layered technique audio: loads/decodes the active preset's layers, schedules every layer each cycle on the audio clock, per-layer gain (`setLayerEnabled`, `setLayerVolume`), `stopLoop(fade)`. Voice-guide rules live here        |
+| `sound-controls.js` | Quick sound buttons + the 🎚️ panel. Per-channel `{ on, vol }` saved as `neyen.sound`; migrates older boolean prefs                                                                                                                 |
+| `audio.js`          | Shared `audioCtx`, synthesized UI sounds (`setUiSounds` toggles hover/click/select sounds; session cues are always on), `ambient` music player with its **own AudioContext** (`setMuted`, `setVolume`, both safe before it starts) |
+| `history.js`        | Practice history in localStorage (`neyen.history`): `addSession`, `setMood`, `getStats` (streak, totals, recent). Sessions < `MIN_RECORDED_SECS` (30) aren't recorded                                                              |
+| `practice.js`       | Streak stat, end-of-session summary + mood question, "Your practice" history modal                                                                                                                                                 |
+| `media-session.js`  | Lock-screen controls (Media Session API) with a silent looped `<audio>`; best effort                                                                                                                                               |
+| `storage.js`        | `load(key, fallback)` / `save(key, value)`: JSON + try/catch, keys prefixed `neyen.`                                                                                                                                               |
+| `interactions.js`   | Hover/click sounds, haptics, keyboard shortcuts (Space = start/stop, Esc = close modals). Never owns session state                                                                                                                 |
+
+localStorage keys:
+
+- `neyen.lang`
+- `neyen.sound`
+- `neyen.duration`
+- `neyen.history`
+- `neyen.warningsSeen`
+- `neyen.tutorialDone` (written by `tutorial.js`, plain string)
 
 ## Key conventions & gotchas
 
-- **Timing strategy:** `audioCtx.currentTime` is the single master clock. At session start, `session.js` sets `_t0`. Every phase end and session tick is an _absolute_ deadline counted from `_t0`, and `setTimeout` (via `_at()`) is only used to wake up near each deadline. That way timer jitter never adds up. `loop.js` schedules every layer of every cycle as a one-shot source at `t0 + n·cycleDur` on the same clock, using a look-ahead scheduler. It does not use native `loop`, because file lengths can differ from the cycle length by a few ms and would drift. Each layer is trimmed to its cycle slot. `startTimer` awaits `loopsReady()` (capped at 4s) before anchoring `_t0`. `requestAnimationFrame` is used **only** for the cosmetic countdown number.
+- **Timing strategy: `audioCtx.currentTime` is the single master clock.**
+  - `session.js` anchors `_t0` (the moment the first inhale starts, right after the countdown).
+  - Every countdown step, phase end and session tick is an _absolute_ deadline counted from `_t0`. `setTimeout` (via `_at()`) is only used to wake up near each deadline, so timer jitter never adds up.
+  - `loop.js` schedules every layer of every cycle as a one-shot source at `t0 + n·cycleDur`, with a look-ahead scheduler (3 s). It never uses native `loop`: file lengths can differ from the cycle by a few ms and would drift. Each source is trimmed to its cycle slot.
+  - `startTimer` awaits `loopsReady()` (capped at 4 s) before anchoring.
+  - `requestAnimationFrame` is used **only** for the cosmetic countdown number.
+- **Layers are always scheduled.** Toggling or volume only changes the layer's gain, so changes are instant and never re-sync. To add a channel, add it to:
+  - `LAYER_VOLUME` / `_enabled` / `_volume` in `loop.js`
+  - `CHANNELS` + `DEFAULT_ON` in `sound-controls.js`
+  - a `.sound-toggle` button in `index.html` (optional)
+  - the i18n keys
+- **Voice rules:** the voice plays for the first `helperCycles` cycles. If the user turns it on _after_ those cycles, it stays on for the rest of the session, starting mid-cycle (`voiceKeep`).
 - **`TRANSITION_MS = 1200`** (in `session.js`) must match the CSS `--transition` (1.2s). `isTransitioning()` blocks start/stop during this window.
-- **Avoiding circular imports:** `session.js` reads limit state through a getter that `main.js` registers with `registerLimitGetter()`, not by importing it from `ui.js`.
-- **`window.applyLang`** is exposed by `main.js` for `tutorial.js`, which is not bundled with the modules. `build.js` minifies `tutorial.js` with `toplevel: false` so this global access survives.
-- **Mobile audio:** the ambient `AudioContext` must be created synchronously inside a user gesture, so there can be no `await` before `new AudioContext()`. The shared `audioCtx` resumes on mousedown, touchstart, and keydown.
-- **Visibility:** when the tab is hidden with no session running, ambient music is suspended. When the tab becomes visible during a session, the wake lock is re-acquired.
-- **Language changes** reload the layers (`loadTechniqueLoops(preset, lang)`), so the voice layer switches language from the next scheduled cycle, even mid-session.
-- **Layers are always scheduled.** Toggling only changes the layer's gain, so it is instant and never re-syncs. When adding a layer, add it to `LAYER_VOLUME` (and to `_enabled` if it can be turned off) in `loop.js`, add a `.sound-toggle` button in `index.html`, add a default in `sound-controls.js`, and add i18n keys.
-- Icon-only buttons get translated `aria-label`/`title` via `data-i18n-label="key"` (handled in `applyLang`).
-- The tutorial runs on **every** page load. Nothing in it is persisted. The only localStorage use is the sound preferences.
-- Code comments mix English and Spanish (Rioplatense voseo in UI copy: "Tocalo", "respirás"). Match the surrounding style.
+- **Session events:** `'starting'` fires synchronously inside the user's tap, before any `await`. Things that need a user gesture on iOS (`media-session.js`'s `<audio>.play()`) hook there.
+- **Avoiding circular imports:** `session.js` reads limit state through `registerLimitGetter()`.
+- **`window.applyLang`** (= `setLanguage` in `main.js`) and **`window.showTutorial`** (from `tutorial.js`) connect the bundled modules with the standalone tutorial. `build.js` minifies `tutorial.js` with `toplevel: false`.
+- **Language** is applied at module load in `main.js`, before `tutorial.js` renders, so the tutorial opens in the right language.
+- **Mobile audio:** the ambient `AudioContext` must be created synchronously inside a user gesture, with no `await` before `new AudioContext()`. The sound buttons don't `stopPropagation`, so a first tap on them still reaches the document listener that starts the music.
+- **Dialogs** (`.modal-overlay`):
+  - each has `role="dialog"` and an `aria-labelledby` pointing at `<id>-title`;
+  - closed ones are `visibility: hidden`, so they leave the Tab order;
+  - `openModal`/`closeModal` move focus in and back.
+- **Icon-only buttons** get a translated `aria-label`/`title` via `data-i18n-label="key"`.
+- **Safety notes:** presets with `warnEs`/`warnEn` show the note on their card and a one-time "Before you start" modal. If that modal appears mid-session, the session stops and does not restart.
+- **Copy:** UI copy uses Rioplatense voseo ("Tocalo", "respirás"), and code comments are mostly English. Match the surrounding style.
 
 ## Adding things
 
-- **New technique:** add an entry to `PRESETS` with `soundDir: '<dir>'`, and add `assets/sounds/<dir>/` with `<dir>-breathing.mp3` (phase cues), `<dir>-breaths.mp3`, `<dir>-voice-es.mp3`, and `<dir>-voice-en.mp3`. Every file must be **exactly one cycle long** (the sum of `timing`) and start at the beginning of the inhale. Consider updating the tutorial's "when and how" step in `tutorial.js`.
-- **New language:** add a key to `i18n` with every key, add `nameXx`/`tagXx`/`descXx` handling (the code uses `lang === 'es' ? ... : ...` ternaries in `main.js` and `ui.js`), a `<dir>-voice-xx.mp3` per technique, add a `.ctrl-option` to `#lang-dropdown` in `index.html`, and add strings to each tutorial step.
-- **New UI string:** add it to both `i18n.es` and `i18n.en`, then use `data-i18n="key"` in the HTML.
+- **New technique:**
+  1. Add an entry to `PRESETS` with `soundDir: '<dir>'`.
+  2. Add `assets/sounds/<dir>/` with `<dir>-breathing.mp3` (phase cues), `<dir>-breaths.mp3`, `<dir>-voice-es.mp3` and `<dir>-voice-en.mp3`. Every file must be **exactly one cycle long** (the sum of `timing`) and start at the beginning of the inhale. `soundDir` is also the id stored in the history, so don't rename it later.
+  3. Add `warnEs`/`warnEn` if the technique needs a caution.
+  4. Consider updating the tutorial's "when and how" step.
+- **New language:**
+  1. Add an `i18n` table with every key.
+  2. Add `nameXx`/`tagXx`/`descXx`/`warnXx` to each preset (`presetText()` picks the suffix).
+  3. Add `<dir>-voice-xx.mp3` per technique.
+  4. Extend the language button (it currently toggles `es` ↔ `en`) and the tutorial steps.
+- **New UI string:** add it to both `i18n.es` and `i18n.en`, then use `data-i18n="key"` (text) or `data-i18n-label="key"` (aria-label + title).
+
+## Tests (`test/`)
+
+`npm test` runs `node --test` with `test/setup.mjs`, which:
+
+- swaps `./audio.js` for `test/mock-audio.mjs` (a mock AudioContext with a settable `currentTime` that logs every scheduled source);
+- provides an in-memory `localStorage`.
+
+The test files:
+
+- `loop.test.mjs`: the scheduler (cycle alignment, voice rules, ticks, gains, fade-out, fractional cycles)
+- `history.test.mjs`: streak and stats
+- `content.test.mjs`: i18n keys vs `index.html`, preset completeness, sound files on disk
+
+There are no browser tests in the repo. Check UI changes by running the app.
 
 ## Build pipeline (`build.js`)
 
-It starts by deleting `dist/`, then:
+It empties `dist/` (rather than deleting it: on Windows the folder can't be removed while something has it open), then:
 
 1. Minifies `style.css` with clean-css (level 2).
 2. Bundles `assets/js/main.js` with **esbuild** into a single minified IIFE and drops `console.*`.
 3. Minifies `tutorial.js` with terser and drops console calls.
-4. Rewrites and minifies `index.html`, and injects service worker registration if it is missing.
+4. Rewrites and minifies `index.html`: module script tags become `defer`. It throws if the expected `<script type="module" src="/assets/js/main.js">` tag is missing. It also injects the service worker registration.
 5. Copies `assets/` (except `js/`) and `manifest.json`.
 6. Generates `dist/sw.js`:
 
-   - The shell (html, css, js, icons, manifest) is **cache-first**. The cache name `neyen-shell-<hash>` uses a content hash, so the cache only rolls over when shell files change.
-   - `/assets/sounds/*` is **network-first** with a cache fallback (`neyen-sounds`).
+   - Everything is **precached at install**, sounds included (~1.5 MB), so the app works fully offline from the first visit.
+   - There are two caches named after a content hash: `neyen-shell-<hash>` and `neyen-sounds-<hash>`. A deploy only re-downloads what changed, and old caches are deleted on activate.
+   - All requests are cache-first. Navigations are served the cached `/index.html`.
+   - A new version activates immediately. `main.js` then shows a "new version · Reload" toast, delayed until the session ends if one is running.
 
    `sw.js` is generated by the build. Never hand-edit it; change `generateServiceWorker()` instead.
-
-## Known issues (as of writing)
-
-- `build.js` string-replaces `<script type="module" src="assets/js/main.js">`, but `index.html` uses `/assets/js/main.js` (leading slash). The replace never matches, so `dist/index.html` still loads the IIFE bundle with `type="module"`. This works, but it doesn't match the build script's intent.
-- `index.html` has a duplicate `</head>` and an empty inline `<script>`.
