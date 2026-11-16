@@ -20,7 +20,8 @@ function _silentWavUrl() {
   const samples = sampleRate;
   const buf = new ArrayBuffer(44 + samples * 2);
   const v = new DataView(buf);
-  const str = (o, s) => [...s].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+  const str = (o, s) =>
+    [...s].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
   str(0, 'RIFF');
   v.setUint32(4, 36 + samples * 2, true);
   str(8, 'WAVE');
@@ -67,8 +68,16 @@ export function showMediaSession({ title, album, onStop }) {
       artist: 'Neyen',
       album,
       artwork: [
-        { src: '/assets/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-        { src: '/assets/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+        {
+          src: '/assets/icons/icon-192.png',
+          sizes: '192x192',
+          type: 'image/png',
+        },
+        {
+          src: '/assets/icons/icon-512.png',
+          sizes: '512x512',
+          type: 'image/png',
+        },
       ],
     });
     ms.playbackState = 'playing';

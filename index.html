@@ -1,194 +1,411 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Neyen | el arte de respirar</title>
-     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
 
     <!-- ── Primary meta ──────────────────────────────── -->
-    <meta name="description" content="Guided breathing techniques to calm, focus, or energize you.">
-    <meta name="theme-color" content="#06030f">
-    <link rel="icon" href="assets/icons/icon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
-    <link rel="manifest" href="manifest.json">
+    <meta
+      name="description"
+      content="Guided breathing techniques to calm, focus, or energize you."
+    />
+    <meta name="theme-color" content="#06030f" />
+    <link rel="icon" href="assets/icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
+    <link rel="manifest" href="manifest.json" />
 
     <!-- ── Open Graph (WhatsApp, Telegram, LinkedIn…) ── -->
-    <meta property="og:type"        content="website">
-    <meta property="og:title"       content="Neyen | the art of breathing">
-    <meta property="og:description" content="Guided breathing techniques to calm, focus, or energize you.">
-    <meta property="og:image"       content="https://neyenbreath.netlify.app/assets/icons/og-image.png">
-    <meta property="og:url"         content="https://neyenbreath.netlify.app">
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Neyen | the art of breathing" />
+    <meta
+      property="og:description"
+      content="Guided breathing techniques to calm, focus, or energize you."
+    />
+    <meta
+      property="og:image"
+      content="https://neyenbreath.netlify.app/assets/icons/og-image.png"
+    />
+    <meta property="og:url" content="https://neyenbreath.netlify.app" />
 
     <!-- ── Twitter / X ──────────────────────────────── -->
-    <meta name="twitter:card"        content="summary_large_image">
-    <meta name="twitter:title"       content="Neyen | the art of breathing">
-    <meta name="twitter:description" content="Guided breathing techniques to calm, focus, or energize you.">
-    <meta name="twitter:image"       content="https://neyenbreath.netlify.app/assets/icons/og-image.png">
-</head>
-<body>
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Neyen | the art of breathing" />
+    <meta
+      name="twitter:description"
+      content="Guided breathing techniques to calm, focus, or energize you."
+    />
+    <meta
+      name="twitter:image"
+      content="https://neyenbreath.netlify.app/assets/icons/og-image.png"
+    />
+  </head>
+  <body>
     <div class="main-layout">
-        <div class="container">
-
-            <!-- Corner controls (fixed top-right): language + tutorial -->
-            <div class="corner-controls" id="corner-controls">
-                <button class="corner-btn" id="lang-btn" data-i18n="langTarget" data-i18n-label="langSwitch" aria-label="Switch to English" title="Switch to English">EN</button>
-                <button class="corner-btn" id="help-btn" data-i18n-label="helpLabel" aria-label="Ver tutorial" title="Ver tutorial">?</button>
-            </div>
-
-            <!-- Header -->
-            <div class="header-row">
-                <h1 data-i18n="title">Neyen | el arte de respirar</h1>
-            </div>
-
-            <!-- Stats row -->
-            <div class="stats-box">
-                <div class="stat-item">
-                    <span class="stat-label" data-i18n="statSession">Sesión</span>
-                    <span class="stat-value" id="session-counter">00:00</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label" data-i18n="statCycles">Ciclos</span>
-                    <span class="stat-value" id="cycle-counter">0</span>
-                </div>
-                <button class="stat-item stat-item--last stat-btn" id="streak-btn" data-i18n-label="historyOpen" aria-label="Ver tu práctica" title="Ver tu práctica">
-                    <span class="stat-label" data-i18n="statStreak">Racha</span>
-                    <span class="stat-value" id="streak-value">--</span>
-                </button>
-            </div>
-
-            <!-- Technique name + limit badge row -->
-            <div class="meta-row" id="meta-row">
-                <span id="technique-label">Respiración cuadrada</span>
-                <span id="limit-badge" class="limit-badge" hidden></span>
-            </div>
-
-            <!-- Breathing circle (tap to start/stop) -->
-            <div id="breathing-circle-container">
-                <div id="breathing-circle" role="button" tabindex="0" data-i18n-label="circleLabel" aria-label="Iniciar o detener la sesión" title="Iniciar o detener la sesión">
-                    <span id="breath-text" data-i18n="ready" aria-live="polite">Listo</span>
-                    <div id="phase-timer" aria-hidden="true"></div>
-                </div>
-            </div>
-
-            <!-- Techniques + session duration — hidden during session -->
-            <div class="action-pills" id="action-pills">
-                <button class="pill-tecnicas" id="tecnicas-btn" data-i18n="menuPresets">Técnicas</button>
-                <button class="pill-duration" id="duration-btn" data-i18n-label="durationLabel" aria-label="Duración de la sesión" title="Duración de la sesión">⏱ ∞</button>
-            </div>
-
-            <!-- Sound on/off toggles — stay available during the session -->
-            <div class="sound-toggles" id="sound-toggles">
-                <button class="sound-toggle" data-sound="music" data-i18n-label="soundMusic" aria-label="Música ambiente" title="Música ambiente" aria-pressed="true">🎵</button>
-                <button class="sound-toggle" data-sound="voice" data-i18n-label="soundVoice" aria-label="Voz guía" title="Voz guía" aria-pressed="true">🗣️</button>
-                <button class="sound-toggle" data-sound="breaths" data-i18n-label="soundBreaths" aria-label="Sonido de respiración" title="Sonido de respiración" aria-pressed="true">🌬️</button>
-                <button class="sound-toggle" data-sound="ticks" data-i18n-label="soundTicks" aria-label="Segundos" title="Segundos" aria-pressed="false">⏱️</button>
-                <button class="sound-toggle mixer-btn" id="mixer-btn" data-i18n-label="mixerOpen" aria-label="Ajustar volúmenes" title="Ajustar volúmenes">🎚️</button>
-            </div>
-
-            <!-- Footer -->
-            <footer>
-                <a href="https://buymeacoffee.com/soypradito" target="_blank" class="bmc-btn">
-                    <span data-i18n="buymeacoffee">Invitame un café</span>
-                </a>
-                <span class="footer-sep">·</span>
-                <a href="https://instagram.com/soypradito" target="_blank" class="author-tag">@soypradito</a>
-            </footer>
+      <div class="container">
+        <!-- Corner controls (fixed top-right): language + tutorial -->
+        <div class="corner-controls" id="corner-controls">
+          <button
+            class="corner-btn"
+            id="lang-btn"
+            data-i18n="langTarget"
+            data-i18n-label="langSwitch"
+            aria-label="Switch to English"
+            title="Switch to English"
+          >
+            EN
+          </button>
+          <button
+            class="corner-btn"
+            id="help-btn"
+            data-i18n-label="helpLabel"
+            aria-label="Ver tutorial"
+            title="Ver tutorial"
+          >
+            ?
+          </button>
         </div>
+
+        <!-- Header -->
+        <div class="header-row">
+          <h1 data-i18n="title">Neyen | el arte de respirar</h1>
+        </div>
+
+        <!-- Stats row -->
+        <div class="stats-box">
+          <div class="stat-item">
+            <span class="stat-label" data-i18n="statSession">Sesión</span>
+            <span class="stat-value" id="session-counter">00:00</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label" data-i18n="statCycles">Ciclos</span>
+            <span class="stat-value" id="cycle-counter">0</span>
+          </div>
+          <button
+            class="stat-item stat-item--last stat-btn"
+            id="streak-btn"
+            data-i18n-label="historyOpen"
+            aria-label="Ver tu práctica"
+            title="Ver tu práctica"
+          >
+            <span class="stat-label" data-i18n="statStreak">Racha</span>
+            <span class="stat-value" id="streak-value">--</span>
+          </button>
+        </div>
+
+        <!-- Technique name + limit badge row -->
+        <div class="meta-row" id="meta-row">
+          <span id="technique-label">Respiración cuadrada</span>
+          <span id="limit-badge" class="limit-badge" hidden></span>
+        </div>
+
+        <!-- Breathing circle (tap to start/stop) -->
+        <div id="breathing-circle-container">
+          <div
+            id="breathing-circle"
+            role="button"
+            tabindex="0"
+            data-i18n-label="circleLabel"
+            aria-label="Iniciar o detener la sesión"
+            title="Iniciar o detener la sesión"
+          >
+            <span id="breath-text" data-i18n="ready" aria-live="polite"
+              >Listo</span
+            >
+            <div id="phase-timer" aria-hidden="true"></div>
+          </div>
+        </div>
+
+        <!-- Techniques + session duration — hidden during session -->
+        <div class="action-pills" id="action-pills">
+          <button
+            class="pill-tecnicas"
+            id="tecnicas-btn"
+            data-i18n="menuPresets"
+          >
+            Técnicas
+          </button>
+          <button
+            class="pill-duration"
+            id="duration-btn"
+            data-i18n-label="durationLabel"
+            aria-label="Duración de la sesión"
+            title="Duración de la sesión"
+          >
+            ⏱ ∞
+          </button>
+        </div>
+
+        <!-- Sound on/off toggles — stay available during the session -->
+        <div class="sound-toggles" id="sound-toggles">
+          <button
+            class="sound-toggle"
+            data-sound="music"
+            data-i18n-label="soundMusic"
+            aria-label="Música ambiente"
+            title="Música ambiente"
+            aria-pressed="true"
+          >
+            🎵
+          </button>
+          <button
+            class="sound-toggle"
+            data-sound="voice"
+            data-i18n-label="soundVoice"
+            aria-label="Voz guía"
+            title="Voz guía"
+            aria-pressed="true"
+          >
+            🗣️
+          </button>
+          <button
+            class="sound-toggle"
+            data-sound="breaths"
+            data-i18n-label="soundBreaths"
+            aria-label="Sonido de respiración"
+            title="Sonido de respiración"
+            aria-pressed="true"
+          >
+            🌬️
+          </button>
+          <button
+            class="sound-toggle"
+            data-sound="ticks"
+            data-i18n-label="soundTicks"
+            aria-label="Segundos"
+            title="Segundos"
+            aria-pressed="false"
+          >
+            ⏱️
+          </button>
+          <button
+            class="sound-toggle mixer-btn"
+            id="mixer-btn"
+            data-i18n-label="mixerOpen"
+            aria-label="Ajustar volúmenes"
+            title="Ajustar volúmenes"
+          >
+            🎚️
+          </button>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+          <a
+            href="https://buymeacoffee.com/soypradito"
+            target="_blank"
+            class="bmc-btn"
+          >
+            <span data-i18n="buymeacoffee">Invitame un café</span>
+          </a>
+          <span class="footer-sep">·</span>
+          <a
+            href="https://instagram.com/soypradito"
+            target="_blank"
+            class="author-tag"
+            >@soypradito</a
+          >
+        </footer>
+      </div>
     </div>
 
     <!-- Modal: Técnicas -->
     <div class="modal-overlay" id="modal-tecnicas" aria-hidden="true">
-        <div class="modal modal-tecnicas-modal" role="dialog" aria-modal="true" aria-labelledby="modal-tecnicas-title">
-            <div class="modal-header">
-                <span class="modal-title" id="modal-tecnicas-title" data-i18n="menuPresets">Técnicas</span>
-                <button class="modal-close" data-close="modal-tecnicas" data-i18n-label="close" aria-label="Cerrar">✕</button>
-            </div>
-            <div class="modal-body">
-                <div id="presets-list"></div>
-            </div>
+      <div
+        class="modal modal-tecnicas-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-tecnicas-title"
+      >
+        <div class="modal-header">
+          <span
+            class="modal-title"
+            id="modal-tecnicas-title"
+            data-i18n="menuPresets"
+            >Técnicas</span
+          >
+          <button
+            class="modal-close"
+            data-close="modal-tecnicas"
+            data-i18n-label="close"
+            aria-label="Cerrar"
+          >
+            ✕
+          </button>
         </div>
+        <div class="modal-body">
+          <div id="presets-list"></div>
+        </div>
+      </div>
     </div>
 
     <!-- Modal: sound panel (on/off + volume per channel) -->
     <div class="modal-overlay" id="modal-sound" aria-hidden="true">
-        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-sound-title">
-            <div class="modal-header">
-                <span class="modal-title" id="modal-sound-title" data-i18n="mixerTitle">Sonido</span>
-                <button class="modal-close" data-close="modal-sound" data-i18n-label="close" aria-label="Cerrar">✕</button>
-            </div>
-            <div class="modal-body">
-                <div id="mixer-list"></div>
-            </div>
+      <div
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-sound-title"
+      >
+        <div class="modal-header">
+          <span
+            class="modal-title"
+            id="modal-sound-title"
+            data-i18n="mixerTitle"
+            >Sonido</span
+          >
+          <button
+            class="modal-close"
+            data-close="modal-sound"
+            data-i18n-label="close"
+            aria-label="Cerrar"
+          >
+            ✕
+          </button>
         </div>
+        <div class="modal-body">
+          <div id="mixer-list"></div>
+        </div>
+      </div>
     </div>
 
     <!-- Modal: safety notice, shown the first time a technique with a warning is chosen -->
     <div class="modal-overlay" id="modal-warning" aria-hidden="true">
-        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-warning-title">
-            <div class="modal-header">
-                <span class="modal-title" id="modal-warning-title" data-i18n="warningTitle">Antes de empezar</span>
-                <button class="modal-close" data-close="modal-warning" data-i18n-label="close" aria-label="Cerrar">✕</button>
-            </div>
-            <div class="modal-body">
-                <p class="warning-technique" id="warning-technique"></p>
-                <p class="warning-text" id="warning-text"></p>
-                <button class="warning-ok" id="warning-ok" data-i18n="warningOk">Entendido</button>
-            </div>
+      <div
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-warning-title"
+      >
+        <div class="modal-header">
+          <span
+            class="modal-title"
+            id="modal-warning-title"
+            data-i18n="warningTitle"
+            >Antes de empezar</span
+          >
+          <button
+            class="modal-close"
+            data-close="modal-warning"
+            data-i18n-label="close"
+            aria-label="Cerrar"
+          >
+            ✕
+          </button>
         </div>
+        <div class="modal-body">
+          <p class="warning-technique" id="warning-technique"></p>
+          <p class="warning-text" id="warning-text"></p>
+          <button class="warning-ok" id="warning-ok" data-i18n="warningOk">
+            Entendido
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Modal: end-of-session summary -->
     <div class="modal-overlay" id="modal-summary" aria-hidden="true">
-        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-summary-title">
-            <div class="modal-header">
-                <span class="modal-title" id="modal-summary-title" data-i18n="summaryTitle">Bien hecho 🙏</span>
-                <button class="modal-close" data-close="modal-summary" data-i18n-label="close" aria-label="Cerrar">✕</button>
-            </div>
-            <div class="modal-body summary">
-                <p class="summary-limit" id="summary-limit" hidden></p>
-                <div class="summary-stats">
-                    <div class="summary-stat">
-                        <span class="summary-value" id="summary-time">00:00</span>
-                        <span class="summary-label" data-i18n="summaryDuration">Duración</span>
-                    </div>
-                    <div class="summary-stat">
-                        <span class="summary-value" id="summary-cycles">0</span>
-                        <span class="summary-label" data-i18n="statCycles">Ciclos</span>
-                    </div>
-                </div>
-                <p class="summary-technique" id="summary-technique"></p>
-                <p class="summary-streak" id="summary-streak"></p>
-                <div class="mood" id="mood">
-                    <p class="mood-question" data-i18n="moodQuestion">¿Cómo te sentís?</p>
-                    <div class="mood-options">
-                        <button class="mood-btn" data-mood="calmer"><span class="mood-emoji" aria-hidden="true">😌</span><span data-i18n="moodCalmer">Más en calma</span></button>
-                        <button class="mood-btn" data-mood="same"><span class="mood-emoji" aria-hidden="true">😐</span><span data-i18n="moodSame">Igual</span></button>
-                        <button class="mood-btn" data-mood="energized"><span class="mood-emoji" aria-hidden="true">⚡</span><span data-i18n="moodEnergized">Con más energía</span></button>
-                    </div>
-                    <p class="mood-thanks" data-i18n="moodThanks">Gracias ✨</p>
-                </div>
-            </div>
+      <div
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-summary-title"
+      >
+        <div class="modal-header">
+          <span
+            class="modal-title"
+            id="modal-summary-title"
+            data-i18n="summaryTitle"
+            >Bien hecho 🙏</span
+          >
+          <button
+            class="modal-close"
+            data-close="modal-summary"
+            data-i18n-label="close"
+            aria-label="Cerrar"
+          >
+            ✕
+          </button>
         </div>
+        <div class="modal-body summary">
+          <p class="summary-limit" id="summary-limit" hidden></p>
+          <div class="summary-stats">
+            <div class="summary-stat">
+              <span class="summary-value" id="summary-time">00:00</span>
+              <span class="summary-label" data-i18n="summaryDuration"
+                >Duración</span
+              >
+            </div>
+            <div class="summary-stat">
+              <span class="summary-value" id="summary-cycles">0</span>
+              <span class="summary-label" data-i18n="statCycles">Ciclos</span>
+            </div>
+          </div>
+          <p class="summary-technique" id="summary-technique"></p>
+          <p class="summary-streak" id="summary-streak"></p>
+          <div class="mood" id="mood">
+            <p class="mood-question" data-i18n="moodQuestion">
+              ¿Cómo te sentís?
+            </p>
+            <div class="mood-options">
+              <button class="mood-btn" data-mood="calmer">
+                <span class="mood-emoji" aria-hidden="true">😌</span
+                ><span data-i18n="moodCalmer">Más en calma</span>
+              </button>
+              <button class="mood-btn" data-mood="same">
+                <span class="mood-emoji" aria-hidden="true">😐</span
+                ><span data-i18n="moodSame">Igual</span>
+              </button>
+              <button class="mood-btn" data-mood="energized">
+                <span class="mood-emoji" aria-hidden="true">⚡</span
+                ><span data-i18n="moodEnergized">Con más energía</span>
+              </button>
+            </div>
+            <p class="mood-thanks" data-i18n="moodThanks">Gracias ✨</p>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Modal: practice history -->
     <div class="modal-overlay" id="modal-history" aria-hidden="true">
-        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-history-title">
-            <div class="modal-header">
-                <span class="modal-title" id="modal-history-title" data-i18n="historyTitle">Tu práctica</span>
-                <button class="modal-close" data-close="modal-history" data-i18n-label="close" aria-label="Cerrar">✕</button>
-            </div>
-            <div class="modal-body">
-                <div class="history-tiles" id="history-tiles"></div>
-                <p class="history-subtitle" data-i18n="historyRecent">Últimas sesiones</p>
-                <p class="history-empty" id="history-empty" data-i18n="historyEmpty">Todavía no hay sesiones.</p>
-                <ul class="history-list" id="history-list"></ul>
-            </div>
+      <div
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-history-title"
+      >
+        <div class="modal-header">
+          <span
+            class="modal-title"
+            id="modal-history-title"
+            data-i18n="historyTitle"
+            >Tu práctica</span
+          >
+          <button
+            class="modal-close"
+            data-close="modal-history"
+            data-i18n-label="close"
+            aria-label="Cerrar"
+          >
+            ✕
+          </button>
         </div>
+        <div class="modal-body">
+          <div class="history-tiles" id="history-tiles"></div>
+          <p class="history-subtitle" data-i18n="historyRecent">
+            Últimas sesiones
+          </p>
+          <p class="history-empty" id="history-empty" data-i18n="historyEmpty">
+            Todavía no hay sesiones.
+          </p>
+          <ul class="history-list" id="history-list"></ul>
+        </div>
+      </div>
     </div>
 
     <script type="module" src="/assets/js/main.js"></script>
     <script type="module" src="tutorial.js"></script>
-</body>
+  </body>
 </html>

@@ -464,7 +464,8 @@
 
   // First visit only
   if (!isDone()) {
-    const start = () => requestAnimationFrame(() => setTimeout(openTutorial, 80));
+    const start = () =>
+      requestAnimationFrame(() => setTimeout(openTutorial, 80));
     if (document.readyState === 'loading')
       window.addEventListener('DOMContentLoaded', start);
     else start();

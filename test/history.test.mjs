@@ -31,7 +31,11 @@ test('a missed day breaks the streak', () => {
 
 test('several sessions on the same day count once', () => {
   const now = new Date(2026, 10, 16, 20);
-  const list = entries(day(2026, 11, 16, 7), day(2026, 11, 16, 21), day(2026, 11, 15));
+  const list = entries(
+    day(2026, 11, 16, 7),
+    day(2026, 11, 16, 21),
+    day(2026, 11, 15),
+  );
   assert.equal(_streak(list, now), 2);
 });
 

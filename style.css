@@ -48,19 +48,37 @@ body {
   font-family: 'DM Sans', sans-serif;
   color: var(--text-primary);
   background-color: var(--bg-base);
-  background-image:
-    radial-gradient(ellipse 80% 60% at 20% 10%, var(--bg-grad-a) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 80% 80%, var(--bg-grad-b) 0%, transparent 55%),
-    radial-gradient(ellipse 50% 40% at 60% 30%, var(--bg-grad-c) 0%, transparent 70%);
+  background-image: radial-gradient(
+      ellipse 80% 60% at 20% 10%,
+      var(--bg-grad-a) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 60% 50% at 80% 80%,
+      var(--bg-grad-b) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 50% 40% at 60% 30%,
+      var(--bg-grad-c) 0%,
+      transparent 70%
+    );
   overflow: hidden;
 }
 body::before {
   content: '';
   position: fixed;
   inset: -50%;
-  background:
-    radial-gradient(ellipse 40% 30% at 30% 70%, var(--nebula-a) 0%, transparent 60%),
-    radial-gradient(ellipse 35% 25% at 75% 25%, var(--nebula-b) 0%, transparent 60%);
+  background: radial-gradient(
+      ellipse 40% 30% at 30% 70%,
+      var(--nebula-a) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 35% 25% at 75% 25%,
+      var(--nebula-b) 0%,
+      transparent 60%
+    );
   animation: nebula 18s ease-in-out infinite alternate;
   pointer-events: none;
   z-index: 0;
@@ -115,7 +133,11 @@ button {
   padding: 14px 0;
   border-radius: 14px;
   border: 1px solid rgba(176, 132, 245, 0.3);
-  background: linear-gradient(135deg, rgba(130, 70, 255, 0.5), rgba(90, 30, 200, 0.4));
+  background: linear-gradient(
+    135deg,
+    rgba(130, 70, 255, 0.5),
+    rgba(90, 30, 200, 0.4)
+  );
   color: var(--text-primary);
   font-weight: 500;
   font-size: 0.9rem;

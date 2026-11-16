@@ -11,7 +11,10 @@ const MOCK_AUDIO = new URL('./mock-audio.mjs', import.meta.url).href;
 
 registerHooks({
   resolve(specifier, context, next) {
-    if (specifier === './audio.js' && context.parentURL?.includes('/assets/js/'))
+    if (
+      specifier === './audio.js' &&
+      context.parentURL?.includes('/assets/js/')
+    )
       return { url: MOCK_AUDIO, shortCircuit: true };
     return next(specifier, context);
   },

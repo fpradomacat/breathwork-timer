@@ -8,23 +8,25 @@ A guided breathing timer that runs in the browser and can be installed on your p
 
 Pick a breathing technique and tap the circle. The circle grows as you inhale and shrinks as you exhale, and a voice guides you through the first few cycles. After that the voice drops out and you keep breathing to the rhythm.
 
-| Technique | Pattern (in · hold · out · hold) | Good for |
-|---|---|---|
-| Box Breathing | 4 · 4 · 4 · 4 | Balance |
-| Cardiac Coherence | 5 · 0 · 5 · 0 | Calm |
-| 4-7-8 Relaxing | 4 · 7 · 8 · 0 | Sleep |
-| Fire Breath | 1 · 0 · 1 · 0 (auto-stops after 30 cycles) | Energy |
+| Technique         | Pattern (in · hold · out · hold)           | Good for |
+| ----------------- | ------------------------------------------ | -------- |
+| Box Breathing     | 4 · 4 · 4 · 4                              | Balance  |
+| Cardiac Coherence | 5 · 0 · 5 · 0                              | Calm     |
+| 4-7-8 Relaxing    | 4 · 7 · 8 · 0                              | Sleep    |
+| Fire Breath       | 1 · 0 · 1 · 0 (auto-stops after 30 cycles) | Energy   |
 
 Other features:
 
 - Spanish and English (UI and voice guidance)
 - Sound controls that work even during a session:
+
   - 🎵 ambient music
   - 🗣️ voice guide
   - 🌬️ breathing sound
   - ⏱️ a tick every second
 
   The sounds that mark each phase always play. Your choices are remembered.
+
 - Session timer, cycle counter, and last-session summary
 - Keeps the screen awake during a session, with haptic feedback on phase changes
 - Keyboard shortcuts: **Space** starts or stops a session, **Esc** closes dialogs
@@ -48,11 +50,11 @@ The app is plain HTML, CSS, and vanilla JavaScript, with no framework.
 
 Each technique has its own folder in `assets/sounds/` with one file per sound layer. Each file is exactly one breathing cycle long:
 
-| File | Contents | Can be turned off |
-|---|---|---|
-| `<technique>-breathing.mp3` | Phase cues (inhale, hold, exhale) | No |
-| `<technique>-breaths.mp3` | The breathing sound | Yes |
-| `<technique>-voice-es.mp3` / `-voice-en.mp3` | Voice guide | Yes |
+| File                                         | Contents                          | Can be turned off |
+| -------------------------------------------- | --------------------------------- | ----------------- |
+| `<technique>-breathing.mp3`                  | Phase cues (inhale, hold, exhale) | No                |
+| `<technique>-breaths.mp3`                    | The breathing sound               | Yes               |
+| `<technique>-voice-es.mp3` / `-voice-en.mp3` | Voice guide                       | Yes               |
 
 The second ticks are generated in code.
 

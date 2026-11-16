@@ -50,14 +50,19 @@ export function handleSessionEnd(result, preset, silent = false) {
   limitEl.textContent = result.limitMsg || '';
   document.getElementById('summary-time').textContent = formatTime(result.secs);
   document.getElementById('summary-cycles').textContent = result.cycles;
-  document.getElementById('summary-technique').textContent = presetText(preset, 'name');
+  document.getElementById('summary-technique').textContent = presetText(
+    preset,
+    'name',
+  );
   document.getElementById('summary-streak').textContent =
     `${t.streakDays(stats.streak)} · ${t.totalMinutes(stats.totalMinutes, stats.sessions)}`;
 
   // Reset the mood question
   const mood = document.getElementById('mood');
   mood.classList.remove('answered');
-  mood.querySelectorAll('.mood-btn').forEach((b) => b.classList.remove('selected'));
+  mood
+    .querySelectorAll('.mood-btn')
+    .forEach((b) => b.classList.remove('selected'));
 
   openModal('modal-summary');
 }

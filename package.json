@@ -5,7 +5,9 @@
   "private": true,
   "scripts": {
     "build": "node build.js",
-    "test": "node --test --import ./test/setup.mjs \"test/**/*.test.mjs\""
+    "test": "node --test --import ./test/setup.mjs \"test/**/*.test.mjs\"",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "repository": {
     "type": "git",
@@ -23,6 +25,7 @@
     "clean-css-cli": "^5.6.3",
     "esbuild": "^0.28.0",
     "html-minifier-terser": "^7.2.0",
+    "prettier": "^3.3.3",
     "terser": "^5.46.1"
   }
 }

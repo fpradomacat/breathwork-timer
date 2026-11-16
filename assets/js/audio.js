@@ -11,9 +11,8 @@
 //                  visibilitychange handlers can stop it cleanly.
 
 // ── Shared AudioContext ───────────────────────────────────────
-export const audioCtx = new (
-  window.AudioContext || window.webkitAudioContext
-)();
+export const audioCtx = new (window.AudioContext ||
+  window.webkitAudioContext)();
 
 export function resumeAudio() {
   if (audioCtx.state === 'suspended') audioCtx.resume();

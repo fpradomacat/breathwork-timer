@@ -14,7 +14,11 @@ export const audioCtx = {
 
   createBuffer(_channels, length, sampleRate) {
     const data = new Float32Array(length);
-    return { duration: length / sampleRate, getChannelData: () => data, tag: 'tick' };
+    return {
+      duration: length / sampleRate,
+      getChannelData: () => data,
+      tag: 'tick',
+    };
   },
 
   createGain() {

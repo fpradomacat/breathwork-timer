@@ -131,7 +131,10 @@ export function openModal(id) {
   const body = el.querySelector('.modal-body');
   if (body) body.scrollTop = 0;
   // Focus the first control after the open transition starts
-  setTimeout(() => el.querySelector('.modal-close')?.focus({ preventScroll: true }), 50);
+  setTimeout(
+    () => el.querySelector('.modal-close')?.focus({ preventScroll: true }),
+    50,
+  );
 }
 
 export function closeModal(id) {

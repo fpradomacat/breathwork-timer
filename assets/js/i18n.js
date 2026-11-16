@@ -60,7 +60,8 @@ export const i18n = {
     limitBadgeCyc: (val) => `🔄 ${val} ciclos`,
     fireBreathAutoLimit: (n) => `límite automático: ${n} ciclos`,
     durationLocked: (name, n) => `${name} tiene un límite fijo de ${n} ciclos`,
-    streakDays: (n) => (n === 1 ? '🔥 1 día de racha' : `🔥 ${n} días de racha`),
+    streakDays: (n) =>
+      n === 1 ? '🔥 1 día de racha' : `🔥 ${n} días de racha`,
     totalMinutes: (min, n) =>
       `${min} min en ${n} ${n === 1 ? 'sesión' : 'sesiones'}`,
   },

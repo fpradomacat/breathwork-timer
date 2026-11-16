@@ -32,7 +32,14 @@ const CHANNELS = [
   { key: 'music', icon: '🎵', label: 'soundMusic' },
   { key: 'ui', icon: '👆', label: 'soundUi' },
 ];
-const DEFAULT_ON = { cues: true, breaths: true, voice: true, ticks: false, music: true, ui: true };
+const DEFAULT_ON = {
+  cues: true,
+  breaths: true,
+  voice: true,
+  ticks: false,
+  music: true,
+  ui: true,
+};
 const MAX_VOLUME = 150; // slider max, in %
 
 function _loadPrefs() {
@@ -45,7 +52,9 @@ function _loadPrefs() {
     else
       prefs[key] = {
         on: typeof v?.on === 'boolean' ? v.on : DEFAULT_ON[key],
-        vol: Number.isFinite(v?.vol) ? Math.min(Math.max(v.vol, 0), MAX_VOLUME / 100) : 1,
+        vol: Number.isFinite(v?.vol)
+          ? Math.min(Math.max(v.vol, 0), MAX_VOLUME / 100)
+          : 1,
       };
   }
   prefs.cues.on = true;

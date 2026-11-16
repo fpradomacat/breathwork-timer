@@ -36,7 +36,13 @@ import {
   playEndChime,
 } from './audio.js';
 import { startLoop, stopLoop, loopsReady } from './loop.js';
-import { lang, checkLimit, formatTime, setCircleState, showToast } from './ui.js';
+import {
+  lang,
+  checkLimit,
+  formatTime,
+  setCircleState,
+  showToast,
+} from './ui.js';
 
 // ── Session state (module-private) ───────────────────────────
 let _isRunning = false;
@@ -185,11 +191,33 @@ function _buildPhases() {
 
   const phases = [];
   if (tIn > 0)
-    phases.push({ dur: tIn, label: t.inhaling, state: 'active', transition: move(tIn) });
-  if (tHF > 0) phases.push({ dur: tHF, label: t.holdingFull, state: null, transition: null });
+    phases.push({
+      dur: tIn,
+      label: t.inhaling,
+      state: 'active',
+      transition: move(tIn),
+    });
+  if (tHF > 0)
+    phases.push({
+      dur: tHF,
+      label: t.holdingFull,
+      state: null,
+      transition: null,
+    });
   if (tOut > 0)
-    phases.push({ dur: tOut, label: t.exhaling, state: 'collapsed', transition: move(tOut) });
-  if (tHE > 0) phases.push({ dur: tHE, label: t.holdingEmpty, state: null, transition: null });
+    phases.push({
+      dur: tOut,
+      label: t.exhaling,
+      state: 'collapsed',
+      transition: move(tOut),
+    });
+  if (tHE > 0)
+    phases.push({
+      dur: tHE,
+      label: t.holdingEmpty,
+      state: null,
+      transition: null,
+    });
   return phases;
 }
 
@@ -239,7 +267,11 @@ function _runCycle() {
     phaseTimerEl.innerText = n;
     playCountTick(n === 1);
     navigator.vibrate?.(15);
-    _at(_t0 - (n - 1), () => _countdown(n - 1), (h) => (_phaseTimer = h));
+    _at(
+      _t0 - (n - 1),
+      () => _countdown(n - 1),
+      (h) => (_phaseTimer = h),
+    );
   }
 
   _phaseEndsAt = _t0;
@@ -248,7 +280,11 @@ function _runCycle() {
     phases.reduce((sum, p) => sum + p.dur, 0),
   );
   breathText.innerText = i18n[lang].getReady;
-  _at(_t0 - COUNTDOWN, () => _countdown(COUNTDOWN), (h) => (_phaseTimer = h));
+  _at(
+    _t0 - COUNTDOWN,
+    () => _countdown(COUNTDOWN),
+    (h) => (_phaseTimer = h),
+  );
 }
 
 // ── Start / Stop ──────────────────────────────────────────────

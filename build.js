@@ -149,9 +149,7 @@ function listFilesRecursive(dir) {
   if (!fs.existsSync(dir)) return [];
   return fs.readdirSync(dir).flatMap((entry) => {
     const full = path.join(dir, entry);
-    return fs.statSync(full).isDirectory()
-      ? listFilesRecursive(full)
-      : [full];
+    return fs.statSync(full).isDirectory() ? listFilesRecursive(full) : [full];
   });
 }
 
@@ -174,7 +172,9 @@ function generateServiceWorker() {
     `${DIST}/style.css`,
     `${DIST}/tutorial.js`,
     `${DIST}/manifest.json`,
-    ...listFilesRecursive(`${DIST}/assets`).filter((f) => !f.startsWith(soundsDir)),
+    ...listFilesRecursive(`${DIST}/assets`).filter(
+      (f) => !f.startsWith(soundsDir),
+    ),
   ].filter((f, i, arr) => fs.existsSync(f) && arr.indexOf(f) === i);
 
   const shellVersion = contentHash(shellFiles);
