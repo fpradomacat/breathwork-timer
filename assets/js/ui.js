@@ -169,13 +169,35 @@ const _toastEl = (() => {
   return el;
 })();
 
+_toastEl.setAttribute('role', 'status');
+
 let _toastTimer = null;
 
-export function showToast(msg) {
+/**
+ * Show a short message at the bottom of the screen.
+ * @param {string} msg
+ * @param {object} [opts]
+ * @param {string}   [opts.actionLabel] — adds a button to the toast
+ * @param {Function} [opts.onAction]
+ * @param {boolean}  [opts.sticky]      — stays until the action is used
+ */
+export function showToast(msg, { actionLabel, onAction, sticky = false } = {}) {
   _toastEl.textContent = msg;
+  _toastEl.classList.toggle('actionable', Boolean(actionLabel));
+  if (actionLabel) {
+    const btn = document.createElement('button');
+    btn.className = 'toast-action';
+    btn.textContent = actionLabel;
+    btn.addEventListener('click', () => {
+      _toastEl.classList.remove('show');
+      onAction?.();
+    });
+    _toastEl.appendChild(btn);
+  }
   _toastEl.classList.add('show');
   clearTimeout(_toastTimer);
-  _toastTimer = setTimeout(() => _toastEl.classList.remove('show'), 3500);
+  if (!sticky)
+    _toastTimer = setTimeout(() => _toastEl.classList.remove('show'), 3500);
 }
 
 // ── Preset cards ──────────────────────────────────────────────

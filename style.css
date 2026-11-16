@@ -1037,6 +1037,22 @@ footer {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
+/* Toast with a button (e.g. "New version · Reload") */
+.limit-toast.actionable {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 8px 8px 20px;
+}
+.limit-toast.actionable.show {
+  pointer-events: auto;
+}
+.toast-action {
+  flex: none;
+  padding: 7px 14px;
+  border-radius: 100px;
+  font-size: 0.8rem;
+}
 
 /* ── Accessibility ───────────────────────────────────────────── */
 /* Visible focus ring for keyboard users only */
