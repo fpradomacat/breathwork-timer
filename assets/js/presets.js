@@ -2,7 +2,8 @@
 //
 // Each preset defines:
 //   nameEs / nameEn      — displayed name in the UI
-//   tagEs  / tagEn       — short goal tag shown on the card
+//   goal                 — id from GOALS. The techniques modal asks "what
+//                          do you need?" and lists techniques by goal
 //   descEs / descEn      — description shown in the techniques modal
 //   timing               — [inhale, holdFull, exhale, holdEmpty] in seconds
 //                          (fractions allowed, e.g. 5.5)
@@ -18,12 +19,20 @@
 //                          a "before you start" notice the first time the
 //                          technique is chosen
 
+// Goals, in the order the techniques modal lists them. The label is the
+// i18n key; each goal must have at least one preset (checked in tests).
+export const GOALS = [
+  { id: 'calm', emoji: '😌', label: 'goalCalm' },
+  { id: 'sleep', emoji: '🌙', label: 'goalSleep' },
+  { id: 'focus', emoji: '🎯', label: 'goalFocus' },
+  { id: 'energy', emoji: '⚡', label: 'goalEnergy' },
+];
+
 export const PRESETS = [
   {
     nameEs: 'Respiración cuadrada',
     nameEn: 'Box Breathing',
-    tagEs: 'Equilibrio',
-    tagEn: 'Balance',
+    goal: 'focus',
     timing: [4, 4, 4, 4],
     soundDir: 'box',
     helperCycles: 3,
@@ -35,8 +44,7 @@ export const PRESETS = [
   {
     nameEs: 'Coherencia Cardíaca',
     nameEn: 'Cardiac Coherence',
-    tagEs: 'Calma',
-    tagEn: 'Calm',
+    goal: 'calm',
     timing: [5, 0, 5, 0],
     soundDir: 'coherent',
     helperCycles: 3,
@@ -48,8 +56,7 @@ export const PRESETS = [
   {
     nameEs: '4-7-8 Relajante',
     nameEn: '4-7-8 Relaxing',
-    tagEs: 'Sueño',
-    tagEn: 'Sleep',
+    goal: 'sleep',
     timing: [4, 7, 8, 0],
     soundDir: '478',
     warnEs:
@@ -65,8 +72,7 @@ export const PRESETS = [
   {
     nameEs: 'Fuego',
     nameEn: 'Fire Breath',
-    tagEs: 'Energía',
-    tagEn: 'Energy',
+    goal: 'energy',
     timing: [1, 0, 1, 0],
     autoLimitCycles: 30,
     soundDir: 'fire',

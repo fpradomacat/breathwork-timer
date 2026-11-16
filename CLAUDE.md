@@ -6,7 +6,7 @@ Guidance for Claude Code when working in this repository.
 
 **Neyen** ("the art of breathing"): a guided breathwork timer, built as a static, framework-free PWA in vanilla JS. It is deployed to Netlify at https://neyenbreath.netlify.app. The UI is bilingual (Spanish and English). The language is detected from the browser, can be switched from the top-right button, and is remembered. It is mobile-first and runs in portrait orientation.
 
-The user taps the breathing circle to start a session. A 3-2-1 countdown runs first. Then the circle expands and contracts through each phase (inhale, hold full, exhale, hold empty).
+The techniques modal asks "what do you need?" and lists each technique under its goal (calm, sleep, focus, energy). The user taps the breathing circle to start a session. A short check-in asks how they feel (1–5, can be skipped or turned off), then a 3-2-1 countdown runs. Then the circle expands and contracts through each phase (inhale, hold full, exhale, hold empty).
 
 The technique audio is made of layers that play in sync:
 
@@ -17,7 +17,12 @@ The technique audio is made of layers that play in sync:
 
 Ambient music plays separately. Each sound can be turned on or off, and its volume adjusted, from a quick row of buttons or from the 🎚️ sound panel.
 
-Sessions end manually or at a limit: the duration pill (∞/3/5/10/15 min), or a technique's own cycle limit. Sessions of 30 s or more are recorded in localStorage, and they feed the day streak and the history modal. A summary with a "how do you feel?" question follows each session.
+Sessions end manually or at a limit: the duration pill (∞/3/5/10/15 min), or a technique's own cycle limit. Sessions of 30 s or more are recorded in localStorage, and they feed the day streak and the history modal. A summary with the same "how do you feel?" question follows each session, so the history can show how often people end up better than they started.
+
+The history modal ("Your practice") also opens:
+
+- **Breathing tests** (also from the 🫁 corner button): BOLT control pause and slow exhale, timed, with results kept on the device.
+- **Daily reminder**: a recurring event in the user's calendar (Google Calendar link or an `.ics` file). There is no push: the app has no server.
 
 ## Commands
 
@@ -55,20 +60,24 @@ dist/               build output (gitignored; emptied and rebuilt on every build
 
 `main.js` is the entry point and the only module that imports everything. It wires the modules together and holds the app state: `activePreset`, the chosen duration, and which preset the running session uses.
 
-| Module              | Responsibility                                                                                                                                                                                                                     |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `presets.js`        | `PRESETS`: names/tags/descs (Es/En), `timing` `[inhale, holdFull, exhale, holdEmpty]` in seconds (fractions allowed), `soundDir`, `helperCycles`, optional `autoLimitCycles`, optional `warnEs`/`warnEn` safety note               |
-| `i18n.js`           | `i18n.es` / `i18n.en` string tables. Some entries are functions. Every key must exist in both languages (enforced by `test/content.test.mjs`)                                                                                      |
-| `ui.js`             | DOM helpers: `lang` (exported `let`; saved → browser → English), `applyLang`, `presetText(preset, field)`, limits + duration pill/badge, modals (focus management), toast (optional action button), preset cards                   |
-| `session.js`        | Session state and timing: countdown, phases, counters, limit checks, wake lock, keep-alive oscillator, audio fade-out on stop. Emits `onSession('starting' \| 'start' \| 'end', fn)`                                               |
-| `loop.js`           | Layered technique audio: loads/decodes the active preset's layers, schedules every layer each cycle on the audio clock, per-layer gain (`setLayerEnabled`, `setLayerVolume`), `stopLoop(fade)`. Voice-guide rules live here        |
-| `sound-controls.js` | Quick sound buttons + the 🎚️ panel. Per-channel `{ on, vol }` saved as `neyen.sound`; migrates older boolean prefs                                                                                                                 |
-| `audio.js`          | Shared `audioCtx`, synthesized UI sounds (`setUiSounds` toggles hover/click/select sounds; session cues are always on), `ambient` music player with its **own AudioContext** (`setMuted`, `setVolume`, both safe before it starts) |
-| `history.js`        | Practice history in localStorage (`neyen.history`): `addSession`, `setMood`, `getStats` (streak, totals, recent). Sessions < `MIN_RECORDED_SECS` (30) aren't recorded                                                              |
-| `practice.js`       | Streak stat, end-of-session summary + mood question, "Your practice" history modal                                                                                                                                                 |
-| `media-session.js`  | Lock-screen controls (Media Session API) with a silent looped `<audio>`; best effort                                                                                                                                               |
-| `storage.js`        | `load(key, fallback)` / `save(key, value)`: JSON + try/catch, keys prefixed `neyen.`                                                                                                                                               |
-| `interactions.js`   | Hover/click sounds, haptics, keyboard shortcuts (Space = start/stop, Esc = close modals). Never owns session state                                                                                                                 |
+| Module                | Responsibility                                                                                                                                                                                                                                                                       |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `presets.js`          | `PRESETS`: names/descs (Es/En), `goal`, `timing` `[inhale, holdFull, exhale, holdEmpty]` in seconds (fractions allowed), `soundDir`, `helperCycles`, optional `autoLimitCycles`, optional `warnEs`/`warnEn` safety note. `GOALS` (order, emoji, i18n label) for the techniques modal |
+| `i18n.js`             | `i18n.es` / `i18n.en` string tables. Some entries are functions. Every key must exist in both languages (enforced by `test/content.test.mjs`)                                                                                                                                        |
+| `ui.js`               | DOM helpers: `lang` (exported `let`; saved → browser → English), `applyLang`, `presetText(preset, field)`, limits + duration pill/badge, modals (focus management), toast (optional action button), preset cards                                                                     |
+| `session.js`          | Session state and timing: countdown, phases, counters, limit checks, wake lock, keep-alive oscillator, audio fade-out on stop. Emits `onSession('starting' \| 'start' \| 'end', fn)`                                                                                                 |
+| `loop.js`             | Layered technique audio: loads/decodes the active preset's layers, schedules every layer each cycle on the audio clock, per-layer gain (`setLayerEnabled`, `setLayerVolume`), `stopLoop(fade)`. Voice-guide rules live here                                                          |
+| `sound-controls.js`   | Quick sound buttons + the 🎚️ panel. Per-channel `{ on, vol }` saved as `neyen.sound`; migrates older boolean prefs                                                                                                                                                                   |
+| `audio.js`            | Shared `audioCtx`, synthesized UI sounds (`setUiSounds` toggles hover/click/select sounds; session cues are always on), `ambient` music player with its **own AudioContext** (`setMuted`, `setVolume`, both safe before it starts)                                                   |
+| `history.js`          | Practice history in localStorage (`neyen.history`): `addSession` (with `moodBefore`), `setMoodAfter`, `getStats` (streak, totals, recent, `compared`/`improved`). Sessions < `MIN_RECORDED_SECS` (30) aren't recorded                                                                |
+| `practice.js`         | Streak stat, check-in before the session (`startWithCheckIn`), end-of-session summary + mood question (1–5 scale), "Your practice" history modal and its shortcuts                                                                                                                   |
+| `breath-test-data.js` | Breathing test definitions (`TESTS`, Es/En fields like presets, score `bands`), `bandIndex`, results in `neyen.tests`. No DOM                                                                                                                                                        |
+| `breath-tests.js`     | Breathing tests modal: list → instructions + results → timer → result                                                                                                                                                                                                                |
+| `reminder-ics.js`     | Daily reminder as a calendar event: `REMINDER_SLOTS` (every 30 min), `buildIcs`, `icsPath`, `googleCalendarUrl`. No DOM; also used by `build.js`                                                                                                                                     |
+| `reminder.js`         | Reminder modal (time select + Google / `.ics` links), `neyen.reminder`. Falls back to a generated blob when the static `.ics` files aren't there (repo root)                                                                                                                         |
+| `media-session.js`    | Lock-screen controls (Media Session API) with a silent looped `<audio>`; best effort                                                                                                                                                                                                 |
+| `storage.js`          | `load(key, fallback)` / `save(key, value)`: JSON + try/catch, keys prefixed `neyen.`                                                                                                                                                                                                 |
+| `interactions.js`     | Hover/click sounds, haptics, keyboard shortcuts (Space = start/stop, Esc = close modals). Never owns session state                                                                                                                                                                   |
 
 localStorage keys:
 
@@ -77,6 +86,9 @@ localStorage keys:
 - `neyen.duration`
 - `neyen.history`
 - `neyen.warningsSeen`
+- `neyen.checkIn` (ask before starting; default on)
+- `neyen.tests` (breathing test results)
+- `neyen.reminder` (`{ time }` of the last reminder added), `neyen.reminderOffers` (times the post-session toast offered it, max 3)
 - `neyen.tutorialDone` (written by `tutorial.js`, plain string)
 
 ## Key conventions & gotchas
@@ -131,8 +143,9 @@ localStorage keys:
 The test files:
 
 - `loop.test.mjs`: the scheduler (cycle alignment, voice rules, ticks, gains, fade-out, fractional cycles)
-- `history.test.mjs`: streak and stats
-- `content.test.mjs`: i18n keys vs `index.html`, preset completeness, sound files on disk
+- `history.test.mjs`: streak, stats, mood before/after
+- `content.test.mjs`: i18n keys vs `index.html`, preset completeness, sound files on disk, every goal has a technique, breathing test definitions
+- `reminder-and-tests.test.mjs`: `.ics` content, Google Calendar link dates, test score bands and results storage
 
 There are no browser tests in the repo. Check UI changes by running the app.
 
@@ -145,11 +158,12 @@ It empties `dist/` (rather than deleting it: on Windows the folder can't be remo
 3. Minifies `tutorial.js` with terser and drops console calls.
 4. Rewrites and minifies `index.html`: module script tags become `defer`. It throws if the expected `<script type="module" src="/assets/js/main.js">` tag is missing. It also injects the service worker registration.
 5. Copies `assets/` (except `js/`) and `manifest.json`.
-6. Generates `dist/sw.js`:
+6. Writes the daily reminder files, `dist/reminder/<lang>/<HHMM>.ics` (one per half hour and language, from `reminder-ics.js`), and a `dist/_headers` that serves them as `text/calendar`. A real https URL is what makes iOS show "Add to Calendar".
+7. Generates `dist/sw.js`:
 
    - Everything is **precached at install**, sounds included (~1.5 MB), so the app works fully offline from the first visit.
    - There are two caches named after a content hash: `neyen-shell-<hash>` and `neyen-sounds-<hash>`. A deploy only re-downloads what changed, and old caches are deleted on activate.
-   - All requests are cache-first. Navigations are served the cached `/index.html`.
+   - All requests are cache-first. Navigations are served the cached `/index.html`, except `/reminder/*`, which goes to the network.
    - A new version activates immediately. `main.js` then shows a "new version · Reload" toast, delayed until the session ends if one is running.
 
    `sw.js` is generated by the build. Never hand-edit it; change `generateServiceWorker()` instead.

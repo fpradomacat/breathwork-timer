@@ -10,7 +10,7 @@
 //   - Technique label
 
 import { i18n } from './i18n.js';
-import { PRESETS } from './presets.js';
+import { PRESETS, GOALS } from './presets.js';
 import { load, save } from './storage.js';
 
 // ── Language ──────────────────────────────────────────────────
@@ -204,29 +204,39 @@ export function showToast(msg, { actionLabel, onAction, sticky = false } = {}) {
 }
 
 // ── Preset cards ──────────────────────────────────────────────
+// Goal-first: the modal asks "what do you need?" and each card leads
+// with the goal (Calm, Sleep…), then the technique that serves it.
 
-// Remembered so re-renders (e.g. on language change) keep the click handler
+// Remembered so re-renders (e.g. on language change) keep the click
+// handler and the highlighted technique
 let _onPresetSelect = null;
+let _activePreset = null;
 
 /**
- * Render the technique cards into #presets-list.
+ * Render the technique cards into #presets-list, in GOALS order.
  * @param {Function} [onSelect] — callback(preset) when user picks a technique
  *                               (omit to reuse the previous one)
+ * @param {object}   [active]   — the technique in use (highlighted)
  */
-export function renderPresets(onSelect) {
+export function renderPresets(onSelect, active) {
   if (onSelect) _onPresetSelect = onSelect;
+  if (active) _activePreset = active;
   const list = document.getElementById('presets-list');
   if (!list) return;
   list.innerHTML = '';
+  const t = i18n[lang];
 
-  PRESETS.forEach((preset) => {
-    const card = document.createElement('div');
-    card.className = 'preset-card';
-    card.setAttribute('role', 'button');
-    card.tabIndex = 0;
-    card.innerHTML = `
-      <div class="preset-header">
-        <span class="preset-name">${presetText(preset, 'name')} <span class="preset-tag">${presetText(preset, 'tag')}</span></span>
+  GOALS.forEach((goal) => {
+    PRESETS.filter((p) => p.goal === goal.id).forEach((preset) => {
+      const card = document.createElement('div');
+      card.className = 'preset-card';
+      card.setAttribute('role', 'button');
+      card.setAttribute('aria-current', String(preset === _activePreset));
+      card.tabIndex = 0;
+      card.innerHTML = `
+      <div class="preset-goal"><span class="preset-goal-emoji" aria-hidden="true">${goal.emoji}</span>${t[goal.label]}</div>
+      <div class="preset-technique">
+        <span class="preset-name">${presetText(preset, 'name')}</span>
         <span class="preset-timing">${preset.timing.join('-')}</span>
       </div>
       <p class="preset-desc">${presetText(preset, 'desc')}</p>${
@@ -235,15 +245,16 @@ export function renderPresets(onSelect) {
           : ''
       }`;
 
-    card.addEventListener('click', () => _onPresetSelect?.(preset));
-    card.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        e.stopPropagation(); // Space must not also start/stop the session
-        _onPresetSelect?.(preset);
-      }
+      card.addEventListener('click', () => _onPresetSelect?.(preset));
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          e.stopPropagation(); // Space must not also start/stop the session
+          _onPresetSelect?.(preset);
+        }
+      });
+      list.appendChild(card);
     });
-    list.appendChild(card);
   });
 }
 

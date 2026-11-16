@@ -778,16 +778,34 @@ footer {
   border-color: rgba(176, 132, 245, 0.25);
   background: rgba(176, 132, 245, 0.06);
 }
-.preset-header {
+/* The technique in use */
+.preset-card[aria-current='true'] {
+  border-color: rgba(176, 132, 245, 0.55);
+  background: var(--accent-dim);
+}
+/* Goal first ("Calm"), technique second ("Cardiac Coherence · 5-0-5-0") */
+.preset-goal {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 6px;
-}
-.preset-name {
-  font-size: 0.9rem;
+  gap: 8px;
+  font-size: 1rem;
   font-weight: 500;
   color: var(--text-primary);
+}
+.preset-goal-emoji {
+  font-size: 1.15rem;
+}
+.preset-technique {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 4px 0 6px;
+}
+.preset-name {
+  font-size: 0.82rem;
+  font-weight: 400;
+  color: var(--accent-bright);
 }
 .preset-timing {
   font-family: 'DM Mono', monospace;
@@ -808,22 +826,6 @@ footer {
   color: var(--warn);
   opacity: 0.85;
 }
-.preset-tag {
-  display: inline-block;
-  font-size: 0.58rem;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 2px 7px;
-  border-radius: 100px;
-  background: var(--accent-dim);
-  color: var(--accent-bright);
-  border: 1px solid rgba(176, 132, 245, 0.2);
-  vertical-align: middle;
-  margin-left: 6px;
-  opacity: 0.85;
-}
-
 /* ── Safety notice ───────────────────────────────────────────── */
 .warning-technique {
   margin: 0 0 8px;
@@ -1033,6 +1035,386 @@ footer {
   text-align: center;
 }
 
+/* Emoji corner button (breathing tests) */
+.corner-btn--icon {
+  font-family: inherit;
+  font-size: 0.95rem;
+  letter-spacing: 0;
+  padding: 0 8px;
+}
+
+/* ── 1–5 mood scale (check-in + summary) ─────────────────────── */
+.mood-options .mood-btn {
+  padding: 9px 2px;
+  font-size: 0.68rem;
+  min-width: 0;
+}
+.mood-options .mood-emoji {
+  font-size: 1.35rem;
+}
+.mood-before {
+  margin: -4px 0 10px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* Check-in before the session */
+.checkin {
+  text-align: center;
+}
+.checkin-hint {
+  margin: 0 0 14px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+/* Text-style secondary button (skip, back, cancel) */
+.test-link {
+  display: block;
+  width: auto;
+  margin: 14px auto 0;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+.test-link:hover {
+  color: var(--text-primary);
+}
+
+/* ── History: insight, shortcuts, setting ────────────────────── */
+.history-insight {
+  margin: -6px 0 16px;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--accent-bright);
+  text-align: center;
+}
+.history-insight[hidden] {
+  display: none;
+}
+.history-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.history-action {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 11px 6px;
+  border-radius: 14px;
+  border: 1px solid rgba(176, 132, 245, 0.25);
+  background: var(--accent-dim);
+  color: var(--accent-bright);
+  font-size: 0.78rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+.history-action:hover {
+  background: rgba(176, 132, 245, 0.2);
+}
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0 16px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--divider);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-align: left;
+}
+.history-item {
+  grid-template-columns: 1fr auto minmax(1.5em, auto);
+}
+.history-mood {
+  white-space: nowrap;
+  font-size: 0.85rem;
+}
+
+/* ── Breathing tests ─────────────────────────────────────────── */
+.tests {
+  text-align: left;
+}
+.tests-intro,
+.test-ref {
+  margin: 0 0 14px;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+.tests-safety {
+  margin: 4px 0 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--warn);
+  opacity: 0.85;
+}
+.test-card {
+  display: block;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--divider);
+  background: var(--panel-bg);
+  color: inherit;
+  text-align: left;
+  font-weight: 400;
+  letter-spacing: 0;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+}
+.test-card:hover {
+  border-color: rgba(176, 132, 245, 0.25);
+  background: rgba(176, 132, 245, 0.06);
+}
+.test-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.test-card-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+.test-card-last {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.78rem;
+  color: var(--accent-bright);
+}
+.test-card-desc {
+  display: block;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+.test-title {
+  margin: 0 0 10px;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+.test-steps {
+  margin: 0 0 16px;
+  padding-left: 1.2em;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+.test-steps li + li {
+  margin-top: 6px;
+}
+.test-primary {
+  display: block;
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 13px;
+  border-radius: 100px;
+}
+.test-best {
+  margin: 0 0 6px;
+  font-size: 0.85rem;
+  color: var(--accent-bright);
+}
+.test-none {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+.test-results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.test-results li {
+  display: grid;
+  grid-template-columns: 1fr auto 4.5em;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--divider);
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+.test-results li:last-child {
+  border-bottom: none;
+}
+.test-results-secs {
+  font-family: 'DM Mono', monospace;
+  color: var(--text-primary);
+  text-align: right;
+}
+
+/* Running: the stop button is a breathing-circle look-alike */
+.test-running-hint {
+  margin: 4px 0 22px;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  text-align: center;
+}
+.test-stop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 190px;
+  height: 190px;
+  margin: 0 auto 6px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 38% 32%,
+    var(--circle-inner) 0%,
+    var(--circle-mid) 40%,
+    var(--circle-outer) 75%,
+    transparent 100%
+  );
+  box-shadow:
+    0 0 12px 6px var(--circle-glow-a),
+    0 0 30px 16px var(--circle-glow-b);
+  animation: test-pulse 4s ease-in-out infinite;
+}
+@keyframes test-pulse {
+  50% {
+    box-shadow:
+      0 0 16px 8px var(--circle-glow-a),
+      0 0 40px 22px var(--circle-glow-b);
+  }
+}
+.test-clock {
+  font-family: 'DM Mono', monospace;
+  font-size: 3.2rem;
+  font-weight: 200;
+  line-height: 1;
+  color: var(--text-primary);
+}
+.test-stop-label {
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent-bright);
+}
+
+/* Result */
+.test-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0 18px;
+  text-align: center;
+}
+.test-result-secs {
+  font-family: 'DM Mono', monospace;
+  font-size: 2.8rem;
+  font-weight: 200;
+  color: var(--text-primary);
+}
+.test-band {
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid currentColor;
+}
+.test-band-0 {
+  color: var(--warn);
+}
+.test-band-1 {
+  color: #e8d27a;
+}
+.test-band-2 {
+  color: var(--accent-bright);
+}
+.test-band-3 {
+  color: #8fe3c0;
+}
+.test-note {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--accent-bright);
+}
+.test-result .test-ref {
+  margin: 0;
+}
+
+/* ── Daily reminder ──────────────────────────────────────────── */
+.reminder-text,
+.reminder-note {
+  margin: 0 0 14px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+.reminder-note {
+  margin: 12px 0 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.reminder-time {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+.reminder-time select {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(176, 132, 245, 0.35);
+  background: var(--panel-bg);
+  color: var(--text-primary);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.95rem;
+  color-scheme: dark;
+}
+.reminder-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.reminder-btn {
+  display: block;
+  padding: 12px;
+  border-radius: 100px;
+  border: 1px solid rgba(176, 132, 245, 0.35);
+  background: var(--accent-dim);
+  color: var(--accent-bright);
+  font-size: 0.88rem;
+  text-align: center;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+.reminder-btn:hover {
+  background: rgba(176, 132, 245, 0.2);
+}
+.reminder-current {
+  margin: 10px 0 0;
+  font-size: 0.78rem;
+  color: var(--accent-bright);
+}
+
 /* ── Toast ───────────────────────────────────────────────────── */
 .limit-toast {
   position: fixed;
@@ -1104,5 +1486,8 @@ footer {
   }
   #breathing-circle.active {
     box-shadow: 0 0 12px 6px var(--circle-glow-a);
+  }
+  .test-stop {
+    animation: none;
   }
 }

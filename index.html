@@ -70,6 +70,15 @@
         <!-- Corner controls (fixed top-right): language + tutorial -->
         <div class="corner-controls" id="corner-controls">
           <button
+            class="corner-btn corner-btn--icon"
+            id="tests-btn"
+            data-i18n-label="testsTitle"
+            aria-label="Tests de respiración"
+            title="Tests de respiración"
+          >
+            🫁
+          </button>
+          <button
             class="corner-btn"
             id="lang-btn"
             data-i18n="langTarget"
@@ -245,8 +254,8 @@
           <span
             class="modal-title"
             id="modal-tecnicas-title"
-            data-i18n="menuPresets"
-            >Técnicas</span
+            data-i18n="goalQuestion"
+            >¿Qué necesitás?</span
           >
           <button
             class="modal-close"
@@ -369,23 +378,14 @@
           <p class="summary-streak" id="summary-streak"></p>
           <div class="mood" id="mood">
             <p class="mood-question" data-i18n="moodQuestion">
-              ¿Cómo te sentís?
+              ¿Cómo te sentís ahora?
             </p>
-            <div class="mood-options">
-              <button class="mood-btn" data-mood="calmer">
-                <span class="mood-emoji" aria-hidden="true">😌</span
-                ><span data-i18n="moodCalmer">Más en calma</span>
-              </button>
-              <button class="mood-btn" data-mood="same">
-                <span class="mood-emoji" aria-hidden="true">😐</span
-                ><span data-i18n="moodSame">Igual</span>
-              </button>
-              <button class="mood-btn" data-mood="energized">
-                <span class="mood-emoji" aria-hidden="true">⚡</span
-                ><span data-i18n="moodEnergized">Con más energía</span>
-              </button>
-            </div>
-            <p class="mood-thanks" data-i18n="moodThanks">Gracias ✨</p>
+            <p class="mood-before" id="mood-before" hidden></p>
+            <!-- 1–5 scale, rendered by practice.js -->
+            <div class="mood-options" id="mood-options"></div>
+            <p class="mood-thanks" id="mood-thanks" data-i18n="moodThanks">
+              Gracias ✨
+            </p>
           </div>
         </div>
       </div>
@@ -417,6 +417,31 @@
         </div>
         <div class="modal-body">
           <div class="history-tiles" id="history-tiles"></div>
+          <p class="history-insight" id="history-insight" hidden></p>
+          <div class="history-actions">
+            <button class="history-action" id="open-tests">
+              <span aria-hidden="true">🫁</span>
+              <span data-i18n="testsTitle">Tests de respiración</span>
+            </button>
+            <button class="history-action" id="open-reminder">
+              <span aria-hidden="true">⏰</span>
+              <span data-i18n="reminderTitle">Recordatorio diario</span>
+            </button>
+          </div>
+          <div class="setting-row">
+            <span id="checkin-label" data-i18n="checkInSetting"
+              >Preguntar cómo llegás antes de empezar</span
+            >
+            <button
+              class="mixer-switch"
+              id="checkin-switch"
+              role="switch"
+              aria-checked="true"
+              aria-labelledby="checkin-label"
+            >
+              <span class="mixer-knob"></span>
+            </button>
+          </div>
           <p class="history-subtitle" data-i18n="historyRecent">
             Últimas sesiones
           </p>
@@ -424,6 +449,130 @@
             Todavía no hay sesiones.
           </p>
           <ul class="history-list" id="history-list"></ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: check-in before the session ("how are you feeling?") -->
+    <div class="modal-overlay" id="modal-checkin" aria-hidden="true">
+      <div
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-checkin-title"
+      >
+        <div class="modal-header">
+          <span
+            class="modal-title"
+            id="modal-checkin-title"
+            data-i18n="checkInTitle"
+            >¿Cómo llegás?</span
+          >
+          <button
+            class="modal-close"
+            data-close="modal-checkin"
+            data-i18n-label="close"
+            aria-label="Cerrar"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="modal-body checkin">
+          <p class="checkin-hint" data-i18n="checkInHint">
+            Así después ves cómo te cambia cada sesión.
+          </p>
+          <!-- 1–5 scale, rendered by practice.js -->
+          <div class="mood-options" id="checkin-options"></div>
+          <button class="test-link" id="checkin-skip" data-i18n="checkInSkip">
+            Empezar sin responder
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: breathing tests (content rendered by breath-tests.js) -->
+    <div class="modal-overlay" id="modal-tests" aria-hidden="true">
+      <div
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-tests-title"
+      >
+        <div class="modal-header">
+          <span
+            class="modal-title"
+            id="modal-tests-title"
+            data-i18n="testsTitle"
+            >Tests de respiración</span
+          >
+          <button
+            class="modal-close"
+            data-close="modal-tests"
+            data-i18n-label="close"
+            aria-label="Cerrar"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="modal-body tests" id="tests-body"></div>
+      </div>
+    </div>
+
+    <!-- Modal: daily reminder (calendar event) -->
+    <div class="modal-overlay" id="modal-reminder" aria-hidden="true">
+      <div
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-reminder-title"
+      >
+        <div class="modal-header">
+          <span
+            class="modal-title"
+            id="modal-reminder-title"
+            data-i18n="reminderTitle"
+            >Recordatorio diario</span
+          >
+          <button
+            class="modal-close"
+            data-close="modal-reminder"
+            data-i18n-label="close"
+            aria-label="Cerrar"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="modal-body reminder">
+          <p class="reminder-text" data-i18n="reminderText">
+            Elegí una hora y sumalo a tu calendario como evento diario.
+          </p>
+          <label class="reminder-time">
+            <span data-i18n="reminderTime">Hora</span>
+            <select id="reminder-time"></select>
+          </label>
+          <div class="reminder-buttons">
+            <a
+              class="reminder-btn"
+              id="reminder-google"
+              href="#"
+              target="_blank"
+              rel="noopener"
+              data-i18n="reminderGoogle"
+              >Google Calendar</a
+            >
+            <a
+              class="reminder-btn"
+              id="reminder-ics"
+              href="#"
+              data-i18n="reminderIcs"
+              >Apple / Outlook</a
+            >
+          </div>
+          <p class="reminder-note" data-i18n="reminderNote">
+            En Google Calendar el aviso sigue tu configuración de
+            notificaciones.
+          </p>
+          <p class="reminder-current" id="reminder-current" hidden></p>
         </div>
       </div>
     </div>

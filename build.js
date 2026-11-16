@@ -133,6 +133,33 @@ async function build() {
     console.log('✓ manifest.json');
   }
 
+  // ── Daily reminder: one .ics per half hour and language ─────
+  // Static files (not precached) so iOS opens its "Add to Calendar" sheet.
+  // See assets/js/reminder-ics.js.
+  const { REMINDER_SLOTS, icsPath, buildIcs } = await import(
+    './assets/js/reminder-ics.js'
+  );
+  const { i18n } = await import('./assets/js/i18n.js');
+  for (const lang of Object.keys(i18n))
+    for (const time of REMINDER_SLOTS) {
+      const file = `${DIST}${icsPath(lang, time)}`;
+      ensureDir(path.dirname(file));
+      fs.writeFileSync(
+        file,
+        buildIcs({
+          time,
+          lang,
+          startDate: new Date(),
+          siteUrl: `${SITE_URL}/`,
+        }),
+      );
+    }
+  fs.writeFileSync(
+    `${DIST}/_headers`,
+    '/reminder/*\n  Content-Type: text/calendar; charset=utf-8\n',
+  );
+  console.log('✓ reminder/*.ics + _headers');
+
   // ── Service Worker ──────────────────────────────────────────────
   // Everything is precached at install, so the app works fully offline
   // (sounds included) from the first visit. Two caches, each named after
@@ -224,6 +251,10 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
+
+  // Calendar files for the daily reminder: straight to the network
+  // (not precached, and they must not get the index.html fallback)
+  if (new URL(request.url).pathname.startsWith('/reminder/')) return;
 
   // Page navigations ("/", "/?source=pwa"…) are served the cached index.html
   if (request.mode === 'navigate') {

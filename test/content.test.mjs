@@ -5,7 +5,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 const { i18n } = await import('../assets/js/i18n.js');
-const { PRESETS } = await import('../assets/js/presets.js');
+const { PRESETS, GOALS } = await import('../assets/js/presets.js');
+const { TESTS } = await import('../assets/js/breath-test-data.js');
 
 const SOUNDS = new URL('../assets/sounds/', import.meta.url);
 
@@ -40,7 +41,7 @@ test('every data-i18n / data-i18n-label key used in index.html exists', () => {
 
 test('every preset is complete and bilingual', () => {
   for (const p of PRESETS) {
-    for (const f of ['name', 'tag', 'desc'])
+    for (const f of ['name', 'desc'])
       assert.ok(p[f + 'Es'] && p[f + 'En'], `${p.soundDir}: ${f}Es/${f}En`);
     assert.equal(
       Boolean(p.warnEs),
@@ -66,4 +67,29 @@ test('every preset has its 4 sound layers on disk', () => {
 test('preset sound folders are unique (used as history ids)', () => {
   const dirs = PRESETS.map((p) => p.soundDir);
   assert.equal(new Set(dirs).size, dirs.length);
+});
+
+test('every goal has a technique and an i18n label; every preset has a goal', () => {
+  for (const g of GOALS) {
+    assert.ok(
+      PRESETS.some((p) => p.goal === g.id),
+      `goal ${g.id} has no preset`,
+    );
+    assert.equal(typeof i18n.es[g.label], 'string', g.label);
+  }
+  for (const p of PRESETS)
+    assert.ok(
+      GOALS.some((g) => g.id === p.goal),
+      `${p.soundDir}: goal "${p.goal}"`,
+    );
+});
+
+test('every breathing test is complete and bilingual', () => {
+  for (const t of TESTS) {
+    for (const f of ['name', 'desc', 'running', 'ref'])
+      assert.ok(t[f + 'Es'] && t[f + 'En'], `${t.id}: ${f}`);
+    assert.equal(t.stepsEs.length, t.stepsEn.length, `${t.id}: steps`);
+    assert.equal(t.bands.at(-1)[0], Infinity, `${t.id}: last band open`);
+    for (const b of t.bands) assert.ok(b[1] && b[2], `${t.id}: band labels`);
+  }
 });

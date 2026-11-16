@@ -3,8 +3,11 @@
 // Completed sessions are kept in localStorage (no accounts, nothing
 // leaves the device). Used for the streak, totals and the history list.
 //
-// Entry: { id, date (ISO), secs, cycles, technique (preset.soundDir), mood }
-//   mood: null | 'calmer' | 'same' | 'energized'
+// Entry: { id, date (ISO), secs, cycles, technique (preset.soundDir),
+//          moodBefore, moodAfter }
+//   moodBefore / moodAfter: null | 1–5 (bad → great), asked before the
+//   session (check-in) and in the summary after it.
+//   Older entries may have `mood: 'calmer' | 'same' | 'energized'` instead.
 
 import { load, save } from './storage.js';
 
@@ -28,28 +31,41 @@ function _dayKey(date) {
 }
 
 /** Record a finished session. Returns the stored entry. */
-export function addSession({ secs, cycles, technique }) {
+export function addSession({ secs, cycles, technique, moodBefore = null }) {
+  const list = _all();
   const entry = {
-    id: Date.now(),
+    // Unique even if two sessions are saved within the same millisecond
+    id: Math.max(Date.now(), (list.at(-1)?.id || 0) + 1),
     date: new Date().toISOString(),
     secs,
     cycles,
     technique,
-    mood: null,
+    moodBefore,
+    moodAfter: null,
   };
-  const list = _all();
   list.push(entry);
   save(KEY, list.slice(-MAX_ENTRIES));
   return entry;
 }
 
-/** Attach the "how do you feel?" answer to a recorded session. */
-export function setMood(id, mood) {
+/** Attach the after-session "how do you feel?" answer (1–5). */
+export function setMoodAfter(id, value) {
   const list = _all();
   const entry = list.find((e) => e.id === id);
   if (!entry) return;
-  entry.mood = mood;
+  entry.moodAfter = value;
   save(KEY, list);
+}
+
+/** Sessions with both answers, and how many of them ended better. */
+function _moodShift(list) {
+  const both = list.filter(
+    (e) => Number.isFinite(e.moodBefore) && Number.isFinite(e.moodAfter),
+  );
+  return {
+    compared: both.length,
+    improved: both.filter((e) => e.moodAfter > e.moodBefore).length,
+  };
 }
 
 /**
@@ -76,6 +92,7 @@ export function getStats({ recent = 10 } = {}) {
     sessions: list.length,
     totalMinutes: Math.round(list.reduce((s, e) => s + e.secs, 0) / 60),
     recent: list.slice(-recent).reverse(),
+    ..._moodShift(list),
   };
 }
 

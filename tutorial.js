@@ -35,11 +35,11 @@
       pos: 'center',
       es: {
         title: '🕐 Cuándo y cuánto',
-        body: 'Con <strong>5 minutos</strong> alcanza para empezar. Con el tiempo podés ir a 10–15.<br><br>🌀 <strong>Ansiedad o estrés</strong> — Coherencia Cardíaca o 4-7-8<br>😴 <strong>Dormir</strong> — 4-7-8<br>⚖️ <strong>Equilibrio general</strong> — Respiración Cuadrada<br>⚡ <strong>Activarte</strong> — Fuego<br><br><small>⚠️ Neyen no reemplaza el consejo médico. Si te mareás o te sentís mal, pará y volvé a respirar normal.</small>',
+        body: 'Con <strong>5 minutos</strong> alcanza para empezar. Con el tiempo podés ir a 10–15.<br><br>🌀 <strong>Ansiedad o estrés</strong> — Coherencia Cardíaca o 4-7-8<br>😴 <strong>Dormir</strong> — 4-7-8<br>🎯 <strong>Foco y equilibrio</strong> — Respiración Cuadrada<br>⚡ <strong>Activarte</strong> — Fuego<br><br><small>⚠️ Neyen no reemplaza el consejo médico. Si te mareás o te sentís mal, pará y volvé a respirar normal.</small>',
       },
       en: {
         title: '🕐 When and how long',
-        body: '<strong>5 minutes</strong> is enough to start. Over time you can go up to 10–15.<br><br>🌀 <strong>Anxiety or stress</strong> — Cardiac Coherence or 4-7-8<br>😴 <strong>Sleep</strong> — 4-7-8<br>⚖️ <strong>Balance & reset</strong> — Box Breathing<br>⚡ <strong>Energy boost</strong> — Fire Breath<br><br><small>⚠️ Neyen is not a substitute for medical advice. If you feel dizzy or unwell, stop and breathe normally.</small>',
+        body: '<strong>5 minutes</strong> is enough to start. Over time you can go up to 10–15.<br><br>🌀 <strong>Anxiety or stress</strong> — Cardiac Coherence or 4-7-8<br>😴 <strong>Sleep</strong> — 4-7-8<br>🎯 <strong>Focus & balance</strong> — Box Breathing<br>⚡ <strong>Energy boost</strong> — Fire Breath<br><br><small>⚠️ Neyen is not a substitute for medical advice. If you feel dizzy or unwell, stop and breathe normally.</small>',
       },
     },
     {
@@ -47,11 +47,11 @@
       pos: 'bottom',
       es: {
         title: '🫁 El círculo te guía',
-        body: 'El círculo crece al inhalar y se contrae al exhalar. Seguí su ritmo.<br><br><strong>Tocalo</strong> para iniciar la sesión. Tocalo de nuevo para detenerla.',
+        body: 'El círculo crece al inhalar y se contrae al exhalar. Seguí su ritmo.<br><br><strong>Tocalo</strong> para iniciar la sesión. Tocalo de nuevo para detenerla.<br><br>Antes de empezar te pregunto cómo llegás, y al final cómo te vas, así ves cuánto te ayuda.',
       },
       en: {
         title: '🫁 The circle guides you',
-        body: 'The circle expands as you inhale and shrinks as you exhale. Follow its rhythm.<br><br><strong>Tap it</strong> to start the session. Tap again to stop.',
+        body: 'The circle expands as you inhale and shrinks as you exhale. Follow its rhythm.<br><br><strong>Tap it</strong> to start the session. Tap again to stop.<br><br>Before you start I ask how you feel, and again at the end, so you can see how much it helps.',
       },
     },
     {
@@ -59,11 +59,11 @@
       pos: 'bottom',
       es: {
         title: '📊 Tus estadísticas',
-        body: 'Acá ves el tiempo de sesión, los ciclos completados y tu racha 🔥 de días seguidos practicando.<br><br>Tocá la racha para ver tu historial.',
+        body: 'Acá ves el tiempo de sesión, los ciclos completados y tu racha 🔥 de días seguidos practicando.<br><br>Tocá la racha para ver tu historial, los tests de respiración 🫁 y el recordatorio diario ⏰.',
       },
       en: {
         title: '📊 Your stats',
-        body: 'Session time, completed cycles and your 🔥 streak of consecutive days.<br><br>Tap the streak to see your history.',
+        body: 'Session time, completed cycles and your 🔥 streak of consecutive days.<br><br>Tap the streak to see your history, the breathing tests 🫁 and the daily reminder ⏰.',
       },
     },
     {
@@ -71,11 +71,11 @@
       pos: 'top',
       es: {
         title: '✦ Técnicas',
-        body: 'Explora diferentes técnicas de respiración y elige la que mejor se adapte a tus necesidades. Cada técnica está diseñada para ayudarte a alcanzar un objetivo distinto, como relajarte, concentrarte o recuperar energía.',
+        body: 'Elegí según lo que necesitás y Neyen te da la técnica indicada:<br><br>😌 Calma · 🌙 Dormir · 🎯 Foco · ⚡ Energía',
       },
       en: {
         title: '✦ Techniques',
-        body: 'Explore different breathing techniques and choose the one that best fits your needs. Each technique is designed to support a different goal, such as relaxation, focus, or renewed energy.',
+        body: 'Choose by what you need and Neyen gives you the right technique:<br><br>😌 Calm · 🌙 Sleep · 🎯 Focus · ⚡ Energy',
       },
     },
     {

@@ -37,7 +37,10 @@ import {
   initPractice,
   handleSessionEnd,
   refreshPracticeLang,
+  startWithCheckIn,
 } from './practice.js';
+import { openTests, refreshTestsLang } from './breath-tests.js';
+import { initReminder, refreshReminderLang } from './reminder.js';
 import {
   primeMediaSession,
   showMediaSession,
@@ -77,6 +80,8 @@ function applySessionLimit() {
 function setLanguage(l) {
   applyLang(l);
   refreshPracticeLang();
+  refreshTestsLang();
+  refreshReminderLang();
   if (!isRunning())
     document.getElementById('breath-text').textContent = i18n[l].ready;
   setTechniqueLabel(activePreset);
@@ -101,9 +106,7 @@ window.addEventListener('load', () => {
 
   // Wire up interaction listeners
   initInteractions({
-    onStartStop: () => {
-      if (!isTransitioning()) isRunning() ? stopTimer() : startTimer();
-    },
+    onStartStop: toggleSession,
     onCloseModals: () =>
       document
         .querySelectorAll('.modal-overlay.open')
@@ -113,8 +116,9 @@ window.addEventListener('load', () => {
   // Wire up modal close buttons and overlay clicks
   initModalListeners();
 
-  // Streak, history modal, end-of-session summary
+  // Streak, history modal, check-in, end-of-session summary
   initPractice();
+  initReminder();
 });
 
 // ── Session lifecycle ─────────────────────────────────────────
@@ -145,19 +149,32 @@ onSession('end', (result) => {
 setLanguage(lang);
 
 // ── Circle tap → start / stop ─────────────────────────────────
+// Starting asks "how are you feeling?" first (practice.js), unless the
+// user turned it off. Switching technique mid-session restarts with
+// startTimer() directly, without asking again.
 // (Space is handled globally in interactions.js; Enter works when focused)
+function toggleSession() {
+  if (isTransitioning()) return;
+  if (isRunning()) stopTimer();
+  else startWithCheckIn(startTimer);
+}
+
 const circle = document.getElementById('breathing-circle');
-circle.addEventListener('click', () => {
-  if (!isTransitioning()) isRunning() ? stopTimer() : startTimer();
-});
+circle.addEventListener('click', toggleSession);
 circle.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') circle.click();
 });
 
 // ── Técnicas pill ─────────────────────────────────────────────
 document.getElementById('tecnicas-btn').addEventListener('click', () => {
-  renderPresets(_onPresetSelected);
+  renderPresets(_onPresetSelected, activePreset);
   openModal('modal-tecnicas');
+});
+
+// ── Breathing tests (corner button) ───────────────────────────
+document.getElementById('tests-btn').addEventListener('click', (e) => {
+  e.currentTarget.blur();
+  openTests();
 });
 
 // ── Duration pill: tap to cycle ∞ → 3 → 5 → 10 → 15 min ──────

@@ -53,10 +53,49 @@ test('addSession stores sessions; getStats aggregates them', () => {
   assert.equal(stats.recent[0].id, e.id, 'most recent first');
 });
 
-test('setMood attaches the answer to the session', () => {
-  const e = H.addSession({ secs: 120, cycles: 10, technique: 'box' });
-  H.setMood(e.id, 'calmer');
-  assert.equal(H.getStats().recent[0].mood, 'calmer');
+test('mood before (check-in) and after are stored on the session', () => {
+  const e = H.addSession({
+    secs: 120,
+    cycles: 10,
+    technique: 'box',
+    moodBefore: 2,
+  });
+  H.setMoodAfter(e.id, 4);
+  const [entry] = H.getStats().recent;
+  assert.equal(entry.moodBefore, 2);
+  assert.equal(entry.moodAfter, 4);
+});
+
+test('getStats counts sessions that ended better than they started', () => {
+  const add = (before, after) => {
+    const e = H.addSession({
+      secs: 60,
+      cycles: 5,
+      technique: 'box',
+      moodBefore: before,
+    });
+    if (after !== null) H.setMoodAfter(e.id, after);
+  };
+  add(2, 4); // better
+  add(3, 3); // same
+  add(4, 3); // worse
+  add(null, 5); // no check-in: not compared
+  add(1, null); // no answer after: not compared
+  const { compared, improved } = H.getStats();
+  assert.equal(compared, 3);
+  assert.equal(improved, 1);
+});
+
+test('older entries with a text mood still load', () => {
+  localStorage.setItem(
+    'neyen.history',
+    JSON.stringify([
+      { id: 1, date: new Date().toISOString(), secs: 60, mood: 'calmer' },
+    ]),
+  );
+  const stats = H.getStats();
+  assert.equal(stats.sessions, 1);
+  assert.equal(stats.compared, 0);
 });
 
 test('unreadable storage falls back to an empty history', () => {
