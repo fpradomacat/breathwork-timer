@@ -68,9 +68,10 @@ export function isTransitioning() {
 }
 
 // ── Events ────────────────────────────────────────────────────
-//   'start' → ()
-//   'end'   → ({ secs, cycles, limitReached, limitMsg })
-const _listeners = { start: [], end: [] };
+//   'starting' → ()  — synchronously inside the user's tap (before any await)
+//   'start'    → ()  — the session is running (countdown begins)
+//   'end'      → ({ secs, cycles, limitReached, limitMsg })
+const _listeners = { starting: [], start: [], end: [] };
 export function onSession(event, fn) {
   _listeners[event].push(fn);
 }
@@ -254,6 +255,7 @@ function _runCycle() {
 export async function startTimer() {
   if (_isRunning || _isTransitioning) return;
   _isTransitioning = true;
+  _emit('starting');
   await acquireWakeLock();
   resumeAudio();
   playStartSound();

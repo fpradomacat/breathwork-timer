@@ -34,6 +34,11 @@ import {
   TRANSITION_MS,
 } from './session.js';
 import { initPractice, handleSessionEnd, refreshPracticeLang } from './practice.js';
+import {
+  primeMediaSession,
+  showMediaSession,
+  endMediaSession,
+} from './media-session.js';
 import { initInteractions } from './interactions.js';
 import { initSoundControls } from './sound-controls.js';
 import { load, save } from './storage.js';
@@ -113,11 +118,19 @@ window.addEventListener('load', () => {
 let sessionPreset = activePreset;
 let restartingSession = false;
 
+onSession('starting', primeMediaSession);
+
 onSession('start', () => {
   sessionPreset = activePreset;
+  showMediaSession({
+    title: presetText(sessionPreset, 'name'),
+    album: i18n[lang].title,
+    onStop: () => stopTimer(),
+  });
 });
 
 onSession('end', (result) => {
+  endMediaSession();
   // Switching technique mid-session restarts it: record, but no summary
   handleSessionEnd(result, sessionPreset, restartingSession);
   restartingSession = false;
