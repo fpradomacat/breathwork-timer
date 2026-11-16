@@ -77,12 +77,16 @@ async function build() {
   console.log('✓ tutorial.js');
 
   // ── HTML ──────────────────────────────────────────────────────
-  // The JS bundle is now an IIFE — strip type="module" from the script tag.
+  // The JS bundle is an IIFE — swap type="module" for defer (modules are
+  // deferred by default, and main.js expects the DOM to be parsed).
   let html = fs.readFileSync('./index.html', 'utf8');
   html = html.replaceAll('https://TU-DOMINIO.com', SITE_URL);
+  const moduleTag = '<script type="module" src="/assets/js/main.js"></script>';
+  if (!html.includes(moduleTag))
+    throw new Error(`index.html: expected ${moduleTag} (build.js rewrites it)`);
   html = html.replace(
-    '<script type="module" src="assets/js/main.js"></script>',
-    '<script src="assets/js/main.js"></script>',
+    moduleTag,
+    '<script defer src="/assets/js/main.js"></script>',
   );
   html = html.replace(
     '<script type="module" src="tutorial.js"></script>',

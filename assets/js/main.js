@@ -11,6 +11,7 @@ import { loadTechniqueLoops } from './loop.js';
 import {
   lang,
   applyLang,
+  presetText,
   setTechniqueLabel,
   applyLimit,
   limitType,
@@ -34,35 +35,36 @@ import {
 import { initInteractions } from './interactions.js';
 import { initSoundControls } from './sound-controls.js';
 
-// ── Active technique state ────────────────────────────────────
-// Kept here (not in session.js) because it's also needed by the
-// preset selection handler and the language switcher.
-let activeTechniqueName = lang === 'es' ? PRESETS[0].nameEs : PRESETS[0].nameEn;
+// ── Active technique ──────────────────────────────────────────
+let activePreset = PRESETS[0];
 
-// Default times mirror the first preset
-const times = {
-  inhale: PRESETS[0].timing[0],
-  holdFull: PRESETS[0].timing[1],
-  exhale: PRESETS[0].timing[2],
-  holdEmpty: PRESETS[0].timing[3],
-};
+function _timesOf(preset) {
+  const [inhale, holdFull, exhale, holdEmpty] = preset.timing;
+  return { inhale, holdFull, exhale, holdEmpty };
+}
 
 // Give session.js a way to read limit state without circular imports
 registerLimitGetter(() => ({ limitType, limitValue }));
 
+// ── Language ──────────────────────────────────────────────────
+/** Switch the whole app (UI, technique label, voice layer) to a language. */
+function setLanguage(l) {
+  applyLang(l);
+  if (!isRunning())
+    document.getElementById('breath-text').textContent = i18n[l].ready;
+  setTechniqueLabel(activePreset);
+  // Voice layer switches language from the next scheduled cycle
+  loadTechniqueLoops(activePreset, l);
+}
+
 // ── Bootstrap ─────────────────────────────────────────────────
 window.addEventListener('load', () => {
-  // Sync times to session module
-  setSessionTimes(times);
-
-  // Apply default technique label
-  setTechniqueLabel(activeTechniqueName);
-
-  // Apply default limit
+  setSessionTimes(_timesOf(activePreset));
+  setTechniqueLabel(activePreset);
   applyLimit('none', 10);
 
   // Pre-load default preset audio
-  loadTechniqueLoops(PRESETS[0], lang);
+  loadTechniqueLoops(activePreset, lang);
 
   // Start ambient music on first user gesture
   ambient.bootstrap();
@@ -84,18 +86,11 @@ window.addEventListener('load', () => {
   // Wire up modal close buttons and overlay clicks
   initModalListeners();
 
-  // Sync buttons to DOM
+  // Language options
   document.querySelectorAll('#lang-dropdown .ctrl-option').forEach((opt) => {
     opt.addEventListener('click', (e) => {
       e.stopPropagation();
-      applyLang(
-        opt.dataset.value,
-        isRunning(),
-        activeTechniqueName,
-        (newName) => {
-          activeTechniqueName = newName;
-        },
-      );
+      setLanguage(opt.dataset.value);
     });
   });
 });
@@ -127,17 +122,9 @@ document.addEventListener('click', () =>
 
 // ── Preset selection ──────────────────────────────────────────
 function _onPresetSelected(preset) {
-  const [i, hf, e, he] = preset.timing;
-  times.inhale = i;
-  times.holdFull = hf;
-  times.exhale = e;
-  times.holdEmpty = he;
-  setSessionTimes(times);
-
-  const name = lang === 'es' ? preset.nameEs : preset.nameEn;
-  activeTechniqueName = name;
-  setTechniqueLabel(name);
-
+  activePreset = preset;
+  setSessionTimes(_timesOf(preset));
+  setTechniqueLabel(preset);
   loadTechniqueLoops(preset, lang);
 
   if (preset.autoLimitCycles) {
@@ -145,7 +132,7 @@ function _onPresetSelected(preset) {
     setTimeout(
       () =>
         showToast(
-          `${name} — ${i18n[lang].fireBreathAutoLimit(preset.autoLimitCycles)}`,
+          `${presetText(preset, 'name')} — ${i18n[lang].fireBreathAutoLimit(preset.autoLimitCycles)}`,
         ),
       300,
     );
@@ -177,17 +164,7 @@ document.addEventListener('visibilitychange', async () => {
   }
 });
 
-// ── Prevent stale values on browser session restore ───────────
-// (Some browsers restore form field values from the previous session)
-window.addEventListener('load', () => {
-  // Already handled above — this is just a safety net for any
-  // dynamically-added inputs that might retain stale values.
-});
-
-// ── Expose applyLang globally for tutorial.js ─────────────────
-// tutorial.js is a non-module IIFE that calls applyLang() by name.
-// We expose it on window so it keeps working without changes.
-window.applyLang = (l) =>
-  applyLang(l, isRunning(), activeTechniqueName, (newName) => {
-    activeTechniqueName = newName;
-  });
+// ── Expose setLanguage for tutorial.js ────────────────────────
+// tutorial.js is a separate (non-bundled) script that switches the
+// language from its first step.
+window.applyLang = setLanguage;

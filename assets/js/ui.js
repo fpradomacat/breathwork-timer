@@ -11,30 +11,25 @@
 
 import { i18n } from './i18n.js';
 import { PRESETS } from './presets.js';
-import { loadTechniqueLoops, invalidateLoopCache } from './loop.js';
-import { playSelectChime } from './audio.js';
 
 // ── Language ──────────────────────────────────────────────────
 export let lang = 'es';
 
+/** Localized value of a preset field, e.g. presetText(p, 'name') → p.nameEs */
+export function presetText(preset, field) {
+  return preset[field + (lang === 'es' ? 'Es' : 'En')];
+}
+
 /**
- * Apply a language to the whole UI.
- * Updates all [data-i18n] elements, the lang button, the technique
- * label, the preset descriptions, and the page title.
- *
- * @param {string}   l              — 'es' | 'en'
- * @param {boolean}  isRunning      — current session state (to avoid overwriting breath text)
- * @param {string}   activeTechniqueName
- * @param {Function} onTechniqueReloaded  — called after loadTechniqueLoops resolves
+ * Apply a language to the static UI: every [data-i18n] element,
+ * icon-button labels, the page title and the preset cards.
+ * Technique audio/label updates are handled by the caller (main.js).
+ * @param {string} l — 'es' | 'en'
  */
-export function applyLang(
-  l,
-  isRunning,
-  activeTechniqueName,
-  onTechniqueReloaded,
-) {
+export function applyLang(l) {
   lang = l;
   const t = i18n[l];
+  document.documentElement.lang = l;
 
   document.querySelectorAll('[data-i18n]').forEach((el) => {
     const key = el.dataset.i18n;
@@ -54,47 +49,19 @@ export function applyLang(
     .querySelectorAll('#lang-dropdown .ctrl-option')
     .forEach((o) => o.classList.toggle('active', o.dataset.value === l));
 
-  if (!isRunning) {
-    document.getElementById('breath-text').textContent = t.ready;
-  }
-
-  // Re-translate technique label if it matches a preset name
-  const techniqueLabel = document.getElementById('technique-label');
-  const isCustom = techniqueLabel.classList.contains('is-custom');
-  if (!isCustom && activeTechniqueName) {
-    const preset = PRESETS.find(
-      (p) =>
-        p.nameEs === activeTechniqueName || p.nameEn === activeTechniqueName,
-    );
-    if (preset) {
-      const newName = l === 'es' ? preset.nameEs : preset.nameEn;
-      techniqueLabel.textContent = newName;
-      // Reload loops so the helper track uses the new language next session
-      invalidateLoopCache();
-      loadTechniqueLoops(preset, l).then(() => onTechniqueReloaded?.(newName));
-    } else {
-      techniqueLabel.textContent = activeTechniqueName;
-    }
-  } else if (isCustom) {
-    techniqueLabel.textContent = t.custom;
-  }
-
-  if (document.getElementById('presets-list')) renderPresets();
+  renderPresets();
   document.title = t.title;
   updateLimitBadge();
 }
 
 // ── Technique label ───────────────────────────────────────────
 
-/**
- * Set the technique label in the meta-row.
- * @param {string}  name
- * @param {boolean} isCustom — shows i18n 'custom' text instead of the name
- */
-export function setTechniqueLabel(name, isCustom = false) {
-  const el = document.getElementById('technique-label');
-  el.textContent = isCustom ? i18n[lang].custom : name;
-  el.classList.toggle('is-custom', isCustom);
+/** Show the active technique's (localized) name in the meta-row. */
+export function setTechniqueLabel(preset) {
+  document.getElementById('technique-label').textContent = presetText(
+    preset,
+    'name',
+  );
 }
 
 // ── Session limit ─────────────────────────────────────────────
@@ -181,32 +148,31 @@ export function showToast(msg) {
 
 // ── Preset cards ──────────────────────────────────────────────
 
+// Remembered so re-renders (e.g. on language change) keep the click handler
+let _onPresetSelect = null;
+
 /**
  * Render the technique cards into #presets-list.
- * @param {Function} onSelect — callback(preset) when user picks a technique
+ * @param {Function} [onSelect] — callback(preset) when user picks a technique
+ *                               (omit to reuse the previous one)
  */
 export function renderPresets(onSelect) {
+  if (onSelect) _onPresetSelect = onSelect;
   const list = document.getElementById('presets-list');
   if (!list) return;
   list.innerHTML = '';
 
   PRESETS.forEach((preset) => {
-    const [i, hf, e, he] = preset.timing;
     const card = document.createElement('div');
     card.className = 'preset-card';
-
-    const presetName = lang === 'es' ? preset.nameEs : preset.nameEn;
-    const presetTag = lang === 'es' ? preset.tagEs : preset.tagEn;
-    const presetDesc = lang === 'es' ? preset.descEs : preset.descEn;
-
     card.innerHTML = `
       <div class="preset-header">
-        <span class="preset-name">${presetName} <span class="preset-tag">${presetTag}</span></span>
-        <span class="preset-timing">${i}-${hf}-${e}-${he}</span>
+        <span class="preset-name">${presetText(preset, 'name')} <span class="preset-tag">${presetText(preset, 'tag')}</span></span>
+        <span class="preset-timing">${preset.timing.join('-')}</span>
       </div>
-      <p class="preset-desc">${presetDesc}</p>`;
+      <p class="preset-desc">${presetText(preset, 'desc')}</p>`;
 
-    card.addEventListener('click', () => onSelect?.(preset));
+    card.addEventListener('click', () => _onPresetSelect?.(preset));
     list.appendChild(card);
   });
 }

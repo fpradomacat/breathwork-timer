@@ -193,11 +193,6 @@ export function loopsReady() {
   ]);
 }
 
-/** Force a reload on the next loadTechniqueLoops call. */
-export function invalidateLoopCache() {
-  _loadedPreset = null;
-}
-
 /**
  * Start the technique audio for a session.
  * @param {number} t0       — AudioContext time at which cycle 0 starts
