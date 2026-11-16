@@ -31,9 +31,12 @@ function copyDirRecursive(src, dest) {
 
 // ── Build ─────────────────────────────────────────────────────
 async function build() {
-  // Start from a clean dist so removed files (e.g. old sounds) don't linger
-  fs.rmSync(DIST, { recursive: true, force: true });
+  // Start from a clean dist so removed files (e.g. old sounds) don't linger.
+  // Empty it rather than deleting it: on Windows the folder itself can't be
+  // removed while something (a terminal, a local server) has it open.
   ensureDir(DIST);
+  for (const entry of fs.readdirSync(DIST))
+    fs.rmSync(path.join(DIST, entry), { recursive: true, force: true });
   ensureDir(DIST_JS);
 
   // ── CSS ──────────────────────────────────────────────────────
