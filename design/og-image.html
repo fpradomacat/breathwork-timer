@@ -1,0 +1,100 @@
+<!--
+  Source of assets/icons/og-image.jpg (800×800 link preview). Square on
+  purpose: WhatsApp shows it as the small thumbnail next to the title, so
+  everything is centred and readable at ~100px. Render:
+    chrome --headless=new --hide-scrollbars --force-device-scale-factor=1 --window-size=800,800 --virtual-time-budget=6000 --screenshot=og.png design/og-image.html
+    ffmpeg -i og.png -q:v 2 assets/icons/og-image.jpg
+  then bump ?v= on the og:image URLs in index.html.
+  The circle and background copy #breathing-circle.active and body from style.css.
+-->
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300&display=block"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 800px;
+        height: 800px;
+        overflow: hidden;
+      }
+      body {
+        position: relative;
+        font-family: 'DM Sans', sans-serif;
+        background-color: #06030f;
+        background-image: radial-gradient(
+            ellipse 80% 60% at 20% 10%,
+            rgba(88, 28, 220, 0.22) 0%,
+            transparent 60%
+          ),
+          radial-gradient(
+            ellipse 60% 50% at 80% 80%,
+            rgba(147, 51, 234, 0.16) 0%,
+            transparent 55%
+          ),
+          radial-gradient(
+            ellipse 50% 40% at 50% 40%,
+            rgba(30, 10, 80, 0.5) 0%,
+            transparent 70%
+          );
+      }
+      /* faint grain so the gradients don't band in the JPEG */
+      body::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        opacity: 0.05;
+        mix-blend-mode: screen;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+      }
+
+      /* The app's breathing circle, in its expanded (inhale) state */
+      .circle {
+        position: absolute;
+        left: 400px;
+        top: 335px;
+        width: 380px;
+        height: 380px;
+        margin: -190px 0 0 -190px;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle at 38% 32%,
+          rgba(210, 180, 255, 0.55) 0%,
+          rgba(150, 90, 255, 0.3) 40%,
+          rgba(90, 40, 200, 0.2) 75%,
+          transparent 100%
+        );
+        box-shadow:
+          0 0 20px 10px rgba(220, 190, 255, 0.45),
+          0 0 50px 26px rgba(176, 132, 245, 0.3),
+          0 0 90px 46px rgba(140, 80, 255, 0.18);
+      }
+
+      .word {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 62px;
+        text-align: center;
+        font-weight: 300;
+        font-size: 96px;
+        line-height: 1;
+        letter-spacing: -0.02em;
+        color: #fbf8ff;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="circle"></div>
+    <div class="word">Neyen</div>
+  </body>
+</html>

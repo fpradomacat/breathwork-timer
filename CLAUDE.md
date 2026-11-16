@@ -45,7 +45,8 @@ manifest.json       PWA manifest
 build.js            build pipeline + service-worker generator
 assets/js/          ES modules (app logic); has its own package.json {"type":"module"} for Node tests
 assets/sounds/      background-music.mp3 + one folder per technique (<dir>/<dir>-{breathing,breaths,voice-es,voice-en}.mp3)
-assets/icons/       PWA icons + og-image
+assets/icons/       PWA icons + og-image.jpg (link preview, 800×800 square for WhatsApp's small thumbnail)
+design/             og-image.html: source of og-image.jpg (render steps inside); not built
 test/               unit tests + setup (audio mock, localStorage shim)
 dist/               build output (gitignored; emptied and rebuilt on every build)
 ```

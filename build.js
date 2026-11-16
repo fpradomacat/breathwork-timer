@@ -105,7 +105,9 @@ async function build() {
   const minHTML = await minifyHTML(html, {
     collapseWhitespace: true,
     removeComments: true,
-    removeAttributeQuotes: true,
+    // Keep quotes: WhatsApp's link-preview scraper ignores unquoted
+    // <meta property=og:image content=...> and shows no image.
+    removeAttributeQuotes: false,
     minifyCSS: true,
     minifyJS: true,
   });
