@@ -9,14 +9,20 @@
 //   - keep-alive oscillator (prevents AudioContext suspension on Bluetooth)
 //
 // Timing strategy:
-//   All critical timing (phase advances, session counter, limit checks)
-//   runs on plain setTimeout chains.  setTimeout keeps firing even when
-//   the browser tab is in the background or the screen is off — unlike
-//   requestAnimationFrame, which is paused by every mobile browser.
+//   Master clock = audioCtx.currentTime (the same clock the technique
+//   audio is scheduled on in loop.js), so the voice, the circle and the
+//   counters can never drift apart.
+//
+//   Every event has an ABSOLUTE deadline derived from the session start
+//   time _t0 (phase ends at _t0 + Σ durations, session tick N at _t0 + N).
+//   setTimeout is only used to wake up near each deadline — its jitter
+//   never accumulates. setTimeout keeps firing when the tab is in the
+//   background or the screen is off — unlike requestAnimationFrame,
+//   which is paused by every mobile browser.
 //
 //   rAF is used only for the phase countdown number inside the circle
 //   (purely cosmetic). If it pauses, the number just stops updating;
-//   the phase still ends at the right time because _phaseTimer fires.
+//   the phase still ends at the right time because the phase timer fires.
 
 import { i18n } from './i18n.js';
 import {
@@ -25,7 +31,7 @@ import {
   playStartSound,
   playStopTone,
 } from './audio.js';
-import { updateLoop, stopLoop } from './loop.js';
+import { startLoop, updateLoop, stopLoop } from './loop.js';
 import {
   lang,
   checkLimit,
@@ -42,10 +48,14 @@ let _totalSecs = 0;
 let _sessionTimer = null; // setTimeout — ticks every 1 s
 let _phaseTimer = null; // setTimeout — fires when a phase ends
 let _displayRAF = null; // rAF — phase countdown visual only
-let _phaseEndsAt = 0; // performance.now() timestamp
+let _t0 = 0; // audioCtx time at which the session (cycle 0) starts
+let _phaseEndsAt = 0; // audioCtx time at which the current phase ends
 let _keepAliveNode = null; // silent oscillator — keeps AudioContext alive on Bluetooth
 
 export const TRANSITION_MS = 1200;
+
+// Small lead so the first audio cycle can be scheduled in the future
+const START_LEAD = 0.1; // seconds
 
 // ── Public accessors (read-only) ──────────────────────────────
 export function isRunning() {
@@ -86,6 +96,21 @@ export async function releaseWakeLock() {
 
 // ── Internal timing helpers ───────────────────────────────────
 
+/**
+ * Call `cb` once audioCtx.currentTime reaches `time`.
+ * Re-checks on wake-up, so it never fires early, and if the context is
+ * suspended (clock frozen) it simply waits along with the audio.
+ * `setHandle` stores the latest timeout id so it can be cleared.
+ */
+function _at(time, cb, setHandle) {
+  const check = () => {
+    const wait = time - audioCtx.currentTime;
+    if (wait > 0.002) setHandle(setTimeout(check, Math.max(wait * 1000, 15)));
+    else cb();
+  };
+  check();
+}
+
 function _sessionTick() {
   if (!_isRunning) return;
   _totalSecs++;
@@ -97,22 +122,23 @@ function _sessionTick() {
     stopTimer(i18n[lang].limitMsg(limitType, limitValue));
     return;
   }
-  _sessionTimer = setTimeout(_sessionTick, 1000);
+  _at(_t0 + _totalSecs + 1, _sessionTick, (h) => (_sessionTimer = h));
 }
 
 function _displayTick() {
   if (!_isRunning) return;
-  const rem = Math.ceil((_phaseEndsAt - performance.now()) / 1000);
+  const rem = Math.ceil(_phaseEndsAt - audioCtx.currentTime);
   document.getElementById('phase-timer').innerText = rem > 0 ? rem : '';
   _displayRAF = requestAnimationFrame(_displayTick);
 }
 
+/** Advance the phase deadline by `seconds` and call `cb` when it is reached. */
 function _waitPhase(seconds, cb) {
   clearTimeout(_phaseTimer);
   cancelAnimationFrame(_displayRAF);
-  _phaseEndsAt = performance.now() + seconds * 1000;
-  _phaseTimer = setTimeout(cb, seconds * 1000);
+  _phaseEndsAt += seconds;
   _displayRAF = requestAnimationFrame(_displayTick);
+  _at(_phaseEndsAt, cb, (h) => (_phaseTimer = h));
 }
 
 // ── Cycle flow ────────────────────────────────────────────────
@@ -190,7 +216,14 @@ function _runCycle() {
     _waitPhase(phase.dur, _nextPhase);
   }
 
-  _nextPhase();
+  // Start the technique audio on the same clock, then begin cycle 0
+  // exactly at _t0 so the first phase lines up with the first audio cycle.
+  _phaseEndsAt = _t0;
+  startLoop(
+    _t0,
+    phases.reduce((sum, p) => sum + p.dur, 0),
+  );
+  _at(_t0, _nextPhase, (h) => (_phaseTimer = h));
 }
 
 // ── Start / Stop ──────────────────────────────────────────────
@@ -221,7 +254,9 @@ export async function startTimer() {
     document.getElementById('session-counter').innerText = '00:00';
     document.getElementById('cycle-counter').innerText = '0';
 
-    _sessionTimer = setTimeout(_sessionTick, 1000);
+    // Anchor the whole session to the audio clock
+    _t0 = audioCtx.currentTime + START_LEAD;
+    _at(_t0 + 1, _sessionTick, (h) => (_sessionTimer = h));
 
     // Silent oscillator — keeps AudioContext alive during silent gaps
     // (prevents Bluetooth audio dropout on mobile)
@@ -232,7 +267,6 @@ export async function startTimer() {
     _kaGain.connect(audioCtx.destination);
     _keepAliveNode.start();
 
-    updateLoop(_cycles);
     _runCycle();
   }, TRANSITION_MS);
 }
