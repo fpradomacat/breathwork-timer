@@ -40,7 +40,7 @@ npm run format:check
 - **Production output:** serve `./dist`. The service worker only exists there.
 - **`SITE_URL` env var** (default `https://neyenbreath.netlify.app`, may include a sub-path such as `https://user.github.io/repo`) is the base of every absolute URL the build writes: canonical, `hreflang`, `og:*`, JSON-LD, `sitemap.xml`, `robots.txt` and the reminder `.ics` links. Moving to a custom domain is only a matter of pointing it there (GitHub Actions passes it from `actions/configure-pages`, so a `CNAME` is enough) — nothing in the source hardcodes a host.
 - **One page per language.** `index.html` is the Spanish source; the build also writes `dist/en.html` from the same file (see "Languages and SEO" below). Both live in the site root so every relative path resolves identically.
-- **Deploy:** GitHub Actions (`.github/workflows/pages.yml`) builds and publishes `dist/` to GitHub Pages on push to `main`. It passes `SITE_URL` from `actions/configure-pages`. Netlify (drag-and-drop `dist/`) still works too.
+- **Deploy:** GitHub Actions (`.github/workflows/pages.yml`) builds and publishes `dist/` to GitHub Pages on push to `master`. It passes `SITE_URL` from `actions/configure-pages`. Netlify (drag-and-drop `dist/`) still works too.
 - **Paths must stay relative at runtime** (`assets/...`, `sw.js`, `./reminder/...`), never `/assets/...`, because GitHub Pages serves the app under `/<repo>/`. The one exception is the `<script type="module" src="/assets/js/main.js">` tag in the source `index.html`: `build.js` expects that exact string and rewrites it to a relative path. The service worker uses `self.registration.scope` for its own URLs.
 
 ## Layout
@@ -137,6 +137,33 @@ lang="es">`, the `<!-- SEO-HEAD -->` comment and the empty
   `body.modal-open` to freeze the page behind it, and the tutorial
   scrolls back to the top before it opens, since it spotlights elements
   by their on-screen position.
+
+### SEO backlog
+
+Done: indexable copy in the page, one page per language, canonical /
+hreflang / JSON-LD / sitemap / robots, descriptive titles. What is left,
+roughly in order of what it is worth:
+
+1. **Register the site** in Google Search Console and Bing Webmaster
+   Tools and submit `<SITE_URL>/sitemap.xml`. Nothing else here gets
+   indexed faster than this.
+2. **Inbound links**, which outweigh anything on-page: the YouTube
+   channel (@meditawork), the Instagram bio, the personal site and the
+   repo README.
+3. **One page per technique** (`4-7-8`, box breathing, coherence, fire
+   breath): a URL per search intent, built from the copy that already
+   lives in `seo-content.js` — the how/when text plus the FAQ entries
+   that belong to that technique, and a link into the app. Biggest
+   remaining win, and the reason the content is data and not markup.
+   Keep them as **flat files in the site root** (`respiracion-4-7-8.html`,
+   like `en.html`), not folders: every path in the app is relative, so a
+   page under `/foo/` would resolve `assets/`, `sw.js` and `reminder/`
+   one level too deep. Add each one to `PAGES`-style generation in
+   `build.js` so the sitemap and the `hreflang` pairs stay automatic.
+4. **Custom domain**, when he's ready: a `CNAME` is enough (the workflow
+   passes `SITE_URL` from `actions/configure-pages`), then 301 the
+   Netlify site at it or take it down — the two hosts serving the same
+   content is the one duplicate-content risk left.
 
 ## Key conventions & gotchas
 
