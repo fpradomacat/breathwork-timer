@@ -12,10 +12,17 @@
 import { i18n } from './i18n.js';
 import { PRESETS, GOALS } from './presets.js';
 import { load, save } from './storage.js';
+import { SEO, renderSeo } from './seo-content.js';
 
 // ── Language ──────────────────────────────────────────────────
-// Saved choice → browser language → English
+// Page language (a built language page) → saved choice → browser → English.
+// build.js publishes one page per language and marks each with
+// data-page-lang; that page is what Google indexed and what the user
+// clicked, so it wins over any previously saved choice. In development
+// (no build) the attribute is absent and the old order applies.
 function _initialLang() {
+  const page = document.documentElement.dataset.pageLang;
+  if (page in i18n) return page;
   const saved = load('lang', null);
   if (saved in i18n) return saved;
   const browser = (navigator.language || '').slice(0, 2).toLowerCase();
@@ -54,8 +61,27 @@ export function applyLang(l) {
   });
 
   renderPresets();
-  document.title = t.title;
+  renderSeoContent(l);
+  // The <title> is a search result, not UI: use the descriptive one, the
+  // same string build.js writes into the static page for this language.
+  document.title = SEO[l].metaTitle;
   updateLimitBadge();
+}
+
+// ── Landing content ───────────────────────────────────────────
+/**
+ * (Re)render the prose under the app in a language.
+ * build.js already wrote it as static HTML, so in production this
+ * replaces it with an identical copy; it matters when the user switches
+ * language, and when the repo root is served with no build at all.
+ */
+function renderSeoContent(l) {
+  const el = document.getElementById('info');
+  if (!el) return;
+  // data-href is only set by build.js, so it marks a built site — the one
+  // place where the other language's page exists to link to.
+  const built = Boolean(document.getElementById('lang-btn')?.dataset.href);
+  el.innerHTML = renderSeo(l, { linkAlternate: built });
 }
 
 // ── Technique label ───────────────────────────────────────────
@@ -122,6 +148,18 @@ export function updateLimitBadge() {
 // it when it closes (keyboard and screen-reader users don't get lost).
 const _returnFocus = new Map();
 
+/**
+ * Freeze the page behind an open dialog. The page scrolls now (the
+ * landing content sits under the app), and scrolling it while a modal is
+ * up means scrolling something you can't see.
+ */
+function _syncScrollLock() {
+  document.body.classList.toggle(
+    'modal-open',
+    Boolean(document.querySelector('.modal-overlay.open')),
+  );
+}
+
 export function openModal(id) {
   const el = document.getElementById(id);
   if (!el) return;
@@ -130,6 +168,7 @@ export function openModal(id) {
   el.setAttribute('aria-hidden', 'false');
   const body = el.querySelector('.modal-body');
   if (body) body.scrollTop = 0;
+  _syncScrollLock();
   // Focus the first control after the open transition starts
   setTimeout(
     () => el.querySelector('.modal-close')?.focus({ preventScroll: true }),
@@ -142,6 +181,7 @@ export function closeModal(id) {
   if (!el || !el.classList.contains('open')) return;
   el.classList.remove('open');
   el.setAttribute('aria-hidden', 'true');
+  _syncScrollLock();
   const back = _returnFocus.get(id);
   _returnFocus.delete(id);
   if (back && document.contains(back) && back !== document.body)

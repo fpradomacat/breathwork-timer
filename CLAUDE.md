@@ -38,14 +38,15 @@ npm run format:check
   - The source `index.html` loads `/assets/js/main.js` with an absolute path, so the server root must be the repo root.
   - On `file://`, `fetch` fails, so no audio plays.
 - **Production output:** serve `./dist`. The service worker only exists there.
-- **`SITE_URL` env var** (default `https://neyenbreath.netlify.app`, may include a sub-path such as `https://user.github.io/repo`) replaces the `https://TU-DOMINIO.com` placeholder and the hardcoded Netlify URL in `index.html` (canonical, og:\*) at build time, and is the base of the reminder `.ics` links.
+- **`SITE_URL` env var** (default `https://neyenbreath.netlify.app`, may include a sub-path such as `https://user.github.io/repo`) is the base of every absolute URL the build writes: canonical, `hreflang`, `og:*`, JSON-LD, `sitemap.xml`, `robots.txt` and the reminder `.ics` links. Moving to a custom domain is only a matter of pointing it there (GitHub Actions passes it from `actions/configure-pages`, so a `CNAME` is enough) — nothing in the source hardcodes a host.
+- **One page per language.** `index.html` is the Spanish source; the build also writes `dist/en.html` from the same file (see "Languages and SEO" below). Both live in the site root so every relative path resolves identically.
 - **Deploy:** GitHub Actions (`.github/workflows/pages.yml`) builds and publishes `dist/` to GitHub Pages on push to `main`. It passes `SITE_URL` from `actions/configure-pages`. Netlify (drag-and-drop `dist/`) still works too.
 - **Paths must stay relative at runtime** (`assets/...`, `sw.js`, `./reminder/...`), never `/assets/...`, because GitHub Pages serves the app under `/<repo>/`. The one exception is the `<script type="module" src="/assets/js/main.js">` tag in the source `index.html`: `build.js` expects that exact string and rewrites it to a relative path. The service worker uses `self.registration.scope` for its own URLs.
 
 ## Layout
 
 ```
-index.html          single page; loads /assets/js/main.js and tutorial.js as modules
+index.html          Spanish source page; loads /assets/js/main.js and tutorial.js as modules
 style.css           all app styles (design tokens at :root)
 tutorial.js         standalone IIFE onboarding overlay (injects its own CSS, canvas spotlight)
 manifest.json       PWA manifest
@@ -65,6 +66,7 @@ dist/               build output (gitignored; emptied and rebuilt on every build
 | Module                | Responsibility                                                                                                                                                                                                                                                                       |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `presets.js`          | `PRESETS`: names/descs (Es/En), `goal`, `timing` `[inhale, holdFull, exhale, holdEmpty]` in seconds (fractions allowed), `soundDir`, `helperCycles`, optional `autoLimitCycles`, optional `warnEs`/`warnEn` safety note. `GOALS` (order, emoji, i18n label) for the techniques modal |
+| `seo-content.js`      | Landing copy under the app (what Neyen is, per-technique how/when, FAQ, author) in Es/En, plus `renderSeo(lang)` and `PAGES`. DOM-free: `build.js` renders it into each page's static HTML and the JSON-LD, `ui.js` re-renders it on language change                                 |
 | `i18n.js`             | `i18n.es` / `i18n.en` string tables. Some entries are functions. Every key must exist in both languages (enforced by `test/content.test.mjs`)                                                                                                                                        |
 | `ui.js`               | DOM helpers: `lang` (exported `let`; saved → browser → English), `applyLang`, `presetText(preset, field)`, limits + duration pill/badge, modals (focus management), toast (optional action button), preset cards                                                                     |
 | `session.js`          | Session state and timing: countdown, phases, counters, limit checks, wake lock, keep-alive oscillator, audio fade-out on stop. Emits `onSession('starting' \| 'start' \| 'end', fn)`                                                                                                 |
@@ -92,6 +94,49 @@ localStorage keys:
 - `neyen.tests` (breathing test results)
 - `neyen.reminder` (`{ time }` of the last reminder added), `neyen.reminderOffers` (times the post-session toast offered it, max 3)
 - `neyen.tutorialDone` (written by `tutorial.js`, plain string)
+
+## Languages and SEO
+
+The app used to be one URL that rewrote itself in JS, which left search
+engines with an empty shell and no English page at all. Now:
+
+- **`assets/js/seo-content.js`** holds the landing copy (intro, one
+  how/when block per technique, FAQ, author note, disclaimer) for every
+  language, and renders it to an HTML string. It is the single source for
+  the page `<title>`, the meta description and the FAQ, so nothing has to
+  be kept in sync by hand. `ui.js` also sets `document.title` from it, so
+  the rendered title matches the static one.
+- **`build.js` writes one page per language in `PAGES`** — `index.html`
+  (es) and `en.html` (en) — each with its own title, description,
+  canonical, full `hreflang` set (plus `x-default`), link preview,
+  JSON-LD (`WebApplication` + `Person` + `FAQPage`) and landing copy. It
+  also translates the static `[data-i18n]` text and `[data-i18n-label]`
+  labels, so the English page is served in English instead of repainting
+  once the bundle runs. `assertPage()` fails the build if any of that is
+  missing — the rewrites are pattern based, so a stray match could
+  silently drop part of the `<head>`.
+- **`index.html` carries three markers the build needs**: `<html
+lang="es">`, the `<!-- SEO-HEAD -->` comment and the empty
+  `<section class="seo" id="info">`. The page title and description tag
+  are found by pattern, so neither tag name may appear anywhere else in
+  the file, comments included (`test/seo.test.mjs` enforces this — it
+  caught exactly that bug once).
+- **Serving the repo root (development) renders no static copy**, so
+  `ui.js` fills `#info` client-side and the language button switches in
+  place. On a built site the button navigates instead (`data-href`), and
+  the page language (`data-page-lang`) wins over the saved preference —
+  the URL always matches the language on screen. To check the English
+  page locally: `npm run build` and serve `./dist`.
+- **`sitemap.xml` and `robots.txt`** are generated from `SITE_URL`. Note
+  that a GitHub Pages _project_ site serves `robots.txt` from
+  `user.github.io/robots.txt`, not from `/<repo>/`, so that file only
+  takes effect on a custom domain; submit the sitemap URL in Search
+  Console either way.
+- The page scrolls now (the app fills the first screen, the copy sits
+  below it). `body` is no longer `overflow: hidden`; an open dialog adds
+  `body.modal-open` to freeze the page behind it, and the tutorial
+  scrolls back to the top before it opens, since it spotlights elements
+  by their on-screen position.
 
 ## Key conventions & gotchas
 
@@ -130,9 +175,10 @@ localStorage keys:
   4. Consider updating the tutorial's "when and how" step.
 - **New language:**
   1. Add an `i18n` table with every key.
-  2. Add `nameXx`/`tagXx`/`descXx`/`warnXx` to each preset (`presetText()` picks the suffix).
-  3. Add `<dir>-voice-xx.mp3` per technique.
-  4. Extend the language button (it currently toggles `es` ↔ `en`) and the tutorial steps.
+  1. Add an `SEO` entry and a `PAGES` entry in `seo-content.js` (landing copy, meta title/description, per-technique how/when, FAQ — same length as the others). The build picks up the new page automatically.
+  1. Add `nameXx`/`tagXx`/`descXx`/`warnXx` to each preset (`presetText()` picks the suffix).
+  1. Add `<dir>-voice-xx.mp3` per technique.
+  1. Extend the language button (it currently toggles `es` ↔ `en`) and the tutorial steps.
 - **New UI string:** add it to both `i18n.es` and `i18n.en`, then use `data-i18n="key"` (text) or `data-i18n-label="key"` (aria-label + title).
 
 ## Tests (`test/`)
@@ -147,6 +193,7 @@ The test files:
 - `loop.test.mjs`: the scheduler (cycle alignment, voice rules, ticks, gains, fade-out, fractional cycles)
 - `history.test.mjs`: streak, stats, mood before/after
 - `content.test.mjs`: i18n keys vs `index.html`, preset completeness, sound files on disk, every goal has a technique, breathing test definitions
+- `seo.test.mjs`: landing copy parity across languages (keys, FAQ length, per-technique copy), meta title/description length, `renderSeo` output shape and safe links, and the markers `build.js` needs in `index.html`
 - `reminder-and-tests.test.mjs`: `.ics` content, Google Calendar link dates, test score bands and results storage
 
 There are no browser tests in the repo. Check UI changes by running the app.
@@ -158,14 +205,15 @@ It empties `dist/` (rather than deleting it: on Windows the folder can't be remo
 1. Minifies `style.css` with clean-css (level 2).
 2. Bundles `assets/js/main.js` with **esbuild** into a single minified IIFE and drops `console.*`.
 3. Minifies `tutorial.js` with terser and drops console calls.
-4. Rewrites and minifies `index.html`: module script tags become `defer`. It throws if the expected `<script type="module" src="/assets/js/main.js">` tag is missing. It also injects the service worker registration.
+4. Rewrites and minifies `index.html` **once per language** into `index.html` and `en.html` (title, description, canonical, `hreflang`, `og:*`, JSON-LD, landing copy, translated static labels, language-button target). Module script tags become `defer`; it throws if the expected `<script type="module" src="/assets/js/main.js">` tag is missing, if a marker is missing or matched more than once, or if a finished page lacks any of the tags `assertPage()` checks. It also injects the service worker registration.
 5. Copies `assets/` (except `js/`) and `manifest.json`.
-6. Writes the daily reminder files, `dist/reminder/<lang>/<HHMM>.ics` (one per half hour and language, from `reminder-ics.js`), and a `dist/_headers` that serves them as `text/calendar`. A real https URL is what makes iOS show "Add to Calendar".
-7. Generates `dist/sw.js`:
+6. Writes `sitemap.xml` (every page, with the alternates of all languages) and `robots.txt`, both from `SITE_URL`.
+7. Writes the daily reminder files, `dist/reminder/<lang>/<HHMM>.ics` (one per half hour and language, from `reminder-ics.js`), and a `dist/_headers` that serves them as `text/calendar`. A real https URL is what makes iOS show "Add to Calendar".
+8. Generates `dist/sw.js`:
 
    - Everything is **precached at install**, sounds included (~1.5 MB), so the app works fully offline from the first visit.
    - There are two caches named after a content hash: `neyen-shell-<hash>` and `neyen-sounds-<hash>`. A deploy only re-downloads what changed, and old caches are deleted on activate.
-   - All requests are cache-first. Navigations are served the cached `/index.html`, except `/reminder/*`, which goes to the network.
+   - All requests are cache-first. A navigation is served that very page when it is cached (`en.html`), otherwise the cached `index.html` — which is what the app root and `?source=pwa` resolve to. `/reminder/*` always goes to the network.
    - A new version activates immediately. `main.js` then shows a "new version · Reload" toast, delayed until the session ends if one is running.
 
    `sw.js` is generated by the build. Never hand-edit it; change `generateServiceWorker()` instead.

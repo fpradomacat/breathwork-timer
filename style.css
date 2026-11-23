@@ -39,11 +39,14 @@
 }
 
 /* ── Page ────────────────────────────────────────────────────── */
+/* The app fills the first screen (.main-layout); the landing content
+   (#info) sits below it, so the page scrolls vertically. Horizontal
+   overflow stays clipped: .container is a few px wider than its parent
+   on purpose. */
+html {
+  scroll-behavior: smooth;
+}
 body {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100svh;
   margin: 0;
   font-family: 'DM Sans', sans-serif;
   color: var(--text-primary);
@@ -63,6 +66,11 @@ body {
       var(--bg-grad-c) 0%,
       transparent 70%
     );
+  background-attachment: fixed;
+  overflow-x: hidden;
+}
+/* An open dialog freezes the page behind it (see _syncScrollLock in ui.js) */
+body.modal-open {
   overflow: hidden;
 }
 body::before {
@@ -104,8 +112,11 @@ body::before {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  min-height: 100svh;
   width: 100%;
   max-width: 340px;
+  margin: 0 auto;
 }
 .container {
   width: 100%;
@@ -629,6 +640,164 @@ footer {
 }
 .author-tag:hover {
   color: var(--text-secondary);
+}
+
+/* ── Landing content (#info) ──────────────────────────────────
+   The prose under the app: what Neyen is, the techniques, the FAQ and
+   who made it. Rendered from assets/js/seo-content.js — static HTML in
+   production (build.js), client-side when the repo root is served. */
+.seo-link {
+  display: inline-block;
+  margin-top: 20px;
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition:
+    color 0.2s,
+    opacity 0.6s var(--ease);
+}
+.seo-link::after {
+  content: ' ↓';
+}
+.seo-link:hover {
+  color: var(--text-secondary);
+}
+/* Out of the way during a session */
+.container.session .seo-link {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.seo {
+  position: relative;
+  z-index: 1;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 72px 24px 96px;
+  text-align: left;
+  font-size: 0.95rem;
+  line-height: 1.75;
+  color: var(--text-secondary);
+  border-top: 1px solid var(--divider);
+}
+/* No build and JS hasn't run (or failed): leave no empty gap */
+.seo:empty {
+  display: none;
+}
+.seo h2 {
+  margin: 56px 0 16px;
+  font-size: 0.82rem;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent-bright);
+}
+.seo h2:first-child {
+  margin-top: 0;
+}
+.seo h3 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0 0 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+.seo p {
+  margin: 0 0 14px;
+}
+.seo a {
+  color: var(--accent-bright);
+  text-decoration: none;
+  border-bottom: 1px solid var(--accent-dim);
+}
+.seo a:hover {
+  border-bottom-color: var(--accent);
+}
+.seo strong {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.seo-technique {
+  margin: 0 0 22px;
+  padding: 18px 20px;
+  border: 1px solid var(--divider);
+  border-radius: 14px;
+  background: var(--panel-bg);
+}
+.seo-technique p:last-child {
+  margin-bottom: 0;
+}
+.seo-timing {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+.seo-warn {
+  color: var(--warn);
+  font-size: 0.88rem;
+}
+
+.seo-faq {
+  border-bottom: 1px solid var(--divider);
+}
+.seo-faq summary {
+  padding: 15px 0;
+  cursor: pointer;
+  color: var(--text-primary);
+  font-weight: 400;
+  list-style: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.seo-faq summary::-webkit-details-marker {
+  display: none;
+}
+.seo-faq summary::after {
+  content: '+';
+  float: right;
+  margin-left: 12px;
+  color: var(--text-muted);
+  font-family: 'DM Mono', monospace;
+}
+.seo-faq[open] summary::after {
+  content: '–';
+}
+.seo-faq summary:hover {
+  color: var(--accent-bright);
+}
+.seo-faq summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+.seo-faq p {
+  margin: 0 0 18px;
+  padding-right: 24px;
+  color: var(--text-secondary);
+}
+
+.seo-disclaimer,
+.seo-altlang {
+  font-size: 0.86rem;
+  color: var(--text-muted);
+}
+.seo-altlang {
+  margin-top: 36px;
+}
+
+@media (min-width: 700px) {
+  .seo {
+    font-size: 1rem;
+    padding-bottom: 120px;
+  }
 }
 
 /* ── Session state ───────────────────────────────────────────── */
@@ -1473,6 +1642,9 @@ footer {
 
 /* Less motion: keep the breathing circle (it IS the guide), drop the rest */
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
   body::before {
     animation: none;
   }

@@ -3,66 +3,33 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Neyen | el arte de respirar</title>
-    <link rel="stylesheet" href="style.css" />
 
-    <!-- ── Primary meta ──────────────────────────────── -->
+    <!-- ── Primary meta ──────────────────────────────────────────
+         The page title and description below are the Spanish ones, and
+         build.js rewrites both for each language page from SEO.metaTitle
+         and SEO.metaDescription (assets/js/seo-content.js) — so edit them
+         there. What you change here only shows when you serve the repo
+         root in development.
+         Careful: build.js finds them by pattern, so neither tag name may
+         appear anywhere else in this file, comments included. -->
+    <title>
+      Neyen · Respiración guiada gratis: 4-7-8, cuadrada y coherencia
+    </title>
     <meta
       name="description"
-      content="Técnicas de respiración guiadas para calmarte, enfocarte o activarte. Gratis, sin registro y funciona offline."
+      content="Temporizador de respiración guiada con voz y sonido: 4-7-8 para dormir, respiración cuadrada para enfocarte, coherencia cardíaca para calmarte. Gratis y sin registro."
     />
+    <link rel="stylesheet" href="style.css" />
     <meta name="theme-color" content="#06030f" />
     <link rel="icon" href="assets/icons/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
     <link rel="manifest" href="manifest.json" />
 
-    <link rel="canonical" href="https://neyenbreath.netlify.app/" />
-
-    <!-- ── Open Graph (WhatsApp, Telegram, LinkedIn…) ── -->
-    <!-- JPEG (no alpha) + explicit size: WhatsApp skips or drops images it
-         can't size up front. Bump ?v= when the image changes, since
-         WhatsApp/Facebook cache previews per image URL. -->
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Neyen" />
-    <meta property="og:locale" content="es_AR" />
-    <meta property="og:locale:alternate" content="en_US" />
-    <meta property="og:title" content="Neyen · el arte de respirar" />
-    <meta
-      property="og:description"
-      content="Técnicas de respiración guiadas para calmarte, enfocarte o activarte. Gratis, sin registro y funciona offline."
-    />
-    <meta property="og:url" content="https://neyenbreath.netlify.app/" />
-    <meta
-      property="og:image"
-      content="https://neyenbreath.netlify.app/assets/icons/og-image.jpg?v=5"
-    />
-    <meta
-      property="og:image:secure_url"
-      content="https://neyenbreath.netlify.app/assets/icons/og-image.jpg?v=5"
-    />
-    <meta property="og:image:type" content="image/jpeg" />
-    <meta property="og:image:width" content="800" />
-    <meta property="og:image:height" content="800" />
-    <meta
-      property="og:image:alt"
-      content="El círculo de respiración de Neyen"
-    />
-
-    <!-- ── Twitter / X ──────────────────────────────── -->
-    <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="Neyen · el arte de respirar" />
-    <meta
-      name="twitter:description"
-      content="Técnicas de respiración guiadas para calmarte, enfocarte o activarte. Gratis, sin registro y funciona offline."
-    />
-    <meta
-      name="twitter:image"
-      content="https://neyenbreath.netlify.app/assets/icons/og-image.jpg?v=5"
-    />
-    <meta
-      name="twitter:image:alt"
-      content="El círculo de respiración de Neyen"
-    />
+    <!-- build.js replaces this exact comment with the absolute-URL tags:
+         canonical, hreflang alternates, Open Graph, Twitter and the
+         JSON-LD (WebApplication + FAQPage). They need SITE_URL, which
+         only exists at build time, so they are not in the source. -->
+    <!-- SEO-HEAD -->
   </head>
   <body>
     <div class="main-layout">
@@ -227,6 +194,7 @@
           <a
             href="https://buymeacoffee.com/soypradito"
             target="_blank"
+            rel="noopener"
             class="bmc-btn"
           >
             <span data-i18n="buymeacoffee">Invitame un café</span>
@@ -235,12 +203,36 @@
           <a
             href="https://instagram.com/soypradito"
             target="_blank"
+            rel="noopener"
             class="author-tag"
             >@soypradito</a
           >
+          <span class="footer-sep">·</span>
+          <a
+            href="https://www.youtube.com/@meditawork"
+            target="_blank"
+            rel="noopener"
+            class="author-tag"
+            data-i18n-label="youtubeLabel"
+            aria-label="Meditaciones guiadas en YouTube"
+            title="Meditaciones guiadas en YouTube"
+            >YouTube</a
+          >
         </footer>
+
+        <!-- Entry point to the landing content below the app -->
+        <a class="seo-link" href="#info" data-i18n="seoMore"
+          >Qué es Neyen, las técnicas y preguntas frecuentes</a
+        >
       </div>
     </div>
+
+    <!-- ── Landing content ──────────────────────────────────────
+         Filled with static, crawlable HTML per language by build.js, from
+         assets/js/seo-content.js. ui.js renders it client-side when it is
+         empty (serving the repo root, where no build ran) and on every
+         language change. -->
+    <section class="seo" id="info"></section>
 
     <!-- Modal: Técnicas -->
     <div class="modal-overlay" id="modal-tecnicas" aria-hidden="true">

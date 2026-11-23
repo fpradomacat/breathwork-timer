@@ -198,13 +198,25 @@ document.getElementById('mixer-btn').addEventListener('click', (e) => {
 });
 
 // ── Corner buttons: language toggle + tutorial ────────────────
+// On a built site each language is its own indexable URL, and build.js
+// puts the other one in data-href: switching navigates there, so the URL
+// always matches the language on screen. Without a build (repo root)
+// there is nowhere to go, so switch in place as before.
 document.getElementById('lang-btn').addEventListener('click', (e) => {
+  const href = e.currentTarget.dataset.href;
+  if (href) {
+    location.assign(href);
+    return;
+  }
   setLanguage(lang === 'es' ? 'en' : 'es');
   e.currentTarget.blur();
 });
 
 document.getElementById('help-btn').addEventListener('click', (e) => {
   e.currentTarget.blur();
+  // The tutorial spotlights elements by their on-screen position, so it
+  // needs the app in view — the user may have scrolled down to the FAQ.
+  window.scrollTo({ top: 0, behavior: 'auto' });
   window.showTutorial?.();
 });
 

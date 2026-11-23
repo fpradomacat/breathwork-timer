@@ -19,7 +19,7 @@ Fire Breath and 4-7-8 show a safety note on their card, and a short notice the f
 
 Other features:
 
-- **Spanish and English** (UI and voice guidance). The language is detected from your browser; switch it with the button in the top-right corner.
+- **Spanish and English** (UI, voice guidance and the page content), each published as its own URL (`/` and `/en.html`); switch with the button in the top-right corner.
 - **Session length:** tap the ⏱ pill next to "Techniques" to pick ∞ / 3 / 5 / 10 / 15 minutes.
 - **Sound controls** that work even during a session:
 
@@ -37,6 +37,7 @@ Other features:
 - **Keyboard:** **Space** starts or stops a session, **Esc** closes dialogs, and everything is reachable with **Tab**.
 - An onboarding tutorial on your first visit (**?** in the top-right corner shows it again).
 - Works fully offline once loaded, sounds included.
+- **Below the app:** what each technique is, how and when to practise it, and a FAQ — real text in the page, in both languages.
 
 Your preferences (language, sounds, session length) are remembered between visits.
 
@@ -44,7 +45,7 @@ Your preferences (language, sounds, session length) are remembered between visit
 
 The app is plain HTML, CSS, and vanilla JavaScript, with no framework.
 
-- **`index.html`** is the single page.
+- **`index.html`** is the Spanish source page. The build writes one page per language from it (`index.html`, `en.html`), each with its own title, canonical, `hreflang`, link preview and JSON-LD.
 - **`assets/js/`** holds the app logic as ES modules. `main.js` is the entry point:
   - `presets.js`: the breathing techniques (timings, sound folder, safety notes)
   - `session.js`: the session clock, countdown, breathing phases and counters
@@ -54,8 +55,9 @@ The app is plain HTML, CSS, and vanilla JavaScript, with no framework.
   - `history.js` / `practice.js`: session history, streak, summary and history screens
   - `media-session.js`: lock-screen controls
   - `ui.js`, `i18n.js`, `interactions.js`, `storage.js`: the DOM, translations, input handling, saved preferences
+  - `seo-content.js`: the content under the app (intro, techniques, FAQ, author) in both languages
 - **`tutorial.js`** is the onboarding overlay.
-- **`build.js`** bundles and minifies everything into `dist/` and generates a service worker for offline use.
+- **`build.js`** bundles and minifies everything into `dist/`, writes each language page plus `sitemap.xml` and `robots.txt`, and generates a service worker for offline use. Set `SITE_URL` to the public URL of the site (a custom domain included) — every absolute URL is built from it.
 
 Each technique has its own folder in `assets/sounds/` with one file per sound layer. Each file is exactly one breathing cycle long:
 
