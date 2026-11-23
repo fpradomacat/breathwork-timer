@@ -11,7 +11,15 @@
 
 import { i18n } from './i18n.js';
 
-export const SITE = 'https://neyenbreath.netlify.app/';
+const DEFAULT_SITE = 'https://neyenbreath.netlify.app/';
+
+// In the browser, use wherever the app is actually served from (works for
+// Netlify, GitHub Pages under /<repo>/, a custom domain…). In Node (build,
+// tests) there is no document, so the default applies.
+export const SITE =
+  typeof document !== 'undefined' && document.baseURI.startsWith('https:')
+    ? new URL('./', document.baseURI).href
+    : DEFAULT_SITE;
 
 /** "00:00", "00:30" … "23:30": the times the reminder can be set to. */
 export const REMINDER_SLOTS = Array.from(

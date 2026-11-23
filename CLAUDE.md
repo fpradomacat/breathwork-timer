@@ -35,10 +35,12 @@ npm run format:check
 ```
 
 - **No dev server script.** Serve the repo root over **http**, for example with VS Code Live Server or `npx serve .`.
-  - Asset paths are absolute (`/assets/...`), so the server root must be the repo root.
+  - The source `index.html` loads `/assets/js/main.js` with an absolute path, so the server root must be the repo root.
   - On `file://`, `fetch` fails, so no audio plays.
 - **Production output:** serve `./dist`. The service worker only exists there.
-- **`SITE_URL` env var** (default `https://neyenbreath.netlify.app`) replaces the `https://TU-DOMINIO.com` placeholder at build time. `index.html` already hardcodes the real URL, so this is effectively a no-op.
+- **`SITE_URL` env var** (default `https://neyenbreath.netlify.app`, may include a sub-path such as `https://user.github.io/repo`) replaces the `https://TU-DOMINIO.com` placeholder and the hardcoded Netlify URL in `index.html` (canonical, og:\*) at build time, and is the base of the reminder `.ics` links.
+- **Deploy:** GitHub Actions (`.github/workflows/pages.yml`) builds and publishes `dist/` to GitHub Pages on push to `main`. It passes `SITE_URL` from `actions/configure-pages`. Netlify (drag-and-drop `dist/`) still works too.
+- **Paths must stay relative at runtime** (`assets/...`, `sw.js`, `./reminder/...`), never `/assets/...`, because GitHub Pages serves the app under `/<repo>/`. The one exception is the `<script type="module" src="/assets/js/main.js">` tag in the source `index.html`: `build.js` expects that exact string and rewrites it to a relative path. The service worker uses `self.registration.scope` for its own URLs.
 
 ## Layout
 

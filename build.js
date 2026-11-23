@@ -7,7 +7,13 @@ const path = require('path');
 const crypto = require('crypto');
 
 // ── Config ────────────────────────────────────────────────────
-const SITE_URL = process.env.SITE_URL || 'https://neyenbreath.netlify.app';
+// Public URL of the deployed site, including any sub-path
+// (e.g. https://user.github.io/repo). Only used for absolute URLs
+// (og:image, canonical, reminder .ics). Every other path in the output is
+// relative, so the site works at the root of a domain or under /<repo>/.
+const SITE_URL = (
+  process.env.SITE_URL || 'https://neyenbreath.netlify.app'
+).replace(/\/+$/, '');
 
 const SRC_JS_DIR = './assets/js';
 const DIST = './dist';
@@ -84,12 +90,14 @@ async function build() {
   // deferred by default, and main.js expects the DOM to be parsed).
   let html = fs.readFileSync('./index.html', 'utf8');
   html = html.replaceAll('https://TU-DOMINIO.com', SITE_URL);
+  // index.html hardcodes the Netlify URL for canonical / og:* tags
+  html = html.replaceAll('https://neyenbreath.netlify.app', SITE_URL);
   const moduleTag = '<script type="module" src="/assets/js/main.js"></script>';
   if (!html.includes(moduleTag))
     throw new Error(`index.html: expected ${moduleTag} (build.js rewrites it)`);
   html = html.replace(
     moduleTag,
-    '<script defer src="/assets/js/main.js"></script>',
+    '<script defer src="assets/js/main.js"></script>',
   );
   html = html.replace(
     '<script type="module" src="tutorial.js"></script>',
@@ -98,7 +106,7 @@ async function build() {
 
   // Registro del service worker (si el HTML fuente no lo tiene ya)
   if (!html.includes('serviceWorker')) {
-    const swRegister = `<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js'));}</script>`;
+    const swRegister = `<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js'));}</script>`;
     html = html.replace('</body>', `${swRegister}</body>`);
   }
 
@@ -191,7 +199,8 @@ function contentHash(files) {
   return hash.digest('hex').slice(0, 10);
 }
 
-const toUrl = (f) => '/' + path.relative(DIST, f).split(path.sep).join('/');
+// Relative to sw.js, so the same worker works at / and under /<repo>/
+const toUrl = (f) => path.relative(DIST, f).split(path.sep).join('/');
 
 function generateServiceWorker() {
   const soundsDir = path.normalize(`${DIST}/assets/sounds`);
@@ -254,12 +263,12 @@ self.addEventListener('fetch', (event) => {
 
   // Calendar files for the daily reminder: straight to the network
   // (not precached, and they must not get the index.html fallback)
-  if (new URL(request.url).pathname.startsWith('/reminder/')) return;
+  if (request.url.startsWith(new URL('reminder/', self.registration.scope).href)) return;
 
-  // Page navigations ("/", "/?source=pwa"…) are served the cached index.html
+  // Page navigations (the app root, "?source=pwa"…) are served the cached index.html
   if (request.mode === 'navigate') {
     event.respondWith(
-      caches.match('/index.html').then((cached) => cached || fetch(request))
+      caches.match(new URL('index.html', self.registration.scope)).then((cached) => cached || fetch(request))
     );
     return;
   }

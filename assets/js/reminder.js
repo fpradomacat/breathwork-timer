@@ -29,7 +29,9 @@ let _staticIcs = null;
 async function _checkStaticIcs() {
   if (_staticIcs !== null) return _staticIcs;
   try {
-    const res = await fetch(icsPath('es', DEFAULT_TIME), { method: 'HEAD' });
+    const res = await fetch(`.${icsPath('es', DEFAULT_TIME)}`, {
+      method: 'HEAD',
+    });
     _staticIcs = res.ok;
   } catch {
     _staticIcs = false;
@@ -47,7 +49,7 @@ async function _updateLinks() {
   });
   const ics = document.getElementById('reminder-ics');
   if (await _checkStaticIcs()) {
-    ics.href = icsPath(lang, time);
+    ics.href = `.${icsPath(lang, time)}`;
     ics.removeAttribute('download');
   } else {
     if (_blobUrl) URL.revokeObjectURL(_blobUrl);

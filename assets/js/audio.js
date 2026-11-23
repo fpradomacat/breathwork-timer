@@ -227,7 +227,7 @@ async function _ambInit() {
   _amb.gainNode.gain.value = 0;
   _amb.gainNode.connect(_amb.ctx.destination);
 
-  const res = await fetch('/assets/sounds/background-music.mp3');
+  const res = await fetch('assets/sounds/background-music.mp3');
   const arr = await res.arrayBuffer();
   _amb.buffer = await _amb.ctx.decodeAudioData(arr);
   _amb.loaded = true;

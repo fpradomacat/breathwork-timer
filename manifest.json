@@ -2,7 +2,7 @@
   "name": "Neyen | the art of breathing",
   "short_name": "Neyen",
   "description": "Guided breathing techniques to calm, focus, or energize you.",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#06030f",
   "theme_color": "#06030f",

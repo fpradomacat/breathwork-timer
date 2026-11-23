@@ -82,7 +82,7 @@ function _decode(src) {
 
 function _soundPath(preset, layer) {
   const dir = preset.soundDir;
-  return `/assets/sounds/${dir}/${dir}-${layer}.mp3`;
+  return `assets/sounds/${dir}/${dir}-${layer}.mp3`;
 }
 
 // Generated tick: short, soft sine "tock" with a fast decay
