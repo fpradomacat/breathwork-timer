@@ -6,8 +6,9 @@
 // shell rendered by JS.
 //
 // Single source of truth, used twice:
-//   - build.js renders it into static HTML for each language page
-//     (dist/index.html = es, dist/en.html = en) and into the FAQPage
+//   - build.js renders it into static HTML for each page — home per
+//     language (dist/index.html = es, dist/en.html = en) and one page per
+//     language and technique (respiracion-4-7-8.html…) — and into the
 //     JSON-LD, so crawlers see it without running any script.
 //   - ui.js re-renders it on language change, and fills it in when it is
 //     empty (serving the repo root in development, where no build ran).
@@ -62,62 +63,90 @@ export const SEO = {
       'Cuatro técnicas, cada una con su ritmo, su voz guía en español y su sonido de respiración. Los números son los segundos de cada fase: inhalar, retener con los pulmones llenos, exhalar y retener vacío.',
     techniques: {
       box: {
+        slug: 'respiracion-cuadrada.html',
+        metaTitle:
+          'Respiración cuadrada (box breathing) 4-4-4-4 guiada · Neyen',
+        metaDescription:
+          'Respiración cuadrada guiada con voz y sonido: inhalá 4, retené 4, exhalá 4, retené 4. Para enfocarte y bajar el estrés antes de algo importante. Gratis.',
         how: 'Inhalá por la nariz contando cuatro, sostené el aire cuatro, exhalá cuatro y quedate con los pulmones vacíos otros cuatro. Lo que ordena es el ritmo parejo, no la cantidad de aire: no hace falta llenarse al máximo.',
         when: 'Antes de una reunión, de un examen o cuando la cabeza se va a mil. Es discreta y se puede hacer sentado en cualquier parte, por eso la usan deportistas, músicos y personal militar.',
       },
       coherent: {
+        slug: 'coherencia-cardiaca.html',
+        metaTitle: 'Coherencia cardíaca 5-5: respiración guiada gratis · Neyen',
+        metaDescription:
+          'Coherencia cardíaca guiada: cinco segundos adentro, cinco afuera, seis respiraciones por minuto. Con voz y sonido, para calmarte a diario. Gratis, sin registro.',
         how: 'Cinco segundos adentro y cinco afuera, sin retenciones. Son seis respiraciones por minuto, el ritmo que suele asociarse a una mayor variabilidad de la frecuencia cardíaca.',
         when: 'Es la más suave y la más fácil de sostener en el tiempo: cinco minutos, dos o tres veces al día. Si nunca hiciste respiración consciente, empezá por acá.',
       },
       478: {
+        slug: 'respiracion-4-7-8.html',
+        metaTitle: 'Respiración 4-7-8 para dormir: temporizador guiado · Neyen',
+        metaDescription:
+          'Respiración 4-7-8 guiada con voz y sonido: inhalá 4, retené 7, exhalá 8. Para dormir y bajar la ansiedad sin contar. Gratis, sin registro y sin internet.',
         how: 'Inhalá cuatro segundos por la nariz, sostené siete y exhalá ocho por la boca, de a poco, como soplando una vela sin apagarla. La exhalación larga es la parte que afloja: si te cuesta llegar, acortá los tres números manteniendo la proporción (por ejemplo 2-3,5-4).',
         when: 'De noche, ya acostado y con la luz apagada, o cuando necesitás bajar un pico de nervios. Cuatro a ocho ciclos suelen ser suficientes.',
       },
       fire: {
+        slug: 'respiracion-de-fuego.html',
+        metaTitle:
+          'Respiración de fuego guiada: 30 ciclos para activarte · Neyen',
+        metaDescription:
+          'Respiración de fuego guiada con ritmo exacto: un segundo adentro, uno afuera, 30 ciclos y a respirar normal. Para despertarte y activarte. Leé las precauciones.',
         how: 'Respiración rápida y rítmica por la nariz, un segundo adentro y uno afuera, con el abdomen activo y los hombros quietos. Neyen la corta sola a los treinta ciclos y después te deja unos segundos para respirar normal y registrar cómo quedaste.',
         when: 'A la mañana temprano o a media tarde, cuando el cuerpo pide movimiento y no hay café que alcance. No es una técnica para calmarse ni para hacer antes de dormir.',
       },
     },
 
     faqHeading: 'Preguntas frecuentes',
+    // `topics`: the techniques (soundDir) whose own page repeats the entry
     faq: [
       {
         q: '¿Qué es la respiración consciente o breathwork?',
         a: 'Es el uso deliberado del ritmo de la respiración para cambiar cómo te sentís. Respirar lento y exhalar largo tiende a acompañar estados de calma; respirar rápido tiende a activar. Lo que hacen las técnicas es darte un ritmo concreto y sostenido en vez de dejarlo al azar, y un temporizador existe justamente para que no tengas que contar mientras practicás.',
       },
       {
+        topics: ['coherent', '478', 'box'],
         q: '¿Cuál es la mejor técnica para la ansiedad o los nervios?',
         a: 'Para el día a día, la coherencia cardíaca (5-5): es suave, no tiene retenciones y se puede repetir varias veces al día. Si lo que querés es bajar un pico puntual, la 4-7-8 o la respiración cuadrada suelen funcionar más rápido porque la exhalación es más larga que la inhalación. Probá las tres y quedate con la que te resulte más cómoda: la mejor técnica es la que realmente vas a practicar.',
       },
       {
+        topics: ['478'],
         q: '¿Qué respiración ayuda a dormir?',
         a: 'La 4-7-8 es la más usada para eso: inhalar cuatro segundos, sostener siete y exhalar ocho. Conviene hacerla ya acostado, sin pantallas, y dejar que el cuerpo siga respirando tranquilo después de los últimos ciclos. Si las retenciones de siete segundos te incomodan, acortá los números manteniendo la proporción.',
       },
       {
+        topics: ['478'],
         q: '¿Cómo funciona la respiración 4-7-8?',
         a: 'Es una secuencia de tres tiempos: inhalás por la nariz durante cuatro segundos, retenés el aire siete y exhalás por la boca durante ocho. La popularizó el médico Andrew Weil. La idea es que la exhalación dure el doble que la inhalación: alargar la exhalación es lo que más se asocia con la respuesta de relajación del cuerpo.',
       },
       {
+        topics: ['box'],
         q: '¿Qué es la respiración cuadrada o box breathing?',
         a: 'Cuatro fases iguales de cuatro segundos: inhalar, retener con los pulmones llenos, exhalar y retener vacío. Se llama cuadrada porque los cuatro lados miden lo mismo. Sirve para ordenar la atención antes de algo que requiere foco, y es fácil de recordar porque es un solo número.',
       },
       {
+        topics: ['coherent'],
         q: '¿Qué es la coherencia cardíaca?',
         a: 'Respirar a unas seis veces por minuto —cinco segundos adentro, cinco afuera— sin retener el aire. A ese ritmo el pulso se acelera y se desacelera de forma más regular con cada respiración. Es la técnica más fácil de sostener como hábito diario porque no marea y no exige nada.',
       },
       {
+        topics: ['fire'],
         q: '¿La respiración de fuego es segura?',
         a: 'Es la más intensa de las cuatro y puede dar mareo, hormigueo en las manos o en la cara. No la practiques manejando, en el agua, durante el embarazo, ni si tenés problemas cardíacos o respiratorios, presión alta o epilepsia. Hacela siempre sentado y, si te mareás, pará y volvé a respirar normal. Neyen la limita sola a treinta ciclos por ese motivo.',
       },
       {
+        topics: ['coherent', 'box'],
         q: '¿Cuánto tiempo tengo que practicar para notar algo?',
         a: 'El efecto inmediato de una sesión —el cuerpo más suelto, la cabeza menos acelerada— suele aparecer a los tres o cinco minutos. El cambio de fondo, en cómo reaccionás al estrés en general, tiene más que ver con la constancia: cinco minutos todos los días rinden mucho más que media hora una vez por semana. Neyen guarda una racha de días justamente para eso.',
       },
       {
+        topics: ['478', 'fire'],
         q: '¿Hay que respirar por la nariz o por la boca?',
         a: 'Por la nariz como regla general: filtra, humedece el aire y hace que la inhalación sea más lenta y pareja. La excepción clásica es la 4-7-8, donde la exhalación es por la boca con los labios entrecerrados para poder alargarla. Si tenés la nariz tapada, respirá como puedas: forzar no ayuda.',
       },
       {
+        topics: ['coherent'],
         q: '¿Cada cuánto conviene practicar?',
         a: 'Una o dos veces por día alcanza para armar el hábito, y lo más fácil es colgarlo de algo que ya hacés: al despertar, antes de almorzar, al apagar la computadora. Neyen te deja agregar un recordatorio diario a tu calendario para no depender de acordarte.',
       },
@@ -138,6 +167,7 @@ export const SEO = {
         a: 'En tu propio navegador, en el almacenamiento local del dispositivo. Neyen no tiene servidor ni base de datos: no hay cuentas, no se envía nada a ninguna parte y no hay seguimiento. Si borrás los datos del sitio, se borra también tu historial.',
       },
       {
+        topics: ['478', 'fire'],
         q: '¿Puedo usar estas técnicas si tengo alguna condición médica?',
         a: 'Las técnicas suaves y sin retenciones, como la coherencia cardíaca, son tranquilas para la mayoría de las personas. Las que incluyen retenciones largas o respiración rápida no son para todo el mundo: si estás embarazada, tenés problemas cardíacos o respiratorios, presión alta, epilepsia, glaucoma o un trastorno de pánico, consultá antes con un profesional de la salud. Y si en cualquier momento te mareás, se te duerme la cara o algo se siente mal, pará y respirá normal.',
       },
@@ -155,6 +185,14 @@ export const SEO = {
       'Neyen es una herramienta de práctica, no un tratamiento ni un consejo médico. No reemplaza la consulta con un profesional de la salud. No la uses manejando, en el agua ni en ninguna situación donde marearte sea un riesgo, y si tenés una condición médica o estás embarazada, preguntá antes.',
 
     altLang: 'Read this page in English',
+
+    // Technique pages (one per technique, see techniquePage below)
+    howHeading: 'Cómo se hace',
+    whenHeading: 'Cuándo usarla',
+    techniqueCta:
+      'Tocá el <a href="#breathing-circle">círculo de arriba</a> para empezar: se expande y se contrae con cada fase, una voz te guía los primeros ciclos y el sonido lleva el ritmo, así no tenés que contar.',
+    moreTechniquesHeading: 'Otras técnicas',
+    homeLink: 'Qué es Neyen y todas las técnicas',
   },
 
   en: {
@@ -175,18 +213,34 @@ export const SEO = {
       'Four techniques, each with its own rhythm, an English voice guide and a breathing sound. The numbers are the seconds of each phase: inhale, hold with full lungs, exhale, hold empty.',
     techniques: {
       box: {
+        slug: 'box-breathing.html',
+        metaTitle: 'Box breathing 4-4-4-4: free guided timer · Neyen',
+        metaDescription:
+          'Guided box breathing with voice and sound: inhale 4, hold 4, exhale 4, hold 4. Clears your head before something important. Free, no sign-up.',
         how: 'Inhale through your nose for a count of four, hold for four, exhale for four, then stay empty for another four. What settles you is the even rhythm, not the amount of air — there is no need to fill up completely.',
         when: 'Before a meeting, before an exam, or whenever your head is racing. It is discreet and can be done sitting anywhere, which is why athletes, musicians and military personnel use it.',
       },
       coherent: {
+        slug: 'cardiac-coherence.html',
+        metaTitle: 'Cardiac coherence 5-5: free guided breathing · Neyen',
+        metaDescription:
+          'Guided cardiac coherence: five seconds in, five out, six breaths a minute. With voice and sound, to calm down every day. Free, no sign-up, works offline.',
         how: 'Five seconds in, five seconds out, no holds. That is six breaths per minute, the pace usually associated with greater heart-rate variability.',
         when: 'The gentlest one and the easiest to keep up: five minutes, two or three times a day. If you have never practised conscious breathing, start here.',
       },
       478: {
+        slug: '4-7-8-breathing.html',
+        metaTitle: '4-7-8 breathing for sleep: free guided timer · Neyen',
+        metaDescription:
+          'Guided 4-7-8 breathing with voice and sound: inhale 4, hold 7, exhale 8. Fall asleep and ease anxiety without counting. Free, no sign-up, works offline.',
         how: 'Inhale through your nose for four seconds, hold for seven, then exhale through your mouth for eight, slowly, as if blowing at a candle without putting it out. The long exhale is what loosens you up: if eight seconds feels like too much, shorten all three numbers and keep the ratio (2-3.5-4, for instance).',
         when: 'At night, already lying down with the lights off, or when you need to come down from a spike of nerves. Four to eight cycles are usually enough.',
       },
       fire: {
+        slug: 'breath-of-fire.html',
+        metaTitle: 'Breath of fire: guided 30-cycle timer to energize · Neyen',
+        metaDescription:
+          'Guided breath of fire at an exact pace: one second in, one out, 30 cycles, then back to normal breathing. To wake up and energize. Read the cautions first.',
         how: 'Fast, rhythmic breathing through the nose, one second in and one second out, with an active belly and still shoulders. Neyen stops it on its own after thirty cycles and then leaves you a few seconds to breathe normally and notice how you feel.',
         when: 'Early in the morning or mid-afternoon, when your body is asking for movement and no amount of coffee helps. It is not a technique for calming down, and not one to do before bed.',
       },
@@ -199,38 +253,47 @@ export const SEO = {
         a: 'It is the deliberate use of your breathing rhythm to change how you feel. Breathing slowly with a long exhale tends to go with calmer states; breathing fast tends to activate. What the techniques do is give you a specific, sustained rhythm instead of leaving it to chance, and a timer exists precisely so you do not have to count while you practise.',
       },
       {
+        topics: ['coherent', '478', 'box'],
         q: 'Which technique is best for anxiety or nerves?',
         a: 'For everyday use, cardiac coherence (5-5): it is gentle, has no holds and can be repeated several times a day. If you need to come down from a specific spike, 4-7-8 or box breathing usually work faster because the exhale is longer than the inhale. Try all three and keep the one that feels most comfortable — the best technique is the one you will actually practise.',
       },
       {
+        topics: ['478'],
         q: 'Which breathing exercise helps you sleep?',
         a: 'The 4-7-8 is the one most used for that: inhale for four seconds, hold for seven, exhale for eight. Do it lying down, away from screens, and let your body keep breathing quietly after the last cycles. If holding for seven seconds feels uncomfortable, shorten the numbers and keep the ratio.',
       },
       {
+        topics: ['478'],
         q: 'How does 4-7-8 breathing work?',
         a: 'It is a three-part sequence: you inhale through the nose for four seconds, hold the air for seven and exhale through the mouth for eight. It was popularised by Dr Andrew Weil. The point is that the exhale lasts twice as long as the inhale: lengthening the exhale is what is most associated with the body’s relaxation response.',
       },
       {
+        topics: ['box'],
         q: 'What is box breathing?',
         a: 'Four equal phases of four seconds: inhale, hold with full lungs, exhale, hold empty. It is called box breathing because all four sides are the same length. It helps gather your attention before something that needs focus, and it is easy to remember because there is only one number.',
       },
       {
+        topics: ['coherent'],
         q: 'What is cardiac coherence?',
         a: 'Breathing about six times a minute —five seconds in, five seconds out— without holding the air. At that pace your pulse speeds up and slows down more regularly with each breath. It is the easiest technique to keep as a daily habit because it does not make you dizzy and demands nothing.',
       },
       {
+        topics: ['fire'],
         q: 'Is fire breath safe?',
         a: 'It is the most intense of the four and can cause dizziness or tingling in your hands or face. Do not practise it while driving, in water, during pregnancy, or if you have heart or breathing problems, high blood pressure or epilepsy. Always do it sitting down, and if you feel dizzy, stop and go back to normal breathing. That is why Neyen caps it at thirty cycles.',
       },
       {
+        topics: ['coherent', 'box'],
         q: 'How long until I notice something?',
         a: 'The immediate effect of a session —a looser body, a less frantic head— usually shows up after three to five minutes. The deeper change, in how you react to stress in general, has more to do with consistency: five minutes every day does far more than half an hour once a week. That is exactly why Neyen keeps a day streak.',
       },
       {
+        topics: ['478', 'fire'],
         q: 'Should I breathe through my nose or my mouth?',
         a: 'Through the nose as a general rule: it filters and humidifies the air and makes the inhale slower and smoother. The classic exception is 4-7-8, where you exhale through the mouth with pursed lips so you can stretch it out. If your nose is blocked, breathe however you can — forcing it does not help.',
       },
       {
+        topics: ['coherent'],
         q: 'How often should I practise?',
         a: 'Once or twice a day is enough to build the habit, and the easiest way is to hang it off something you already do: waking up, before lunch, shutting the laptop. Neyen can add a daily reminder to your calendar so you do not have to rely on remembering.',
       },
@@ -251,6 +314,7 @@ export const SEO = {
         a: 'In your own browser, in your device’s local storage. Neyen has no server and no database: there are no accounts, nothing is sent anywhere and there is no tracking. If you clear the site data, your history goes with it.',
       },
       {
+        topics: ['478', 'fire'],
         q: 'Can I use these techniques if I have a medical condition?',
         a: 'Gentle techniques with no holds, such as cardiac coherence, are calm enough for most people. The ones with long holds or fast breathing are not for everyone: if you are pregnant, or have heart or breathing problems, high blood pressure, epilepsy, glaucoma or a panic disorder, check with a health professional first. And if at any point you feel dizzy or something feels wrong, stop and breathe normally.',
       },
@@ -268,12 +332,45 @@ export const SEO = {
       'Neyen is a practice tool, not a treatment and not medical advice. It does not replace a consultation with a health professional. Do not use it while driving, in water, or in any situation where feeling dizzy would be a risk, and if you have a medical condition or are pregnant, ask first.',
 
     altLang: 'Leé esta página en español',
+
+    howHeading: 'How to do it',
+    whenHeading: 'When to use it',
+    techniqueCta:
+      'Tap the <a href="#breathing-circle">circle above</a> to start: it expands and contracts with every phase, a voice guides you through the first cycles and the sound keeps the rhythm, so you never have to count.',
+    moreTechniquesHeading: 'Other techniques',
+    homeLink: 'What Neyen is, and every technique',
   },
 };
 
-/** Root-relative URL of a language's page, e.g. pageHref('en') → 'en.html' */
-export function pageHref(lang) {
-  return PAGES[lang].path || './';
+// ── Pages ─────────────────────────────────────────────────────
+// build.js writes one page per language for the home page and one per
+// language and technique: the same app, with that technique already
+// chosen, and the landing copy narrowed to it. A page is named by its
+// technique's soundDir, or null for the home page.
+
+/** Every page id: null (home) first, then each technique's soundDir. */
+export function pageIds() {
+  return [null, ...PRESETS.map((p) => p.soundDir)];
+}
+
+/** Path of a page from the site root ('' is the home page itself). */
+export function pagePath(lang, technique = null) {
+  return technique ? SEO[lang].techniques[technique].slug : PAGES[lang].path;
+}
+
+/** Root-relative URL of a page, e.g. pageHref('en') → 'en.html' */
+export function pageHref(lang, technique = null) {
+  return pagePath(lang, technique) || './';
+}
+
+/** `<title>` and meta description of a page. */
+export function pageMeta(lang, technique = null) {
+  const c = technique ? SEO[lang].techniques[technique] : SEO[lang];
+  return { title: c.metaTitle, description: c.metaDescription };
+}
+
+function presetFor(technique) {
+  return PRESETS.find((p) => p.soundDir === technique);
 }
 
 /** Localized value of a preset field, independent of the UI language. */
@@ -281,38 +378,25 @@ function presetFieldFor(preset, field, lang) {
   return preset[field + (lang === 'es' ? 'Es' : 'En')];
 }
 
-/** FAQ entries as plain `{ q, a }` text — used for the FAQPage JSON-LD. */
-export function faqItems(lang) {
-  return SEO[lang].faq;
+/** A technique's display name, e.g. techniqueName('en', '478') */
+export function techniqueName(lang, technique) {
+  return presetFieldFor(presetFor(technique), 'name', lang);
 }
 
 /**
- * The whole landing article as an HTML string.
- * @param {string} lang — 'es' | 'en'
- * @param {object} [opts]
- * @param {boolean} [opts.linkAlternate] — add a link to the other
- *        language's page. Only true on a built site: serving the repo
- *        root in development, that page doesn't exist.
- * @returns {string}
+ * FAQ entries as plain `{ q, a }` text — what the page shows and what
+ * goes into the FAQPage JSON-LD. A technique page gets the entries
+ * tagged with that technique.
  */
-export function renderSeo(lang, { linkAlternate = false } = {}) {
-  const c = SEO[lang];
-  const other = lang === 'es' ? 'en' : 'es';
+export function faqItems(lang, technique = null) {
+  const faq = technique
+    ? SEO[lang].faq.filter((item) => item.topics?.includes(technique))
+    : SEO[lang].faq;
+  return faq.map(({ q, a }) => ({ q, a }));
+}
 
-  const techniques = PRESETS.map((preset) => {
-    const extra = c.techniques[preset.soundDir] || {};
-    const warn = presetFieldFor(preset, 'warn', lang);
-    return `
-        <article class="seo-technique">
-          <h3>${presetFieldFor(preset, 'name', lang)}<span class="seo-timing">${preset.timing.join('-')}</span></h3>
-          <p>${presetFieldFor(preset, 'desc', lang)}</p>
-          ${extra.how ? `<p>${extra.how}</p>` : ''}
-          ${extra.when ? `<p>${extra.when}</p>` : ''}
-          ${warn ? `<p class="seo-warn"><span aria-hidden="true">⚠️</span> ${warn}</p>` : ''}
-        </article>`;
-  }).join('');
-
-  const faq = c.faq
+function renderFaq(lang, technique) {
+  return faqItems(lang, technique)
     .map(
       (item) => `
         <details class="seo-faq">
@@ -321,6 +405,50 @@ export function renderSeo(lang, { linkAlternate = false } = {}) {
         </details>`,
     )
     .join('');
+}
+
+function altLangLink(lang, technique) {
+  const other = lang === 'es' ? 'en' : 'es';
+  return `<p class="seo-altlang"><a href="${pageHref(other, technique)}" hreflang="${other}" lang="${other}">${SEO[lang].altLang}</a></p>`;
+}
+
+/**
+ * The landing copy of any page, as an HTML string.
+ * @param {string} lang — 'es' | 'en'
+ * @param {string|null} technique — a soundDir, or null for the home page
+ * @param {object} [opts]
+ * @param {boolean} [opts.built] — link to the other pages (the other
+ *        language, each technique's own page). Only true on a built site:
+ *        serving the repo root in development, those pages don't exist.
+ */
+export function renderPage(lang, technique, opts) {
+  return technique
+    ? renderTechniquePage(lang, technique)
+    : renderSeo(lang, opts);
+}
+
+/**
+ * The home page's landing article.
+ * @param {string} lang — 'es' | 'en'
+ * @param {object} [opts] — see renderPage
+ * @returns {string}
+ */
+export function renderSeo(lang, { built = false } = {}) {
+  const c = SEO[lang];
+
+  const techniques = PRESETS.map((preset) => {
+    const extra = c.techniques[preset.soundDir] || {};
+    const warn = presetFieldFor(preset, 'warn', lang);
+    const name = presetFieldFor(preset, 'name', lang);
+    return `
+        <article class="seo-technique">
+          <h3>${built ? `<a href="${pageHref(lang, preset.soundDir)}">${name}</a>` : name}<span class="seo-timing">${preset.timing.join('-')}</span></h3>
+          <p>${presetFieldFor(preset, 'desc', lang)}</p>
+          ${extra.how ? `<p>${extra.how}</p>` : ''}
+          ${extra.when ? `<p>${extra.when}</p>` : ''}
+          ${warn ? `<p class="seo-warn"><span aria-hidden="true">⚠️</span> ${warn}</p>` : ''}
+        </article>`;
+  }).join('');
 
   return `
       <h2>${c.introHeading}</h2>
@@ -331,16 +459,56 @@ export function renderSeo(lang, { linkAlternate = false } = {}) {
       ${techniques}
 
       <h2>${c.faqHeading}</h2>
-      ${faq}
+      ${renderFaq(lang, null)}
 
       <h2>${c.aboutHeading}</h2>
       ${c.about.map((p) => `<p>${p}</p>`).join('')}
 
       <h2>${c.disclaimerHeading}</h2>
       <p class="seo-disclaimer">${c.disclaimer}</p>
-      ${
-        linkAlternate
-          ? `<p class="seo-altlang"><a href="${pageHref(other)}" hreflang="${other}" lang="${other}">${c.altLang}</a></p>`
-          : ''
-      }`;
+      ${built ? altLangLink(lang, null) : ''}`;
+}
+
+/**
+ * A technique page's landing article: how and when, its safety note,
+ * the FAQ entries about it and links to the other pages. Only built
+ * sites have technique pages, so it always links them.
+ */
+function renderTechniquePage(lang, technique) {
+  const c = SEO[lang];
+  const preset = presetFor(technique);
+  const extra = c.techniques[technique];
+  const warn = presetFieldFor(preset, 'warn', lang);
+
+  const others = PRESETS.filter((p) => p !== preset)
+    .map(
+      (p) => `
+          <li><a href="${pageHref(lang, p.soundDir)}">${presetFieldFor(p, 'name', lang)}</a> <span class="seo-timing">${p.timing.join('-')}</span></li>`,
+    )
+    .join('');
+
+  return `
+      <h2 class="seo-title">${presetFieldFor(preset, 'name', lang)}<span class="seo-timing">${preset.timing.join('-')}</span></h2>
+      <p>${presetFieldFor(preset, 'desc', lang)}</p>
+      <p>${c.techniqueCta}</p>
+
+      <article class="seo-technique">
+        <h3>${c.howHeading}</h3>
+        <p>${extra.how}</p>
+        <h3>${c.whenHeading}</h3>
+        <p>${extra.when}</p>
+        ${warn ? `<p class="seo-warn"><span aria-hidden="true">⚠️</span> ${warn}</p>` : ''}
+      </article>
+
+      <h2>${c.faqHeading}</h2>
+      ${renderFaq(lang, technique)}
+
+      <h2>${c.moreTechniquesHeading}</h2>
+      <ul class="seo-more">${others}
+          <li><a href="${pageHref(lang, null)}">${c.homeLink}</a></li>
+      </ul>
+
+      <h2>${c.disclaimerHeading}</h2>
+      <p class="seo-disclaimer">${c.disclaimer}</p>
+      ${altLangLink(lang, technique)}`;
 }

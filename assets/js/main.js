@@ -10,6 +10,7 @@ import { ambient, playSelectChime } from './audio.js';
 import { loadTechniqueLoops } from './loop.js';
 import {
   lang,
+  pageTechnique,
   applyLang,
   presetText,
   setTechniqueLabel,
@@ -51,7 +52,9 @@ import { initSoundControls } from './sound-controls.js';
 import { load, save } from './storage.js';
 
 // ── Active technique ──────────────────────────────────────────
-let activePreset = PRESETS[0];
+// A technique's own page (e.g. respiracion-4-7-8.html) starts on it
+let activePreset =
+  PRESETS.find((p) => p.soundDir === pageTechnique) || PRESETS[0];
 
 function _timesOf(preset) {
   const [inhale, holdFull, exhale, holdEmpty] = preset.timing;
@@ -156,7 +159,9 @@ setLanguage(lang);
 function toggleSession() {
   if (isTransitioning()) return;
   if (isRunning()) stopTimer();
-  else startWithCheckIn(startTimer);
+  // A technique page starts on a technique nobody picked from the list,
+  // so its safety note hasn't been shown yet: show it before the first start
+  else if (!_maybeShowWarning(activePreset, 0)) startWithCheckIn(startTimer);
 }
 
 const circle = document.getElementById('breathing-circle');
@@ -253,8 +258,9 @@ function _onPresetSelected(preset) {
 
 // ── Safety notice ─────────────────────────────────────────────
 // Shown once per technique that has a warning (Fire Breath, 4-7-8).
-// Returns true if the notice was shown.
-function _maybeShowWarning(preset) {
+// Returns true if the notice was shown. `delay` lets the techniques
+// modal close first.
+function _maybeShowWarning(preset, delay = 300) {
   if (!preset.warnEs) return false;
   const seen = load('warningsSeen', []);
   if (seen.includes(preset.soundDir)) return false;
@@ -267,8 +273,7 @@ function _maybeShowWarning(preset) {
     preset,
     'warn',
   );
-  // after the techniques modal has closed
-  setTimeout(() => openModal('modal-warning'), 300);
+  setTimeout(() => openModal('modal-warning'), delay);
   return true;
 }
 

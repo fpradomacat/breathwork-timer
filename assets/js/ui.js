@@ -12,7 +12,7 @@
 import { i18n } from './i18n.js';
 import { PRESETS, GOALS } from './presets.js';
 import { load, save } from './storage.js';
-import { SEO, renderSeo } from './seo-content.js';
+import { pageMeta, renderPage } from './seo-content.js';
 
 // ── Language ──────────────────────────────────────────────────
 // Page language (a built language page) → saved choice → browser → English.
@@ -29,6 +29,12 @@ function _initialLang() {
   return browser in i18n ? browser : 'en';
 }
 export let lang = _initialLang();
+
+// A technique's own page (build.js sets data-page-technique to its
+// soundDir): that technique starts selected and the copy is about it.
+// null on the home page and in development.
+export const pageTechnique =
+  document.documentElement.dataset.pageTechnique || null;
 
 /** Localized value of a preset field, e.g. presetText(p, 'name') → p.nameEs */
 export function presetText(preset, field) {
@@ -64,7 +70,7 @@ export function applyLang(l) {
   renderSeoContent(l);
   // The <title> is a search result, not UI: use the descriptive one, the
   // same string build.js writes into the static page for this language.
-  document.title = SEO[l].metaTitle;
+  document.title = pageMeta(l, pageTechnique).title;
   updateLimitBadge();
 }
 
@@ -79,9 +85,9 @@ function renderSeoContent(l) {
   const el = document.getElementById('info');
   if (!el) return;
   // data-href is only set by build.js, so it marks a built site — the one
-  // place where the other language's page exists to link to.
+  // place where the other pages exist to link to.
   const built = Boolean(document.getElementById('lang-btn')?.dataset.href);
-  el.innerHTML = renderSeo(l, { linkAlternate: built });
+  el.innerHTML = renderPage(l, pageTechnique, { built });
 }
 
 // ── Technique label ───────────────────────────────────────────

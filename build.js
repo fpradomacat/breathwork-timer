@@ -115,8 +115,14 @@ async function build() {
   // engines have one indexable URL per language instead of one page that
   // rewrites itself with JS.
   //
-  // Every page lives in the site root, so all relative paths (assets,
-  // sw.js, reminder/) resolve the same way from any of them.
+  // Each technique gets the same treatment (respiracion-4-7-8.html,
+  // 4-7-8-breathing.html…): the full app with that technique already
+  // chosen, and copy about it — one URL per search intent. The slugs live
+  // in seo-content.js (SEO[lang].techniques[dir].slug).
+  //
+  // Every page lives in the site root (flat files, never folders), so all
+  // relative paths (assets, sw.js, reminder/) resolve the same way from
+  // any of them.
   const seo = await import('./assets/js/seo-content.js');
   const { i18n } = await import('./assets/js/i18n.js');
 
@@ -143,21 +149,23 @@ async function build() {
     common = common.replace('</body>', `${swRegister}</body>`);
   }
 
-  for (const lang of Object.keys(seo.PAGES)) {
-    const minHTML = await minifyHTML(languagePage(common, lang, seo, i18n), {
-      collapseWhitespace: true,
-      removeComments: true,
-      // Keep quotes: WhatsApp's link-preview scraper ignores unquoted
-      // <meta property=og:image content=...> and shows no image.
-      removeAttributeQuotes: false,
-      minifyCSS: true,
-      minifyJS: true,
-    });
-    const file = seo.PAGES[lang].path || 'index.html';
-    assertPage(minHTML, file, lang, seo);
-    fs.writeFileSync(`${DIST}/${file}`, minHTML);
-    console.log(`✓ ${file} (${lang})`);
-  }
+  for (const technique of seo.pageIds())
+    for (const lang of Object.keys(seo.PAGES)) {
+      const html = languagePage(common, lang, technique, seo, i18n);
+      const file = seo.pagePath(lang, technique) || 'index.html';
+      const minHTML = await minifyHTML(html, {
+        collapseWhitespace: true,
+        removeComments: true,
+        // Keep quotes: WhatsApp's link-preview scraper ignores unquoted
+        // <meta property=og:image content=...> and shows no image.
+        removeAttributeQuotes: false,
+        minifyCSS: true,
+        minifyJS: true,
+      });
+      assertPage(minHTML, file, lang, technique, seo);
+      fs.writeFileSync(`${DIST}/${file}`, minHTML);
+      console.log(`✓ ${file} (${lang}${technique ? `, ${technique}` : ''})`);
+    }
 
   // ── Crawler files ─────────────────────────────────────────────
   fs.writeFileSync(`${DIST}/sitemap.xml`, sitemap(seo));
@@ -238,17 +246,18 @@ const OG_IMAGE = `${SITE_URL}/assets/icons/og-image.jpg?v=5`;
  * based, so a stray match can silently drop part of the head — cheaper to
  * catch here than in Search Console three weeks later.
  */
-function assertPage(html, file, lang, seo) {
+function assertPage(html, file, lang, technique, seo) {
   const required = [
-    `<title>${seo.SEO[lang].metaTitle}`,
+    `<title>${seo.pageMeta(lang, technique).title}`,
     'name="description"',
-    `rel="canonical" href="${pageUrl(seo, lang)}"`,
+    `rel="canonical" href="${pageUrl(seo, lang, technique)}"`,
     'rel="alternate" hreflang="x-default"',
     'application/ld+json',
     'style.css',
     'manifest.json',
     `data-page-lang="${lang}"`,
-    seo.SEO[lang].faq[0].q,
+    seo.faqItems(lang, technique)[0].q,
+    ...(technique ? [`data-page-technique="${technique}"`] : []),
   ];
   for (const needle of required)
     if (!html.includes(needle))
@@ -257,56 +266,59 @@ function assertPage(html, file, lang, seo) {
     throw new Error(`${file}: unterminated HTML comment`);
 }
 
-/** Absolute URL of a language's page. */
-function pageUrl(seo, lang) {
-  return `${SITE_URL}/${seo.PAGES[lang].path}`;
+/** Absolute URL of a page (technique null = home). */
+function pageUrl(seo, lang, technique = null) {
+  return `${SITE_URL}/${seo.pagePath(lang, technique)}`;
 }
 
 /**
- * Turn the Spanish source HTML into the page for one language:
- * html lang, title, description, the absolute-URL head block, the
- * landing copy and the language button's target.
+ * Turn the Spanish source HTML into one page — a language, and a
+ * technique or null for home: html lang, title, description, the
+ * absolute-URL head block, the landing copy and the language button's
+ * target.
  */
-function languagePage(html, lang, seo, i18n) {
-  const c = seo.SEO[lang];
+function languagePage(html, lang, technique, seo, i18n) {
+  const meta = seo.pageMeta(lang, technique);
   const other = lang === 'es' ? 'en' : 'es';
 
   let out = replaceOnce(
     html,
     '<html lang="es">',
-    () => `<html lang="${lang}" data-page-lang="${lang}">`,
+    () =>
+      `<html lang="${lang}" data-page-lang="${lang}"${technique ? ` data-page-technique="${attr(technique)}"` : ''}>`,
     '<html lang="es"> tag',
   );
   out = replaceOnce(
     out,
     /<title>[\s\S]*?<\/title>/,
-    () => `<title>${attr(c.metaTitle)}</title>`,
+    () => `<title>${attr(meta.title)}</title>`,
     '<title> tag',
   );
   out = replaceOnce(
     out,
     /<meta\s+name="description"[\s\S]*?\/>/,
-    () => `<meta name="description" content="${attr(c.metaDescription)}" />`,
+    () => `<meta name="description" content="${attr(meta.description)}" />`,
     'description meta tag',
   );
   out = replaceOnce(
     out,
     '<!-- SEO-HEAD -->',
-    () => seoHead(lang, seo),
+    () => seoHead(lang, technique, seo),
     'SEO-HEAD marker',
   );
   out = replaceOnce(
     out,
     /<section class="seo" id="info">\s*<\/section>/,
     () =>
-      `<section class="seo" id="info">${seo.renderSeo(lang, { linkAlternate: true })}</section>`,
+      `<section class="seo" id="info">${seo.renderPage(lang, technique, { built: true })}</section>`,
     '#info section',
   );
-  // Switching language navigates to the other page (see main.js)
+  // Switching language navigates to the same page in the other language
+  // (see main.js)
   out = replaceOnce(
     out,
     'id="lang-btn"',
-    () => `id="lang-btn" data-href="${attr(seo.pageHref(other))}"`,
+    () => `id="lang-btn" data-href="${attr(seo.pageHref(other, technique))}"`,
     'lang-btn id',
   );
   return translateStaticText(out, lang, i18n);
@@ -348,13 +360,17 @@ function translateStaticText(html, lang, i18n) {
   return out;
 }
 
-/** canonical + hreflang + link preview + JSON-LD for one language. */
-function seoHead(lang, seo) {
-  const c = seo.SEO[lang];
+/** canonical + hreflang + link preview + JSON-LD for one page. */
+function seoHead(lang, technique, seo) {
+  const meta = seo.pageMeta(lang, technique);
+  const url = pageUrl(seo, lang, technique);
+  // Home keeps the brand in link previews; a technique page is shared for
+  // the technique, so its preview says which one
+  const shareTitle = technique ? meta.title : seo.SEO[lang].shareTitle;
   const alternates = Object.keys(seo.PAGES)
     .map(
       (l) =>
-        `<link rel="alternate" hreflang="${seo.PAGES[l].hreflang}" href="${attr(pageUrl(seo, l))}" />`,
+        `<link rel="alternate" hreflang="${seo.PAGES[l].hreflang}" href="${attr(pageUrl(seo, l, technique))}" />`,
     )
     .join('\n    ');
   const otherLocales = Object.keys(seo.PAGES)
@@ -365,12 +381,12 @@ function seoHead(lang, seo) {
     )
     .join('\n    ');
 
-  return `<link rel="canonical" href="${attr(pageUrl(seo, lang))}" />
+  return `<link rel="canonical" href="${attr(url)}" />
 
     <!-- One indexable URL per language, plus the fallback Google serves
          when the visitor's language matches none of them. -->
     ${alternates}
-    <link rel="alternate" hreflang="x-default" href="${attr(pageUrl(seo, seo.DEFAULT_LANG))}" />
+    <link rel="alternate" hreflang="x-default" href="${attr(pageUrl(seo, seo.DEFAULT_LANG, technique))}" />
 
     <!-- ── Open Graph (WhatsApp, Telegram, LinkedIn…) ── -->
     <!-- JPEG (no alpha) + explicit size: WhatsApp skips or drops images it
@@ -380,44 +396,78 @@ function seoHead(lang, seo) {
     <meta property="og:site_name" content="Neyen" />
     <meta property="og:locale" content="${seo.PAGES[lang].ogLocale}" />
     ${otherLocales}
-    <meta property="og:title" content="${attr(c.shareTitle)}" />
-    <meta property="og:description" content="${attr(c.metaDescription)}" />
-    <meta property="og:url" content="${attr(pageUrl(seo, lang))}" />
+    <meta property="og:title" content="${attr(shareTitle)}" />
+    <meta property="og:description" content="${attr(meta.description)}" />
+    <meta property="og:url" content="${attr(url)}" />
     <meta property="og:image" content="${attr(OG_IMAGE)}" />
     <meta property="og:image:secure_url" content="${attr(OG_IMAGE)}" />
     <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:width" content="800" />
     <meta property="og:image:height" content="800" />
-    <meta property="og:image:alt" content="${attr(c.shareTitle)}" />
+    <meta property="og:image:alt" content="${attr(shareTitle)}" />
 
     <!-- ── Twitter / X ──────────────────────────────── -->
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="${attr(c.shareTitle)}" />
-    <meta name="twitter:description" content="${attr(c.metaDescription)}" />
+    <meta name="twitter:title" content="${attr(shareTitle)}" />
+    <meta name="twitter:description" content="${attr(meta.description)}" />
     <meta name="twitter:image" content="${attr(OG_IMAGE)}" />
-    <meta name="twitter:image:alt" content="${attr(c.shareTitle)}" />
+    <meta name="twitter:image:alt" content="${attr(shareTitle)}" />
 
     <!-- ── Structured data ──────────────────────────── -->
     <script type="application/ld+json">
-      ${jsonLd(lang, seo)}
+      ${jsonLd(lang, technique, seo)}
     </script>`;
 }
 
 /**
- * WebApplication + Person + FAQPage, as one @graph.
+ * One @graph per page. Home: WebApplication + Person + FAQPage. A
+ * technique page: WebPage (part of the app) + BreadcrumbList + Person +
+ * FAQPage with that technique's entries.
  * The FAQ entries are the same strings the page shows (Google requires
  * the visible content and the markup to match).
  */
-function jsonLd(lang, seo) {
+function jsonLd(lang, technique, seo) {
   const c = seo.SEO[lang];
-  const url = pageUrl(seo, lang);
+  const homeUrl = pageUrl(seo, lang);
+  const url = pageUrl(seo, lang, technique);
+  const meta = seo.pageMeta(lang, technique);
+  const inLanguage = seo.PAGES[lang].hreflang;
+  const pageNodes = technique
+    ? [
+        {
+          '@type': 'WebPage',
+          '@id': `${url}#page`,
+          name: meta.title,
+          url,
+          description: meta.description,
+          inLanguage,
+          isPartOf: { '@id': `${homeUrl}#app` },
+          breadcrumb: { '@id': `${url}#breadcrumb` },
+          author: { '@id': `${SITE_URL}/#author` },
+        },
+        {
+          '@type': 'BreadcrumbList',
+          '@id': `${url}#breadcrumb`,
+          itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Neyen', item: homeUrl },
+            {
+              '@type': 'ListItem',
+              position: 2,
+              name: seo.techniqueName(lang, technique),
+              item: url,
+            },
+          ],
+        },
+      ]
+    : [];
   const graph = [
+    ...pageNodes,
     {
       '@type': 'WebApplication',
-      '@id': `${url}#app`,
+      '@id': `${homeUrl}#app`,
       name: 'Neyen',
       alternateName: c.shareTitle,
-      url,
+      url: homeUrl,
       description: c.metaDescription,
       inLanguage: seo.PAGES[lang].hreflang,
       applicationCategory: 'HealthApplication',
@@ -440,7 +490,7 @@ function jsonLd(lang, seo) {
       '@type': 'FAQPage',
       '@id': `${url}#faq`,
       inLanguage: seo.PAGES[lang].hreflang,
-      mainEntity: seo.faqItems(lang).map((item) => ({
+      mainEntity: seo.faqItems(lang, technique).map((item) => ({
         '@type': 'Question',
         name: item.q,
         acceptedAnswer: { '@type': 'Answer', text: item.a },
@@ -453,26 +503,29 @@ function jsonLd(lang, seo) {
     .replace(new RegExp('[\\u2028\\u2029]', 'g'), '');
 }
 
-/** sitemap.xml, with each page listing every language as an alternate. */
+/** sitemap.xml, with each page listing its every language as an alternate. */
 function sitemap(seo) {
   const langs = Object.keys(seo.PAGES);
   const lastmod = new Date().toISOString().slice(0, 10);
-  const alternates = [
-    ...langs.map(
-      (l) =>
-        `    <xhtml:link rel="alternate" hreflang="${seo.PAGES[l].hreflang}" href="${pageUrl(seo, l)}" />`,
-    ),
-    `    <xhtml:link rel="alternate" hreflang="x-default" href="${pageUrl(seo, seo.DEFAULT_LANG)}" />`,
-  ].join('\n');
 
-  const urls = langs
-    .map(
-      (l) => `  <url>
-    <loc>${pageUrl(seo, l)}</loc>
+  const urls = seo
+    .pageIds()
+    .flatMap((technique) => {
+      const alternates = [
+        ...langs.map(
+          (l) =>
+            `    <xhtml:link rel="alternate" hreflang="${seo.PAGES[l].hreflang}" href="${pageUrl(seo, l, technique)}" />`,
+        ),
+        `    <xhtml:link rel="alternate" hreflang="x-default" href="${pageUrl(seo, seo.DEFAULT_LANG, technique)}" />`,
+      ].join('\n');
+      return langs.map(
+        (l) => `  <url>
+    <loc>${pageUrl(seo, l, technique)}</loc>
     <lastmod>${lastmod}</lastmod>
 ${alternates}
   </url>`,
-    )
+      );
+    })
     .join('\n');
 
   return `<?xml version="1.0" encoding="UTF-8"?>

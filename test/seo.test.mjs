@@ -7,8 +7,18 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const { SEO, PAGES, DEFAULT_LANG, renderSeo, faqItems, pageHref } =
-  await import('../assets/js/seo-content.js');
+const {
+  SEO,
+  PAGES,
+  DEFAULT_LANG,
+  renderSeo,
+  renderPage,
+  faqItems,
+  pageHref,
+  pagePath,
+  pageIds,
+  pageMeta,
+} = await import('../assets/js/seo-content.js');
 const { PRESETS } = await import('../assets/js/presets.js');
 const { i18n } = await import('../assets/js/i18n.js');
 
@@ -39,16 +49,54 @@ test('every language has the same SEO keys, with the same kind of value', () => 
 
 test('titles and descriptions stay inside what search engines show', () => {
   for (const lang of LANGS) {
-    const { metaTitle, metaDescription, shareTitle } = SEO[lang];
-    assert.ok(metaTitle.length <= 70, `${lang}: title ${metaTitle.length}`);
-    assert.ok(metaTitle.length >= 20, `${lang}: title too short`);
-    assert.ok(
-      metaDescription.length <= 165,
-      `${lang}: description ${metaDescription.length}`,
-    );
-    assert.ok(metaDescription.length >= 70, `${lang}: description too short`);
-    assert.ok(shareTitle.length > 0);
+    assert.ok(SEO[lang].shareTitle.length > 0);
+    for (const technique of pageIds()) {
+      const { title, description } = pageMeta(lang, technique);
+      const page = `${lang}/${technique || 'home'}`;
+      assert.ok(title.length <= 70, `${page}: title ${title.length}`);
+      assert.ok(title.length >= 20, `${page}: title too short`);
+      assert.ok(
+        description.length <= 165,
+        `${page}: description ${description.length}`,
+      );
+      assert.ok(description.length >= 70, `${page}: description too short`);
+    }
   }
+  // Two pages competing for the same search result helps neither
+  const titles = LANGS.flatMap((l) =>
+    pageIds().map((t) => pageMeta(l, t).title),
+  );
+  assert.equal(new Set(titles).size, titles.length, 'duplicate page titles');
+});
+
+test('every page has its own flat file in the site root', () => {
+  const paths = LANGS.flatMap((l) => pageIds().map((t) => pagePath(l, t)));
+  assert.equal(new Set(paths).size, paths.length, 'two pages share a path');
+  // Every runtime path is relative, so a page in a folder would resolve
+  // assets/, sw.js and reminder/ one level too deep
+  for (const p of paths.filter(Boolean))
+    assert.match(p, /^[a-z0-9-]+\.html$/, p);
+  assert.ok(!paths.includes('index.html'), 'index.html is the home page');
+});
+
+test('every technique page has FAQ entries, tagged the same in every language', () => {
+  const dirs = PRESETS.map((p) => p.soundDir);
+  for (const lang of LANGS)
+    for (const { q, topics = [] } of SEO[lang].faq)
+      for (const t of topics)
+        assert.ok(dirs.includes(t), `${lang}: "${q}" → ${t}`);
+  const [base, ...others] = LANGS;
+  for (const lang of others)
+    SEO[base].faq.forEach((item, i) =>
+      assert.deepEqual(
+        SEO[lang].faq[i].topics,
+        item.topics,
+        `${lang} faq #${i}`,
+      ),
+    );
+  for (const lang of LANGS)
+    for (const dir of dirs)
+      assert.ok(faqItems(lang, dir).length >= 2, `${lang}/${dir}: too few FAQ`);
 });
 
 test('every preset has its how/when copy in every language', () => {
@@ -79,7 +127,22 @@ test('the FAQ is the same size in every language and has plain-text answers', ()
     }
 });
 
-test('renderSeo produces balanced sections and links the other language', () => {
+/** Every anchor points somewhere real and opens safely. */
+function assertLinks(html, where) {
+  for (const tag of html.match(/<a [^>]*>/g) || []) {
+    assert.ok(
+      /href="https?:\/\/|href="\.?\/|href="[a-z0-9-]+\.html"|href="#[a-z-]+"/.test(
+        tag,
+      ),
+      `${where}: ${tag}`,
+    );
+    if (tag.includes('target="_blank"'))
+      assert.ok(tag.includes('rel="noopener"'), `missing rel: ${tag}`);
+  }
+  assert.ok(!html.includes('undefined'), `${where}: undefined in output`);
+}
+
+test('renderSeo produces balanced sections and links the other pages', () => {
   for (const lang of LANGS) {
     const html = renderSeo(lang);
     const other = lang === 'es' ? 'en' : 'es';
@@ -95,25 +158,57 @@ test('renderSeo produces balanced sections and links the other language', () => 
       PRESETS.length,
       `${lang}: technique count`,
     );
-    // The language link only exists on a built site
+    // Links to other pages only exist on a built site
     assert.ok(!html.includes('seo-altlang'), `${lang}: unexpected lang link`);
+    assert.ok(!html.includes('.html"'), `${lang}: unexpected page link`);
+    const built = renderSeo(lang, { built: true });
     assert.ok(
-      renderSeo(lang, { linkAlternate: true }).includes(
-        `href="${pageHref(other)}"`,
-      ),
+      built.includes(`href="${pageHref(other)}"`),
       `${lang}: missing link to ${other}`,
     );
-    // Every anchor opens safely and nothing is left half-written
-    for (const tag of html.match(/<a [^>]*>/g) || []) {
+    for (const p of PRESETS)
       assert.ok(
-        /href="https?:\/\/|href="\.?\/|href="[a-z0-9-]+\.html/.test(tag),
-        tag,
+        built.includes(`href="${pageHref(lang, p.soundDir)}"`),
+        `${lang}: no link to the ${p.soundDir} page`,
       );
-      if (tag.includes('target="_blank"'))
-        assert.ok(tag.includes('rel="noopener"'), `missing rel: ${tag}`);
-    }
-    assert.ok(!html.includes('undefined'), `${lang}: undefined in output`);
+    assertLinks(html, lang);
+    assertLinks(built, lang);
   }
+});
+
+test('a technique page is about that technique and links every other page', () => {
+  for (const lang of LANGS)
+    for (const p of PRESETS) {
+      const where = `${lang}/${p.soundDir}`;
+      const html = renderPage(lang, p.soundDir, { built: true });
+      const other = lang === 'es' ? 'en' : 'es';
+      assert.ok(html.includes(SEO[lang].techniques[p.soundDir].how), where);
+      assert.ok(html.includes(SEO[lang].techniques[p.soundDir].when), where);
+      if (p.warnEs)
+        assert.ok(html.includes('seo-warn'), `${where}: no warning`);
+      assert.equal(
+        (html.match(/<details/g) || []).length,
+        faqItems(lang, p.soundDir).length,
+        `${where}: details count`,
+      );
+      // Same technique in the other language, the other techniques, home
+      for (const href of [
+        pageHref(other, p.soundDir),
+        pageHref(lang, null),
+        ...PRESETS.filter((o) => o !== p).map((o) =>
+          pageHref(lang, o.soundDir),
+        ),
+      ])
+        assert.ok(
+          html.includes(`href="${href}"`),
+          `${where}: no link to ${href}`,
+        );
+      assert.ok(
+        !html.includes(`href="${pageHref(lang, p.soundDir)}"`),
+        `${where}: links itself`,
+      );
+      assertLinks(html, where);
+    }
 });
 
 test('index.html carries the markers build.js needs to make each page', () => {

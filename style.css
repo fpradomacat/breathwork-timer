@@ -699,6 +699,18 @@ footer {
 .seo h2:first-child {
   margin-top: 0;
 }
+/* A technique page's heading: the technique the page is about */
+.seo h2.seo-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 1.35rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: var(--text-primary);
+}
 .seo h3 {
   display: flex;
   flex-wrap: wrap;
@@ -734,6 +746,28 @@ footer {
 }
 .seo-technique p:last-child {
   margin-bottom: 0;
+}
+/* A technique page's how/when card: two headings in one card */
+.seo-technique p + h3 {
+  margin-top: 20px;
+}
+.seo-technique h3 a,
+.seo-more a {
+  color: inherit;
+}
+/* Technique pages: links to the other techniques and home */
+.seo-more {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.seo-more li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--divider);
 }
 .seo-timing {
   font-family: 'DM Mono', monospace;
