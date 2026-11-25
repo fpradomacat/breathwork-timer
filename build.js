@@ -16,6 +16,8 @@ const SITE_URL = (
 ).replace(/\/+$/, '');
 
 const SRC_JS_DIR = './assets/js';
+// Stylesheets in load order (see index.html)
+const CSS_FILES = ['tokens.css', 'tokens-dark.css', 'style.css'];
 const DIST = './dist';
 const DIST_JS = `${DIST}/assets/js`;
 
@@ -69,10 +71,15 @@ async function build() {
   ensureDir(DIST_JS);
 
   // ── CSS ──────────────────────────────────────────────────────
-  const css = fs.readFileSync('./style.css', 'utf8');
-  const minCSS = new CleanCSS({ level: 2 }).minify(css).styles;
-  fs.writeFileSync(`${DIST}/style.css`, minCSS);
-  console.log('✓ style.css');
+  // The design system's tokens (tokens.css, then the night variant
+  // tokens-dark.css) load before style.css, which only uses their
+  // variables. Three files, in that order, as index.html links them.
+  for (const file of CSS_FILES) {
+    const css = fs.readFileSync(`./${file}`, 'utf8');
+    const minCSS = new CleanCSS({ level: 2 }).minify(css).styles;
+    fs.writeFileSync(`${DIST}/${file}`, minCSS);
+    console.log(`✓ ${file}`);
+  }
 
   // ── JS bundle (esbuild) ──────────────────────────────────────
   // esbuild resolves all imports starting from main.js and produces
@@ -318,7 +325,9 @@ function languagePage(html, lang, technique, seo, i18n) {
   out = replaceOnce(
     out,
     'id="lang-btn"',
-    () => `id="lang-btn" data-href="${attr(seo.pageHref(other, technique))}"`,
+    // lang: the button is written in the other language ("English")
+    () =>
+      `id="lang-btn" lang="${other}" data-href="${attr(seo.pageHref(other, technique))}"`,
     'lang-btn id',
   );
   return translateStaticText(out, lang, i18n);
@@ -482,9 +491,9 @@ function jsonLd(lang, technique, seo) {
       '@type': 'Person',
       '@id': `${SITE_URL}/#author`,
       name: seo.AUTHOR.name,
-      alternateName: 'soypradito',
-      url: `${SITE_URL}/`,
-      sameAs: [seo.AUTHOR.instagram, seo.AUTHOR.youtube],
+      url: seo.AUTHOR.web,
+      email: `mailto:${seo.AUTHOR.email}`,
+      sameAs: [seo.AUTHOR.web, seo.AUTHOR.youtube],
     },
     {
       '@type': 'FAQPage',
@@ -565,7 +574,7 @@ function generateServiceWorker() {
     .map((f) => `${DIST}/${f}`);
   const shellFiles = [
     ...pages,
-    `${DIST}/style.css`,
+    ...CSS_FILES.map((f) => `${DIST}/${f}`),
     `${DIST}/tutorial.js`,
     `${DIST}/manifest.json`,
     ...listFilesRecursive(`${DIST}/assets`).filter(

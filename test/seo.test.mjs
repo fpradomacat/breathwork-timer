@@ -131,7 +131,7 @@ test('the FAQ is the same size in every language and has plain-text answers', ()
 function assertLinks(html, where) {
   for (const tag of html.match(/<a [^>]*>/g) || []) {
     assert.ok(
-      /href="https?:\/\/|href="\.?\/|href="[a-z0-9-]+\.html"|href="#[a-z-]+"/.test(
+      /href="https?:\/\/|href="\.?\/|href="[a-z0-9-]+\.html"|href="#[a-z-]+"|href="mailto:[^"@]+@[^"]+"/.test(
         tag,
       ),
       `${where}: ${tag}`,

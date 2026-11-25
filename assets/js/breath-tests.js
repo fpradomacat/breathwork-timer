@@ -73,7 +73,7 @@ function _renderDetail(test) {
     <ol class="test-steps">${presetText(test, 'steps')
       .map((s) => `<li>${s}</li>`)
       .join('')}</ol>
-    <button class="test-primary" id="test-start">${t.testStart}</button>
+    <button class="btn btn-primary test-primary" id="test-start">${t.testStart}</button>
     <p class="test-ref">${presetText(test, 'ref')}</p>
     <p class="history-subtitle">${t.testHistory}</p>
     ${_resultsHtml(test)}
@@ -137,7 +137,7 @@ function _renderResult(test, secs) {
       ${note ? `<p class="test-note">${note}</p>` : ''}
       <p class="test-ref">${presetText(test, 'ref')}</p>
     </div>
-    <button class="test-primary" id="test-again">${t.testAgain}</button>
+    <button class="btn btn-primary test-primary" id="test-again">${t.testAgain}</button>
     <button class="test-link" id="test-back">← ${t.testBack}</button>`;
   document
     .getElementById('test-again')

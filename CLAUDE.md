@@ -47,7 +47,9 @@ npm run format:check
 
 ```
 index.html          Spanish source page; loads /assets/js/main.js and tutorial.js as modules
-style.css           all app styles (design tokens at :root)
+tokens.css          design system tokens (colors, type, spacing, radii, buttons…), copied as-is from the landing
+tokens-dark.css     night variant: only redefines colors/shadows; loads after tokens.css
+style.css           all app styles: Neyen's color palette at :root, everything else from the tokens
 tutorial.js         standalone IIFE onboarding overlay (injects its own CSS, canvas spotlight)
 manifest.json       PWA manifest
 build.js            build pipeline + service-worker generator
@@ -159,6 +161,22 @@ lang="es">`, the `<!-- SEO-HEAD -->` comment and the empty
   `body.modal-open` to freeze the page behind it, and the tutorial
   scrolls back to the top before it opens, since it spotlights elements
   by their on-screen position.
+- **The first screen must fit**, down to the "what is Neyen" link, or
+  people never find the copy below. `.container` is a full-height flex
+  column; the title block's auto margins (`.header-row` top,
+  `.meta-row` bottom) split the room above the circle, so the block sits
+  midway between the top edge and the top of the circle (the circle box's
+  negative top margin hides its own empty room from that split).
+  `--clear` is the least room on each side (clears the corner buttons on
+  narrow screens). `--circle-h` solves "everything ≤ 100svh", so the
+  circle area gives way on short windows; `--flow` and `--pad-bottom`
+  grow with the height. Adding something to the first screen means
+  adding its height to that formula. In session the pills and the link fold away and
+  the circle area takes their room (`--session-gone-h`): the title block
+  stays put, the sounds and footer drop to where the link was, and the
+  circle centers between them. The row heights the math uses
+  (`--head-h`, `--sound-row-h`, `--footer-h`, `--link-h`) must match the
+  real ones.
 
 ### SEO backlog
 
@@ -170,8 +188,8 @@ descriptive titles. What is left, roughly in order of what it is worth:
    Tools and submit `<SITE_URL>/sitemap.xml`. Nothing else here gets
    indexed faster than this.
 2. **Inbound links**, which outweigh anything on-page: the YouTube
-   channel (@meditawork), the Instagram bio, the personal site and the
-   repo README.
+   channel (@meditawork), the personal site (pradomacat.com, which the
+   footer links) and the repo README.
 3. **Richer technique pages**: they are short (a few paragraphs and 3–5
    FAQ entries). More copy per technique — origin, variations, common
    mistakes, a "who it is not for" — is what would let them rank on
@@ -179,10 +197,15 @@ descriptive titles. What is left, roughly in order of what it is worth:
 4. **Custom domain**, when he's ready: a `CNAME` is enough (the workflow
    passes `SITE_URL` from `actions/configure-pages`), then 301 the
    Netlify site at it or take it down — the two hosts serving the same
-   content is the one duplicate-content risk left.
+   content is the one duplicate-content risk left. (pradomacat.com is the
+   personal site; Neyen could live on a subdomain of it.)
 
 ## Key conventions & gotchas
 
+- **Dialog width:** `--dialog-wide` (style.css) is the one source for
+  the techniques dialog and the tutorial card (`tutorial.js` reads it).
+  On a wide screen the techniques are a 2-column grid; `GOALS` order sets
+  its rows.
 - **Timing strategy: `audioCtx.currentTime` is the single master clock.**
   - `session.js` anchors `_t0` (the moment the first inhale starts, right after the countdown).
   - Every countdown step, phase end and session tick is an _absolute_ deadline counted from `_t0`. `setTimeout` (via `_at()`) is only used to wake up near each deadline, so timer jitter never adds up.
@@ -205,8 +228,10 @@ descriptive titles. What is left, roughly in order of what it is worth:
   - each has `role="dialog"` and an `aria-labelledby` pointing at `<id>-title`;
   - closed ones are `visibility: hidden`, so they leave the Tab order;
   - `openModal`/`closeModal` move focus in and back.
-- **Icon-only buttons** get a translated `aria-label`/`title` via `data-i18n-label="key"`.
-- **Safety notes:** presets with `warnEs`/`warnEn` show the note on their card and a one-time "Before you start" modal. If that modal appears mid-session, the session stops and does not restart.
+- **Design tokens, Neyen colors:** `index.html` loads `tokens.css`, then `tokens-dark.css`, then `style.css`. **Fonts, sizes, spacing, radii, button shape and motion come from the tokens** (`--font-sans`, `--fw-*`, `--fs-*`, `--space-*`, `--radius-*`, `--btn-height`…): never write those by hand in `style.css` or in the CSS `tutorial.js` injects, so a change in the design system reaches the app. **Colors are Neyen's own violet night** (not the system's blue-green night), and they live in one place: the "Neyen palette" `:root` block at the top of `style.css`. It re-points the system's color tokens (`--color-*`, `--btn-primary-*`, `--btn-secondary-*`) at the palette, so everything built on them follows, and defines the app's roles (`--accent`, `--text-muted`, `--bg-*`, `--circle-*`, `--shade`…). Anywhere else, use those variables or a `color-mix()` of one for a tint. The tutorial keeps its own blue-grey palette, as `--tut-*` variables at the top of its CSS. The token files are a shared source: don't edit or reformat them here (they are in `.prettierignore`). `build.js` minifies all three (`CSS_FILES`) and the service worker precaches them.
+- **Buttons** use the system pill: `.btn` plus `.btn-primary` (filled) or `.btn-secondary` (outline), `.btn-sm` for the small size and `.btn-quiet` for a hairline secondary (corner controls, footer). A bare `<button>` is only a reset, for controls that style themselves (cards, switches, the mood scale).
+- **Icon-only buttons** get a translated `aria-label`/`title` via `data-i18n-label="key"`, and a **visible word** too: the corner controls say "Tests" / "English" / "Ayuda", and each sound toggle has its name under the icon (`.sound-toggle-label`, `soundMusicShort`…). Keep each visible word inside the accessible name (WCAG 2.5.3), so voice control finds it. The duration pill and the streak set their `aria-label` from what they show (`ui.js`, `practice.js`).
+- **Safety notes:** presets with `warnEs`/`warnEn` show the note on their card and, once per technique, before its first start. **At most one dialog stands between the tap and a session:** the note goes inside the "how are you feeling?" check-in (`#checkin-warning`); with the check-in turned off it shows alone, and its button ("Got it, start") starts the session. Picking a technique opens nothing. Switching mid-session to a technique whose note hasn't been seen stops the session and shows the note, whose button restarts it.
 - **Copy:** UI copy uses Rioplatense voseo ("Tocalo", "respirás"), and code comments are mostly English. Match the surrounding style.
 
 ## Adding things
@@ -246,7 +271,7 @@ There are no browser tests in the repo. Check UI changes by running the app.
 
 It empties `dist/` (rather than deleting it: on Windows the folder can't be removed while something has it open), then:
 
-1. Minifies `style.css` with clean-css (level 2).
+1. Minifies `tokens.css`, `tokens-dark.css` and `style.css` with clean-css (level 2).
 2. Bundles `assets/js/main.js` with **esbuild** into a single minified IIFE and drops `console.*`.
 3. Minifies `tutorial.js` with terser and drops console calls.
 4. Rewrites and minifies `index.html` **once per page** — `index.html`, `en.html` and every technique page in each language (title, description, canonical, `hreflang`, `og:*`, JSON-LD, landing copy, translated static labels, language-button target). Module script tags become `defer`; it throws if the expected `<script type="module" src="/assets/js/main.js">` tag is missing, if a marker is missing or matched more than once, or if a finished page lacks any of the tags `assertPage()` checks. It also injects the service worker registration.

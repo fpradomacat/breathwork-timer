@@ -131,4 +131,4 @@ The unit tests cover the logic. For anything visual or audio-related, run the ap
 
 ## Support
 
-If you enjoy it, you can [buy me a coffee](https://buymeacoffee.com/soypradito) ☕ · [@soypradito](https://instagram.com/soypradito)
+If you enjoy it, you can [buy me a coffee](https://buymeacoffee.com/pradomacat) ☕ · [pradomacat.com](https://pradomacat.com) · [hola@pradomacat.com](mailto:hola@pradomacat.com)

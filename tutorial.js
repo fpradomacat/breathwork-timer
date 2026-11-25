@@ -83,11 +83,11 @@
       pos: 'top',
       es: {
         title: '🎚️ Tus sonidos',
-        body: 'Activá o desactivá cada sonido cuando quieras, incluso durante la sesión:<br><br>🎵 Música ambiente<br>🗣️ Voz guía<br>🌬️ Sonido de respiración<br>⏱️ Segundos<br><br>Con 🎚️ ajustás el volumen de cada uno. Los sonidos que marcan cada fase siempre suenan. Tu elección se guarda para la próxima vez.',
+        body: 'Tocá cada sonido para prenderlo o apagarlo, incluso durante la sesión. En «Volumen» ajustás cuánto suena cada uno. Tu elección queda guardada.',
       },
       en: {
         title: '🎚️ Your sounds',
-        body: 'Turn each sound on or off anytime, even during a session:<br><br>🎵 Ambient music<br>🗣️ Voice guide<br>🌬️ Breathing sound<br>⏱️ Second ticks<br><br>Use 🎚️ to set the volume of each one. The phase cues always play. Your choice is saved for next time.',
+        body: 'Tap a sound to turn it on or off, even during a session. “Volume” sets how loud each one plays. Your choice is saved.',
       },
     },
   ];
@@ -159,16 +159,42 @@
       pointer-events: none; z-index: 9999;
     }
 
+    /* Fonts, sizes, radii and spacing come from tokens.css /
+       tokens-dark.css (loaded by the page before this script runs).
+       Colors are the tutorial's own palette, all of them here: */
+    #tut-overlay, #tut-card {
+      --tut-card-bg: linear-gradient(145deg, rgba(28,28,42,0.97), rgba(20,20,34,0.99));
+      --tut-card-border: rgba(255,255,255,0.10);
+      --tut-card-shadow: 0 24px 64px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04);
+      --tut-text: #e8e8f0;
+      --tut-title: #fff;
+      --tut-body: rgba(210,210,230,0.85);
+      --tut-faint: rgba(160,160,200,0.6);
+      --tut-skip: rgba(160,160,200,0.5);
+      --tut-skip-hover: rgba(200,200,230,0.8);
+      --tut-next-bg: linear-gradient(135deg, rgba(100,120,255,0.85), rgba(70,90,210,0.9));
+      --tut-next-border: rgba(140,160,255,0.25);
+      --tut-next-shadow: 0 4px 18px rgba(80,100,255,0.3);
+      --tut-next-shadow-hover: 0 6px 24px rgba(80,100,255,0.45);
+      --tut-dot: rgba(255,255,255,0.18);
+      --tut-dot-active: rgba(120,140,255,0.9);
+      --tut-choice-bg: rgba(255,255,255,0.05);
+      --tut-choice-bg-hover: rgba(255,255,255,0.09);
+      --tut-choice-border: rgba(255,255,255,0.12);
+      --tut-choice-text: rgba(210,210,230,0.75);
+      --tut-choice-active-bg: rgba(100,120,255,0.18);
+      --tut-choice-active-border: rgba(120,140,255,0.7);
+    }
     #tut-card {
       position: fixed; z-index: 10001;
-      width: min(360px, calc(100vw - 40px));
-      background: linear-gradient(145deg, rgba(28,28,42,0.97), rgba(20,20,34,0.99));
-      border: 1px solid rgba(255,255,255,0.10); border-radius: 20px;
-      padding: 28px 26px 22px;
-      box-shadow: 0 24px 64px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04);
+      width: min(var(--dialog-wide, 360px), calc(100vw - var(--space-10))); /* same as the techniques dialog (style.css) */
+      background: var(--tut-card-bg);
+      border: 1px solid var(--tut-card-border); border-radius: var(--radius-xl);
+      padding: var(--space-7) var(--space-6) var(--space-5);
+      box-shadow: var(--tut-card-shadow);
       transition: opacity 0.4s ease, transform 0.4s cubic-bezier(.4,0,.2,1);
       opacity: 0;
-      color: #e8e8f0; font-family: inherit;
+      color: var(--tut-text); font-family: var(--font-sans);
     }
 
     #tut-card.tut-card-visible {
@@ -176,48 +202,49 @@
     }
 
     #tut-step-indicator {
-      font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
-      text-transform: uppercase; color: rgba(160,160,200,0.6); margin-bottom: 10px;
+      font-size: 11px; font-weight: var(--fw-semibold); letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--tut-faint); margin-bottom: var(--space-3);
     }
-    #tut-title  { font-size: 17px; font-weight: 700; margin: 0 0 10px; color: #fff; line-height: 1.3; }
-    #tut-body   { font-size: 14px; line-height: 1.65; color: rgba(210,210,230,0.85); margin: 0 0 22px; }
+    #tut-title  { font-size: var(--fs-xl); font-weight: var(--fw-medium); margin: 0 0 var(--space-3); color: var(--tut-title); line-height: var(--lh-heading); }
+    #tut-body   { font-size: var(--fs-sm); line-height: var(--lh-body); color: var(--tut-body); margin: 0 0 var(--space-6); }
 
     #tut-btn-row {
-      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
     }
 
+    /* Skip: text button. Next: the system's primary pill */
     #tut-skip {
-      background: none; border: none; color: rgba(160,160,200,0.5);
-      font-size: 13px; cursor: pointer; padding: 0;
-      transition: color 0.2s; font-family: inherit;
+      background: none; border: none; color: var(--tut-skip);
+      font-size: var(--fs-sm); cursor: pointer; padding: var(--space-2) 0;
+      transition: color var(--duration-fast); font-family: var(--font-sans);
     }
-    #tut-skip:hover { color: rgba(200,200,230,0.8); }
+    #tut-skip:hover { color: var(--tut-skip-hover); }
 
     #tut-next {
-      background: linear-gradient(135deg, rgba(100,120,255,0.85), rgba(70,90,210,0.9));
-      border: 1px solid rgba(140,160,255,0.25); color: #fff;
-      font-size: 14px; font-weight: 600; padding: 10px 24px;
-      border-radius: 50px; cursor: pointer; font-family: inherit;
-      transition: transform 0.15s, box-shadow 0.15s, background 0.2s;
-      box-shadow: 0 4px 18px rgba(80,100,255,0.3);
+      min-height: var(--btn-height-sm);
+      background: var(--tut-next-bg); box-shadow: var(--tut-next-shadow);
+      border: var(--btn-border-width) solid var(--tut-next-border); color: var(--tut-title);
+      font-size: var(--btn-font-size-sm); font-weight: var(--btn-font-weight); padding: var(--btn-padding-sm);
+      border-radius: var(--btn-radius); cursor: pointer; font-family: var(--font-sans);
+      transition: transform 0.15s, box-shadow 0.15s;
     }
-    #tut-next:hover  { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(80,100,255,0.45); }
-    #tut-next:active { transform: translateY(0); }
+    #tut-next:hover  { transform: translateY(-1px); box-shadow: var(--tut-next-shadow-hover); }
 
-    .tut-dots { display: flex; gap: 5px; align-items: center; }
-    .tut-dot  { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.18); transition: all 0.3s; }
-    .tut-dot.active { background: rgba(120,140,255,0.9); width: 18px; border-radius: 3px; }
+    .tut-dots { display: flex; gap: var(--space-1); align-items: center; }
+    .tut-dot  { width: 6px; height: 6px; border-radius: var(--radius-round); background: var(--tut-dot); transition: all 0.3s; }
+    .tut-dot.active { background: var(--tut-dot-active); width: 18px; border-radius: var(--radius-pill); }
 
-    #tut-lang-picker { display: flex; gap: 10px; margin-top: 14px; }
+    /* Language choice: secondary pills, the chosen one filled */
+    #tut-lang-picker { display: flex; gap: var(--space-3); margin-top: var(--space-4); }
     .tut-lang-btn {
-      flex: 1; padding: 10px 0; border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.05);
-      color: rgba(210,210,230,0.75); font-size: 14px; font-family: inherit;
-      cursor: pointer; transition: border-color 0.2s, background 0.2s, color 0.2s;
+      flex: 1; min-height: var(--btn-height-sm); padding: var(--btn-padding-sm); border-radius: var(--btn-radius);
+      border: 1px solid var(--tut-choice-border); background: var(--tut-choice-bg);
+      color: var(--tut-choice-text); font-size: var(--btn-font-size-sm); font-family: var(--font-sans);
+      cursor: pointer; transition: border-color var(--duration-fast), background var(--duration-fast), color var(--duration-fast);
     }
-    .tut-lang-btn:hover { background: rgba(255,255,255,0.09); color: #fff; }
+    .tut-lang-btn:hover { background: var(--tut-choice-bg-hover); color: var(--tut-title); }
     .tut-lang-btn.tut-lang-active {
-      border-color: rgba(120,140,255,0.7); background: rgba(100,120,255,0.18); color: #fff;
+      background: var(--tut-choice-active-bg); border-color: var(--tut-choice-active-border); color: var(--tut-title);
     }
   `;
   document.head.appendChild(style);

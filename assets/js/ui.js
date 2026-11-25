@@ -66,6 +66,12 @@ export function applyLang(l) {
     el.title = label;
   });
 
+  // The language button is written in the other language ("English" on
+  // the Spanish page): screen readers need to know to pronounce it so
+  document
+    .getElementById('lang-btn')
+    ?.setAttribute('lang', l === 'es' ? 'en' : 'es');
+
   renderPresets();
   renderSeoContent(l);
   // The <title> is a search result, not UI: use the descriptive one, the
@@ -143,7 +149,13 @@ export function updateLimitBadge() {
   if (pill) {
     // Cycle limits come from the technique itself and can't be changed here
     const locked = limitType === 'cycles';
-    pill.textContent = limitType === 'none' ? t.durationFree : text;
+    const shown = limitType === 'none' ? t.durationFree : text;
+    pill.textContent = shown;
+    // The name starts with what the button shows (minus the emoji), so
+    // voice control finds it, then says what it is
+    const label = t.durationLabel(shown.replace(/[⏱🔄]️?/gu, '').trim());
+    pill.setAttribute('aria-label', label);
+    pill.title = label;
     pill.setAttribute('aria-disabled', String(locked));
     pill.classList.toggle('locked', locked);
   }
@@ -235,7 +247,7 @@ export function showToast(msg, { actionLabel, onAction, sticky = false } = {}) {
   _toastEl.classList.toggle('actionable', Boolean(actionLabel));
   if (actionLabel) {
     const btn = document.createElement('button');
-    btn.className = 'toast-action';
+    btn.className = 'btn btn-primary btn-sm toast-action';
     btn.textContent = actionLabel;
     btn.addEventListener('click', () => {
       _toastEl.classList.remove('show');

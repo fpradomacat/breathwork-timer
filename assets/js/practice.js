@@ -57,7 +57,8 @@ function _renderScales() {
 }
 
 // ── Check-in (before the session) ─────────────────────────────
-const _checkInEnabled = () => load('checkIn', true);
+export const checkInEnabled = () => load('checkIn', true);
+const _checkInEnabled = checkInEnabled;
 
 let _startAfterCheckIn = null;
 
@@ -65,13 +66,28 @@ let _startAfterCheckIn = null;
  * Start a session, asking "how are you feeling?" first (unless the user
  * turned the question off). `start` must be called synchronously inside
  * a tap (see session.js 'starting'), so it runs from the answer's click.
+ *
+ * At most one dialog comes before a session: a technique's safety note
+ * that hasn't been shown yet (`warning`, { name, text }) is shown inside
+ * this one instead of in a dialog of its own. With the question turned
+ * off, main.js shows the note alone in its place.
  */
-export function startWithCheckIn(start) {
+export function startWithCheckIn(start, warning = null) {
   _pendingMoodBefore = null;
   if (!_checkInEnabled()) {
     start();
     return;
   }
+  const note = document.getElementById('checkin-warning');
+  const dialog = document.querySelector('#modal-checkin [role="dialog"]');
+  note.hidden = !warning;
+  if (warning) {
+    document.getElementById('checkin-warning-technique').textContent =
+      warning.name;
+    document.getElementById('checkin-warning-text').textContent = warning.text;
+    // Read out with the dialog's title, not left for the user to find
+    dialog.setAttribute('aria-describedby', 'checkin-warning');
+  } else dialog.removeAttribute('aria-describedby');
   _startAfterCheckIn = start;
   openModal('modal-checkin');
 }
@@ -87,9 +103,18 @@ function _finishCheckIn(value) {
 // ── Streak ────────────────────────────────────────────────────
 /** Refresh the streak value in the stats row. */
 export function renderStreak() {
+  const t = i18n[lang];
   const { streak } = getStats({ recent: 0 });
-  document.getElementById('streak-value').textContent =
-    streak > 0 ? `🔥 ${streak}` : '--';
+  // Always "N días" — a bare "--" read as an error or as nothing at all
+  const days = t.streakValue(streak);
+  const value = document.getElementById('streak-value');
+  value.textContent = days;
+  value.classList.toggle('stat-value--zero', streak === 0);
+  // Name = what it shows + what it opens ("Racha: 3 días. Ver tu práctica")
+  const btn = document.getElementById('streak-btn');
+  const label = `${t.statStreak}: ${days}. ${t.historyOpen}`;
+  btn.setAttribute('aria-label', label);
+  btn.title = label;
 }
 
 // ── Summary (after the session) ───────────────────────────────

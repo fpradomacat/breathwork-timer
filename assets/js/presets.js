@@ -21,10 +21,13 @@
 
 // Goals, in the order the techniques modal lists them. The label is the
 // i18n key; each goal must have at least one preset (checked in tests).
+// On a wide screen the modal is a 2-column grid, so this order also makes
+// its rows: the two short cards (no safety note) first, the two with a
+// note second — rows of even height, and less to scroll.
 export const GOALS = [
   { id: 'calm', emoji: '😌', label: 'goalCalm' },
-  { id: 'sleep', emoji: '🌙', label: 'goalSleep' },
   { id: 'focus', emoji: '🎯', label: 'goalFocus' },
+  { id: 'sleep', emoji: '🌙', label: 'goalSleep' },
   { id: 'energy', emoji: '⚡', label: 'goalEnergy' },
 ];
 

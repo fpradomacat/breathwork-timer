@@ -17,7 +17,6 @@ const INTERACTIVE_SELECTOR = [
   '#presets-btn',
   '.ctrl-option',
   '.input-group input',
-  '.bmc-btn',
   '.author-tag',
   '.preset-card',
   '.modal-close',
@@ -32,7 +31,6 @@ const CLICK_SOUND_SELECTOR = [
   '.preset-card',
   '.pill-tecnicas',
   '.modal-close',
-  '.bmc-btn',
 ].join(', ');
 
 // ── Debounce flags ────────────────────────────────────────────
