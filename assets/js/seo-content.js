@@ -34,9 +34,10 @@ export const DEFAULT_LANG = 'es';
 
 export const AUTHOR = {
   name: 'Federico Prado',
-  instagram: 'https://instagram.com/soypradito',
+  web: 'https://pradomacat.com',
+  email: 'hola@pradomacat.com',
   youtube: 'https://www.youtube.com/@meditawork',
-  coffee: 'https://buymeacoffee.com/soypradito',
+  coffee: 'https://buymeacoffee.com/pradomacat',
 };
 
 export const SEO = {
@@ -177,7 +178,8 @@ export const SEO = {
     about: [
       'Soy Fede. Practico respiración consciente todos los días desde hace meses, estoy cursando una certificación de breathwork y grabo meditaciones y sesiones de respiración guiada en español en mi canal de YouTube, <a href="https://www.youtube.com/@meditawork" target="_blank" rel="noopener">@meditawork</a>.',
       'Hice Neyen porque quería practicar con un ritmo exacto y sin que una app me pidiera una cuenta, me mostrara un anuncio o me cobrara una suscripción para destrabar la técnica siguiente. Soy programador, así que me lo armé. Está acá por si a vos también te sirve.',
-      'Si querés contarme cómo te va, escribime a <a href="https://instagram.com/soypradito" target="_blank" rel="noopener">@soypradito</a> en Instagram. Las sugerencias y los errores que reportan son, literalmente, de dónde salen las versiones nuevas.',
+      'Si querés contarme cómo te va, escribime a <a href="mailto:hola@pradomacat.com">hola@pradomacat.com</a>. Las sugerencias y los errores que reportan son, literalmente, de dónde salen las versiones nuevas.',
+      'Lo demás que hago está en <a href="https://pradomacat.com" target="_blank" rel="noopener">pradomacat.com</a>. Y si Neyen te sirve, podés <a href="https://buymeacoffee.com/pradomacat" target="_blank" rel="noopener">invitarme un café</a>.',
     ],
 
     disclaimerHeading: 'Antes de practicar',
@@ -324,7 +326,8 @@ export const SEO = {
     about: [
       'I am Fede. I have been practising conscious breathing every day for months, I am currently taking a breathwork certification, and I record guided meditations and breathing sessions in Spanish on my YouTube channel, <a href="https://www.youtube.com/@meditawork" target="_blank" rel="noopener">@meditawork</a>.',
       'I built Neyen because I wanted to practise on an exact rhythm without an app asking me for an account, showing me an ad or charging a subscription to unlock the next technique. I am a developer, so I made my own. It is here in case it is useful to you too.',
-      'If you want to tell me how it goes, write to <a href="https://instagram.com/soypradito" target="_blank" rel="noopener">@soypradito</a> on Instagram. Suggestions and bug reports are, literally, where new versions come from.',
+      'If you want to tell me how it goes, write to <a href="mailto:hola@pradomacat.com">hola@pradomacat.com</a>. Suggestions and bug reports are, literally, where new versions come from.',
+      'The rest of what I do is at <a href="https://pradomacat.com" target="_blank" rel="noopener">pradomacat.com</a>. And if Neyen is useful to you, you can <a href="https://buymeacoffee.com/pradomacat" target="_blank" rel="noopener">buy me a coffee</a>.',
     ],
 
     disclaimerHeading: 'Before you practise',

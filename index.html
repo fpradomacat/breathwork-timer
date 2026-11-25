@@ -19,6 +19,10 @@
       name="description"
       content="Temporizador de respiración guiada con voz y sonido: 4-7-8 para dormir, respiración cuadrada para enfocarte, coherencia cardíaca para calmarte. Gratis y sin registro."
     />
+    <!-- Design system first (tokens, then the night variant), then the
+         app's own CSS, which only uses their variables -->
+    <link rel="stylesheet" href="tokens.css" />
+    <link rel="stylesheet" href="tokens-dark.css" />
     <link rel="stylesheet" href="style.css" />
     <meta name="theme-color" content="#06030f" />
     <link rel="icon" href="assets/icons/icon.svg" type="image/svg+xml" />
@@ -34,35 +38,37 @@
   <body>
     <div class="main-layout">
       <div class="container">
-        <!-- Corner controls (fixed top-right): language + tutorial -->
+        <!-- Corner controls (fixed top-right): tests, language, help.
+             Each one says what it does; the emoji is decoration -->
         <div class="corner-controls" id="corner-controls">
           <button
-            class="corner-btn corner-btn--icon"
+            class="btn btn-secondary btn-sm btn-quiet corner-btn"
             id="tests-btn"
             data-i18n-label="testsTitle"
             aria-label="Tests de respiración"
             title="Tests de respiración"
           >
-            🫁
+            <span aria-hidden="true">🫁</span>
+            <span data-i18n="testsShort">Tests</span>
           </button>
           <button
-            class="corner-btn"
+            class="btn btn-secondary btn-sm btn-quiet corner-btn"
             id="lang-btn"
             data-i18n="langTarget"
             data-i18n-label="langSwitch"
             aria-label="Switch to English"
             title="Switch to English"
           >
-            EN
+            English
           </button>
           <button
-            class="corner-btn"
+            class="btn btn-secondary btn-sm btn-quiet corner-btn"
             id="help-btn"
             data-i18n-label="helpLabel"
-            aria-label="Ver tutorial"
-            title="Ver tutorial"
+            aria-label="Ayuda: ver el tutorial"
+            title="Ayuda: ver el tutorial"
           >
-            ?
+            <span data-i18n="helpShort">Ayuda</span>
           </button>
         </div>
 
@@ -84,12 +90,10 @@
           <button
             class="stat-item stat-item--last stat-btn"
             id="streak-btn"
-            data-i18n-label="historyOpen"
-            aria-label="Ver tu práctica"
             title="Ver tu práctica"
           >
             <span class="stat-label" data-i18n="statStreak">Racha</span>
-            <span class="stat-value" id="streak-value">--</span>
+            <span class="stat-value" id="streak-value">0</span>
           </button>
         </div>
 
@@ -119,20 +123,14 @@
         <!-- Techniques + session duration — hidden during session -->
         <div class="action-pills" id="action-pills">
           <button
-            class="pill-tecnicas"
+            class="btn btn-secondary pill-tecnicas"
             id="tecnicas-btn"
             data-i18n="menuPresets"
           >
             Técnicas
           </button>
-          <button
-            class="pill-duration"
-            id="duration-btn"
-            data-i18n-label="durationLabel"
-            aria-label="Duración de la sesión"
-            title="Duración de la sesión"
-          >
-            ⏱ ∞
+          <button class="btn btn-secondary pill-duration" id="duration-btn">
+            ⏱ Sin límite
           </button>
         </div>
 
@@ -146,7 +144,10 @@
             title="Música ambiente"
             aria-pressed="true"
           >
-            🎵
+            <span class="sound-toggle-icon" aria-hidden="true">🎵</span>
+            <span class="sound-toggle-label" data-i18n="soundMusicShort"
+              >Música</span
+            >
           </button>
           <button
             class="sound-toggle"
@@ -156,7 +157,10 @@
             title="Voz guía"
             aria-pressed="true"
           >
-            🗣️
+            <span class="sound-toggle-icon" aria-hidden="true">🗣️</span>
+            <span class="sound-toggle-label" data-i18n="soundVoiceShort"
+              >Voz</span
+            >
           </button>
           <button
             class="sound-toggle"
@@ -166,7 +170,10 @@
             title="Sonido de respiración"
             aria-pressed="true"
           >
-            🌬️
+            <span class="sound-toggle-icon" aria-hidden="true">🌬️</span>
+            <span class="sound-toggle-label" data-i18n="soundBreathsShort"
+              >Respiración</span
+            >
           </button>
           <button
             class="sound-toggle"
@@ -176,50 +183,34 @@
             title="Segundos"
             aria-pressed="false"
           >
-            ⏱️
+            <span class="sound-toggle-icon" aria-hidden="true">⏱️</span>
+            <span class="sound-toggle-label" data-i18n="soundTicksShort"
+              >Segundos</span
+            >
           </button>
           <button
             class="sound-toggle mixer-btn"
             id="mixer-btn"
             data-i18n-label="mixerOpen"
-            aria-label="Ajustar volúmenes"
-            title="Ajustar volúmenes"
+            aria-label="Volumen de cada sonido"
+            title="Volumen de cada sonido"
           >
-            🎚️
+            <span class="sound-toggle-icon" aria-hidden="true">🎚️</span>
+            <span class="sound-toggle-label" data-i18n="mixerShort"
+              >Volumen</span
+            >
           </button>
         </div>
 
-        <!-- Footer -->
+        <!-- Footer: who made it, one link (contact, YouTube and the rest are
+             on the site and in "Quién está detrás" below) -->
         <footer>
           <a
-            href="https://buymeacoffee.com/soypradito"
-            target="_blank"
-            rel="noopener"
-            class="bmc-btn"
-          >
-            <span data-i18n="buymeacoffee">Invitame un café</span>
-          </a>
-          <span class="footer-sep">·</span>
-          <a
-            href="https://www.youtube.com/@meditawork"
+            href="https://pradomacat.com"
             target="_blank"
             rel="noopener"
             class="author-tag"
-            data-i18n-label="youtubeLabel"
-            aria-label="Meditaciones guiadas en YouTube"
-            title="Meditaciones guiadas en YouTube"
-            >YouTube</a
-          >
-          <span class="footer-sep">·</span>
-          <a
-            href="https://instagram.com/soypradito"
-            target="_blank"
-            rel="noopener"
-            class="author-tag"
-            data-i18n-label="instagramLabel"
-            aria-label="Instagram: @soypradito"
-            title="Instagram: @soypradito"
-            >Instagram</a
+            >pradomacat.com</a
           >
         </footer>
 
@@ -324,7 +315,7 @@
         <div class="modal-body">
           <p class="warning-technique" id="warning-technique"></p>
           <p class="warning-text" id="warning-text"></p>
-          <button class="warning-ok" id="warning-ok" data-i18n="warningOk">
+          <button class="btn btn-primary warning-ok" id="warning-ok">
             Entendido
           </button>
         </div>
@@ -414,11 +405,17 @@
           <div class="history-tiles" id="history-tiles"></div>
           <p class="history-insight" id="history-insight" hidden></p>
           <div class="history-actions">
-            <button class="history-action" id="open-tests">
+            <button
+              class="btn btn-secondary btn-sm history-action"
+              id="open-tests"
+            >
               <span aria-hidden="true">🫁</span>
               <span data-i18n="testsTitle">Tests de respiración</span>
             </button>
-            <button class="history-action" id="open-reminder">
+            <button
+              class="btn btn-secondary btn-sm history-action"
+              id="open-reminder"
+            >
               <span aria-hidden="true">⏰</span>
               <span data-i18n="reminderTitle">Recordatorio diario</span>
             </button>
@@ -473,6 +470,12 @@
           </button>
         </div>
         <div class="modal-body checkin">
+          <!-- The technique's safety note, the first time it starts
+               (practice.js): one dialog before the session, not two -->
+          <div class="checkin-warning" id="checkin-warning" hidden>
+            <p class="warning-technique" id="checkin-warning-technique"></p>
+            <p class="warning-text" id="checkin-warning-text"></p>
+          </div>
           <p class="checkin-hint" data-i18n="checkInHint">
             Así después ves cómo te cambia cada sesión.
           </p>
@@ -547,7 +550,7 @@
           </label>
           <div class="reminder-buttons">
             <a
-              class="reminder-btn"
+              class="btn btn-secondary reminder-btn"
               id="reminder-google"
               href="#"
               target="_blank"
@@ -556,7 +559,7 @@
               >Google Calendar</a
             >
             <a
-              class="reminder-btn"
+              class="btn btn-secondary reminder-btn"
               id="reminder-ics"
               href="#"
               data-i18n="reminderIcs"

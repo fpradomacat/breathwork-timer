@@ -2,3 +2,9 @@ dist/
 node_modules/
 package-lock.json
 assets/sounds/
+# Design system tokens: copied as-is from the landing (shared source)
+tokens.css
+tokens-dark.css
+# Local before/after review page (not committed)
+antes-despues.html
+cambios.html
