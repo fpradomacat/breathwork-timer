@@ -394,6 +394,10 @@ button:not(:disabled):active {
 .stat-btn {
   padding: var(--space-1) var(--space-3);
   border: 1px solid var(--btn-secondary-border);
+  /* The outline must not make the stats row taller: when the session
+     removes this button, a taller row would shrink and shift every
+     line above the circle by a few pixels */
+  margin-block: calc(-1 * (var(--space-1) + 1px));
   border-radius: var(--radius-pill);
   background: none;
   font-weight: inherit;
@@ -586,7 +590,9 @@ button:not(:disabled):active {
   justify-content: center;
   gap: var(--space-3);
   margin-bottom: var(--flow);
-  max-height: 60px;
+  /* Exactly the row's height, so folding it away in session shrinks it
+     in step with the circle area growing (no drift of the title block) */
+  max-height: var(--btn-height);
   overflow: hidden;
   transition:
     opacity 0.6s var(--ease),
