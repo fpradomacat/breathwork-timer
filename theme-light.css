@@ -157,12 +157,8 @@ html #tut-card {
   /* The sky of the background's top-left corner, a step stronger and
      still see-through: it fills with air, not with paint */
   background-color: rgba(127, 184, 211, 0.62);
-  background-image: radial-gradient(
-    circle at 34% 28%,
-    rgba(255, 255, 255, 0.55) 0%,
-    rgba(255, 255, 255, 0.12) 35%,
-    transparent 65%
-  );
+  /* Same highlight as the other states: a gradient can't animate, so a
+     different one here would jump when the exhale starts */
   border-color: rgba(255, 255, 255, 0.6);
   box-shadow:
     0 0 0 12px rgba(169, 208, 226, 0.18),
