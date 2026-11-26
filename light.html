@@ -1,0 +1,582 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- ── Primary meta ──────────────────────────────────────────
+         The page title and description below are the Spanish ones, and
+         build.js rewrites both for each language page from SEO.metaTitle
+         and SEO.metaDescription (assets/js/seo-content.js) — so edit them
+         there. What you change here only shows when you serve the repo
+         root in development.
+         Careful: build.js finds them by pattern, so neither tag name may
+         appear anywhere else in this file, comments included. -->
+    <title>
+      Neyen · Respiración guiada gratis: 4-7-8, cuadrada y coherencia
+    </title>
+    <meta
+      name="description"
+      content="Temporizador de respiración guiada con voz y sonido: 4-7-8 para dormir, respiración cuadrada para enfocarte, coherencia cardíaca para calmarte. Gratis y sin registro."
+    />
+    <!-- Design system first (tokens, then the night variant), then the
+         app's own CSS, which only uses their variables -->
+    <link rel="stylesheet" href="tokens.css" />
+    
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="theme-light.css" />
+    <meta name="theme-color" content="#faf6f0" />
+    <link rel="icon" href="assets/icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
+    <link rel="manifest" href="manifest.json" />
+
+    <!-- build.js replaces this exact comment with the absolute-URL tags:
+         canonical, hreflang alternates, Open Graph, Twitter and the
+         JSON-LD (WebApplication + FAQPage). They need SITE_URL, which
+         only exists at build time, so they are not in the source. -->
+    <!-- SEO-HEAD -->
+  </head>
+  <body>
+    <div class="main-layout">
+      <div class="container">
+        <!-- Corner controls (fixed top-right): tests, language, help.
+             Each one says what it does; the emoji is decoration -->
+        <div class="corner-controls" id="corner-controls">
+          <button
+            class="btn btn-secondary btn-sm btn-quiet corner-btn"
+            id="tests-btn"
+            data-i18n-label="testsTitle"
+            aria-label="Tests de respiración"
+            title="Tests de respiración"
+          >
+            <span aria-hidden="true">🫁</span>
+            <span data-i18n="testsShort">Tests</span>
+          </button>
+          <button
+            class="btn btn-secondary btn-sm btn-quiet corner-btn"
+            id="lang-btn"
+            data-i18n="langTarget"
+            data-i18n-label="langSwitch"
+            aria-label="Switch to English"
+            title="Switch to English"
+          >
+            English
+          </button>
+          <button
+            class="btn btn-secondary btn-sm btn-quiet corner-btn"
+            id="help-btn"
+            data-i18n-label="helpLabel"
+            aria-label="Ayuda: ver el tutorial"
+            title="Ayuda: ver el tutorial"
+          >
+            <span data-i18n="helpShort">Ayuda</span>
+          </button>
+        </div>
+
+        <!-- Header -->
+        <div class="header-row">
+          <h1 data-i18n="title">Neyen | el arte de respirar</h1>
+        </div>
+
+        <!-- Stats row -->
+        <div class="stats-box">
+          <div class="stat-item">
+            <span class="stat-label" data-i18n="statSession">Sesión</span>
+            <span class="stat-value" id="session-counter">00:00</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label" data-i18n="statCycles">Ciclos</span>
+            <span class="stat-value" id="cycle-counter">0</span>
+          </div>
+          <button
+            class="stat-item stat-item--last stat-btn"
+            id="streak-btn"
+            title="Ver tu práctica"
+          >
+            <span class="stat-label" data-i18n="statStreak">Racha</span>
+            <span class="stat-value" id="streak-value">0</span>
+          </button>
+        </div>
+
+        <!-- Technique name + limit badge row -->
+        <div class="meta-row" id="meta-row">
+          <span id="technique-label">Respiración cuadrada</span>
+          <span id="limit-badge" class="limit-badge" hidden></span>
+        </div>
+
+        <!-- Breathing circle (tap to start/stop) -->
+        <div id="breathing-circle-container">
+          <div
+            id="breathing-circle"
+            role="button"
+            tabindex="0"
+            data-i18n-label="circleLabel"
+            aria-label="Iniciar o detener la sesión"
+            title="Iniciar o detener la sesión"
+          >
+            <span id="breath-text" data-i18n="ready" aria-live="polite"
+              >Listo</span
+            >
+            <div id="phase-timer" aria-hidden="true"></div>
+          </div>
+        </div>
+
+        <!-- Techniques + session duration — hidden during session -->
+        <div class="action-pills" id="action-pills">
+          <button
+            class="btn btn-secondary pill-tecnicas"
+            id="tecnicas-btn"
+            data-i18n="menuPresets"
+          >
+            Técnicas
+          </button>
+          <button class="btn btn-secondary pill-duration" id="duration-btn">
+            ⏱ Sin límite
+          </button>
+        </div>
+
+        <!-- Sound on/off toggles — stay available during the session -->
+        <div class="sound-toggles" id="sound-toggles">
+          <button
+            class="sound-toggle"
+            data-sound="music"
+            data-i18n-label="soundMusic"
+            aria-label="Música ambiente"
+            title="Música ambiente"
+            aria-pressed="true"
+          >
+            <span class="sound-toggle-icon" aria-hidden="true">🎵</span>
+            <span class="sound-toggle-label" data-i18n="soundMusicShort"
+              >Música</span
+            >
+          </button>
+          <button
+            class="sound-toggle"
+            data-sound="voice"
+            data-i18n-label="soundVoice"
+            aria-label="Voz guía"
+            title="Voz guía"
+            aria-pressed="true"
+          >
+            <span class="sound-toggle-icon" aria-hidden="true">🗣️</span>
+            <span class="sound-toggle-label" data-i18n="soundVoiceShort"
+              >Voz</span
+            >
+          </button>
+          <button
+            class="sound-toggle"
+            data-sound="breaths"
+            data-i18n-label="soundBreaths"
+            aria-label="Sonido de respiración"
+            title="Sonido de respiración"
+            aria-pressed="true"
+          >
+            <span class="sound-toggle-icon" aria-hidden="true">🌬️</span>
+            <span class="sound-toggle-label" data-i18n="soundBreathsShort"
+              >Respiración</span
+            >
+          </button>
+          <button
+            class="sound-toggle"
+            data-sound="ticks"
+            data-i18n-label="soundTicks"
+            aria-label="Segundos"
+            title="Segundos"
+            aria-pressed="false"
+          >
+            <span class="sound-toggle-icon" aria-hidden="true">⏱️</span>
+            <span class="sound-toggle-label" data-i18n="soundTicksShort"
+              >Segundos</span
+            >
+          </button>
+          <button
+            class="sound-toggle mixer-btn"
+            id="mixer-btn"
+            data-i18n-label="mixerOpen"
+            aria-label="Volumen de cada sonido"
+            title="Volumen de cada sonido"
+          >
+            <span class="sound-toggle-icon" aria-hidden="true">🎚️</span>
+            <span class="sound-toggle-label" data-i18n="mixerShort"
+              >Volumen</span
+            >
+          </button>
+        </div>
+
+        <!-- Footer: who made it, one link (contact, YouTube and the rest are
+             on the site and in "Quién está detrás" below) -->
+        <footer>
+          <a
+            href="https://pradomacat.com"
+            target="_blank"
+            rel="noopener"
+            class="author-tag"
+            >pradomacat.com</a
+          >
+        </footer>
+
+        <!-- Entry point to the landing content below the app -->
+        <a class="seo-link" href="#info" data-i18n="seoMore"
+          >Qué es Neyen, las técnicas y preguntas frecuentes</a
+        >
+      </div>
+    </div>
+
+    <!-- ── Landing content ──────────────────────────────────────
+         Filled with static, crawlable HTML per language by build.js, from
+         assets/js/seo-content.js. ui.js renders it client-side when it is
+         empty (serving the repo root, where no build ran) and on every
+         language change. -->
+    <section class="seo" id="info"></section>
+
+    <!-- Modal: Técnicas -->
+    <div class="modal-overlay" id="modal-tecnicas" aria-hidden="true">
+      <div
+        class="modal modal-tecnicas-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-tecnicas-title"
+      >
+        <div class="modal-header">
+          <span
+            class="modal-title"
+            id="modal-tecnicas-title"
+            data-i18n="goalQuestion"
+            >¿Qué necesitás?</span
+          >
+          <button
+            class="modal-close"
+            data-close="modal-tecnicas"
+            data-i18n-label="close"
+            aria-label="Cerrar"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="modal-body">
+          <div id="presets-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: sound panel (on/off + volume per channel) -->
+    <div class="modal-overlay" id="modal-sound" aria-hidden="true">
+      <div
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-sound-title"
+      >
+        <div class="modal-header">
+          <span
+            class="modal-title"
+            id="modal-sound-title"
+            data-i18n="mixerTitle"
+            >Sonido</span
+          >
+          <button
+            class="modal-close"
+            data-close="modal-sound"
+            data-i18n-label="close"
+            aria-label="Cerrar"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="modal-body">
+          <div id="mixer-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: safety notice, shown the first time a technique with a warning is chosen -->
+    <div class="modal-overlay" id="modal-warning" aria-hidden="true">
+      <div
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-warning-title"
+      >
+        <div class="modal-header">
+          <span
+            class="modal-title"
+            id="modal-warning-title"
+            data-i18n="warningTitle"
+            >Antes de empezar</span
+          >
+          <button
+            class="modal-close"
+            data-close="modal-warning"
+            data-i18n-label="close"
+            aria-label="Cerrar"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="modal-body">
+          <p class="warning-technique" id="warning-technique"></p>
+          <p class="warning-text" id="warning-text"></p>
+          <button class="btn btn-primary warning-ok" id="warning-ok">
+            Entendido
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: end-of-session summary -->
+    <div class="modal-overlay" id="modal-summary" aria-hidden="true">
+      <div
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-summary-title"
+      >
+        <div class="modal-header">
+          <span
+            class="modal-title"
+            id="modal-summary-title"
+            data-i18n="summaryTitle"
+            >Bien hecho 🙏</span
+          >
+          <button
+            class="modal-close"
+            data-close="modal-summary"
+            data-i18n-label="close"
+            aria-label="Cerrar"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="modal-body summary">
+          <p class="summary-limit" id="summary-limit" hidden></p>
+          <div class="summary-stats">
+            <div class="summary-stat">
+              <span class="summary-value" id="summary-time">00:00</span>
+              <span class="summary-label" data-i18n="summaryDuration"
+                >Duración</span
+              >
+            </div>
+            <div class="summary-stat">
+              <span class="summary-value" id="summary-cycles">0</span>
+              <span class="summary-label" data-i18n="statCycles">Ciclos</span>
+            </div>
+          </div>
+          <p class="summary-technique" id="summary-technique"></p>
+          <p class="summary-streak" id="summary-streak"></p>
+          <div class="mood" id="mood">
+            <p class="mood-question" data-i18n="moodQuestion">
+              ¿Cómo te sentís ahora?
+            </p>
+            <p class="mood-before" id="mood-before" hidden></p>
+            <!-- 1–5 scale, rendered by practice.js -->
+            <div class="mood-options" id="mood-options"></div>
+            <p class="mood-thanks" id="mood-thanks" data-i18n="moodThanks">
+              Gracias ✨
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: practice history -->
+    <div class="modal-overlay" id="modal-history" aria-hidden="true">
+      <div
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-history-title"
+      >
+        <div class="modal-header">
+          <span
+            class="modal-title"
+            id="modal-history-title"
+            data-i18n="historyTitle"
+            >Tu práctica</span
+          >
+          <button
+            class="modal-close"
+            data-close="modal-history"
+            data-i18n-label="close"
+            aria-label="Cerrar"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="history-tiles" id="history-tiles"></div>
+          <p class="history-insight" id="history-insight" hidden></p>
+          <div class="history-actions">
+            <button
+              class="btn btn-secondary btn-sm history-action"
+              id="open-tests"
+            >
+              <span aria-hidden="true">🫁</span>
+              <span data-i18n="testsTitle">Tests de respiración</span>
+            </button>
+            <button
+              class="btn btn-secondary btn-sm history-action"
+              id="open-reminder"
+            >
+              <span aria-hidden="true">⏰</span>
+              <span data-i18n="reminderTitle">Recordatorio diario</span>
+            </button>
+          </div>
+          <div class="setting-row">
+            <span id="checkin-label" data-i18n="checkInSetting"
+              >Preguntar cómo llegás antes de empezar</span
+            >
+            <button
+              class="mixer-switch"
+              id="checkin-switch"
+              role="switch"
+              aria-checked="true"
+              aria-labelledby="checkin-label"
+            >
+              <span class="mixer-knob"></span>
+            </button>
+          </div>
+          <p class="history-subtitle" data-i18n="historyRecent">
+            Últimas sesiones
+          </p>
+          <p class="history-empty" id="history-empty" data-i18n="historyEmpty">
+            Todavía no hay sesiones.
+          </p>
+          <ul class="history-list" id="history-list"></ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: check-in before the session ("how are you feeling?") -->
+    <div class="modal-overlay" id="modal-checkin" aria-hidden="true">
+      <div
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-checkin-title"
+      >
+        <div class="modal-header">
+          <span
+            class="modal-title"
+            id="modal-checkin-title"
+            data-i18n="checkInTitle"
+            >¿Cómo llegás?</span
+          >
+          <button
+            class="modal-close"
+            data-close="modal-checkin"
+            data-i18n-label="close"
+            aria-label="Cerrar"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="modal-body checkin">
+          <!-- The technique's safety note, the first time it starts
+               (practice.js): one dialog before the session, not two -->
+          <div class="checkin-warning" id="checkin-warning" hidden>
+            <p class="warning-technique" id="checkin-warning-technique"></p>
+            <p class="warning-text" id="checkin-warning-text"></p>
+          </div>
+          <p class="checkin-hint" data-i18n="checkInHint">
+            Así después ves cómo te cambia cada sesión.
+          </p>
+          <!-- 1–5 scale, rendered by practice.js -->
+          <div class="mood-options" id="checkin-options"></div>
+          <button class="test-link" id="checkin-skip" data-i18n="checkInSkip">
+            Empezar sin responder
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: breathing tests (content rendered by breath-tests.js) -->
+    <div class="modal-overlay" id="modal-tests" aria-hidden="true">
+      <div
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-tests-title"
+      >
+        <div class="modal-header">
+          <span
+            class="modal-title"
+            id="modal-tests-title"
+            data-i18n="testsTitle"
+            >Tests de respiración</span
+          >
+          <button
+            class="modal-close"
+            data-close="modal-tests"
+            data-i18n-label="close"
+            aria-label="Cerrar"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="modal-body tests" id="tests-body"></div>
+      </div>
+    </div>
+
+    <!-- Modal: daily reminder (calendar event) -->
+    <div class="modal-overlay" id="modal-reminder" aria-hidden="true">
+      <div
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-reminder-title"
+      >
+        <div class="modal-header">
+          <span
+            class="modal-title"
+            id="modal-reminder-title"
+            data-i18n="reminderTitle"
+            >Recordatorio diario</span
+          >
+          <button
+            class="modal-close"
+            data-close="modal-reminder"
+            data-i18n-label="close"
+            aria-label="Cerrar"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="modal-body reminder">
+          <p class="reminder-text" data-i18n="reminderText">
+            Elegí una hora y sumalo a tu calendario como evento diario.
+          </p>
+          <label class="reminder-time">
+            <span data-i18n="reminderTime">Hora</span>
+            <select id="reminder-time"></select>
+          </label>
+          <div class="reminder-buttons">
+            <a
+              class="btn btn-secondary reminder-btn"
+              id="reminder-google"
+              href="#"
+              target="_blank"
+              rel="noopener"
+              data-i18n="reminderGoogle"
+              >Google Calendar</a
+            >
+            <a
+              class="btn btn-secondary reminder-btn"
+              id="reminder-ics"
+              href="#"
+              data-i18n="reminderIcs"
+              >Apple / Outlook</a
+            >
+          </div>
+          <p class="reminder-note" data-i18n="reminderNote">
+            En Google Calendar el aviso sigue tu configuración de
+            notificaciones.
+          </p>
+          <p class="reminder-current" id="reminder-current" hidden></p>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/assets/js/main.js"></script>
+    <script type="module" src="tutorial.js"></script>
+  </body>
+</html>

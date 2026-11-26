@@ -1,0 +1,108 @@
+/* ── Neyen · versión clara (prueba) ─────────────────────────────
+   Se carga DESPUÉS de style.css (en lugar de tokens-dark.css) y
+   re-apunta la paleta de Neyen a los colores de la landing
+   (tokens.css): crema, carbón, azul sereno, celeste y durazno.
+   El fondo imita el aura del hero de la landing. */
+:root {
+  color-scheme: light;
+
+  /* System color tokens → landing */
+  --color-bg: #faf6f0;
+  --color-bg-alt: #f2ebe1;
+  --color-surface: #fffdf9;
+  --color-text: #2f3b40;
+  --color-text-muted: #5c6a6f;
+  --color-accent: #3e7189;
+  --color-accent-hover: #2e5a6f;
+  --color-accent-soft: rgba(62, 113, 137, 0.08);
+  --color-warm: #94572f;
+  --color-border: #e6dccd;
+  --color-border-subtle: rgba(47, 59, 64, 0.1);
+  --color-focus: #4f87a1;
+
+  /* Buttons: same as the landing */
+  --btn-primary-bg: var(--color-accent);
+  --btn-primary-bg-hover: var(--color-accent-hover);
+  --btn-primary-border: var(--color-accent);
+  --btn-primary-border-hover: var(--color-accent-hover);
+  --btn-primary-text: #fff;
+  --btn-secondary-bg: rgba(255, 253, 249, 0.8);
+  --btn-secondary-bg-hover: var(--color-accent-soft);
+  --btn-secondary-border: var(--color-accent);
+  --btn-secondary-border-hover: var(--color-accent-hover);
+  --btn-secondary-text: var(--color-accent);
+  --btn-secondary-text-hover: var(--color-accent-hover);
+
+  /* App roles */
+  --accent-bright: var(--color-accent-hover);
+  --text-primary: #2f3b40;
+  --text-muted: #5c6a6f;
+  --warn: var(--color-warm);
+  --panel-bg: rgba(255, 253, 249, 0.6);
+  --shade: rgba(47, 59, 64, 0.5);
+  --band-1: #b08a1e;
+  --band-3: #2f8a64;
+
+  /* Background: landing hero aura (sky top-left, peach bottom-right, tint) */
+  --bg-base: var(--color-bg);
+  --bg-grad-a: rgba(169, 208, 226, 0.75); /* --color-sky */
+  --bg-grad-b: rgba(241, 217, 196, 0.9); /* --color-peach */
+  --bg-grad-c: rgba(234, 243, 246, 0.9); /* --color-bg-tint */
+  --nebula-a: rgba(241, 217, 196, 0.55);
+  --nebula-b: rgba(169, 208, 226, 0.45);
+
+  /* Breathing circle: celeste with a peach glow */
+  --circle-inner: rgba(255, 253, 249, 0.95);
+  --circle-mid: rgba(169, 208, 226, 0.7);
+  --circle-outer: rgba(79, 135, 161, 0.28);
+  --circle-glow-a: rgba(169, 208, 226, 0.7);
+  --circle-glow-b: rgba(241, 217, 196, 0.6);
+  --circle-glow-c: rgba(169, 208, 226, 0.3);
+  --circle-ring: rgba(62, 113, 137, 0.18);
+  --toast-bg: var(--color-surface);
+  --modal-bg: var(--color-surface);
+}
+
+/* Headings in serif, like the landing */
+h1,
+h2,
+h3 {
+  font-family: var(--font-serif);
+  font-weight: var(--fw-regular);
+}
+
+/* Tutorial card (its palette lives in tutorial.js) */
+html #tut-overlay,
+html #tut-card {
+  --tut-card-bg: var(--color-surface);
+  --tut-card-border: var(--color-border);
+  --tut-card-shadow: 0 24px 64px rgba(47, 59, 64, 0.18);
+  --tut-text: #2f3b40;
+  --tut-title: #2f3b40;
+  --tut-body: #5c6a6f;
+  --tut-faint: #5c6a6f;
+  --tut-skip: #5c6a6f;
+  --tut-skip-hover: #2f3b40;
+  --tut-next-bg: var(--color-accent);
+  --tut-next-border: var(--color-accent);
+  --tut-next-shadow: none;
+  --tut-next-shadow-hover: none;
+  --tut-dot: rgba(47, 59, 64, 0.15);
+  --tut-dot-active: var(--color-accent);
+  --tut-choice-bg: rgba(47, 59, 64, 0.03);
+  --tut-choice-bg-hover: var(--color-accent-soft);
+  --tut-choice-border: var(--color-border);
+  --tut-choice-text: #5c6a6f;
+  --tut-choice-active-bg: var(--color-accent-soft);
+  --tut-choice-active-border: var(--color-accent);
+}
+
+/* Circle label: full opacity so it stays legible on the light circle */
+#breath-text {
+  opacity: 1;
+}
+
+/* The tutorial's next button reuses --tut-title for its text */
+html #tut-next {
+  color: #fff;
+}
