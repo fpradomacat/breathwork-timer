@@ -187,7 +187,7 @@ function _buildPhases() {
   const tHE = parseFloat(_times.holdEmpty) || 0;
   const ease = 'cubic-bezier(.4,0,.2,1)';
   const move = (s) =>
-    `transform ${s}s ${ease},opacity ${s}s ${ease},box-shadow ${s}s ${ease}`;
+    `transform ${s}s ${ease},opacity ${s}s ${ease},box-shadow ${s}s ${ease},background-color ${s}s ${ease},border-color ${s}s ${ease}`;
 
   const phases = [];
   if (tIn > 0)

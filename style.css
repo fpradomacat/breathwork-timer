@@ -395,7 +395,9 @@ button:not(:disabled):active {
 /* Streak stat is a button (opens the history) — strip the base button look */
 /* …but outlined like a secondary pill, so it reads as something to tap */
 .stat-btn {
-  padding: var(--space-1) var(--space-3);
+  /* 1px less on top: the uppercase label has no descenders, so even
+     padding leaves it optically low inside the outline */
+  padding: calc(var(--space-1) - 1px) var(--space-3) calc(var(--space-1) + 1px);
   border: 1px solid var(--btn-secondary-border);
   /* The outline must not make the stats row taller: when the session
      removes this button, a taller row would shrink and shift every
