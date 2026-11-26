@@ -120,61 +120,96 @@ html #tut-card {
   --btn-secondary-border-hover: var(--color-accent);
 }
 
-/* ── Breathing circle ──
-   Idle / exhaled: a clear glass bubble. Inhaled (.active): fills with the
-   accent blue-green. The fill is background-color (transitions smoothly);
-   the radial gradient on top is only the light highlight. */
+/* ── Breathing circle: light that breathes ──
+   Not a container that gets colored but a source of light. At rest it is
+   only its ring. On the inhale a sky light is born at the center and
+   spreads to the rim as the circle grows (air filling the lungs, inside
+   out); the ring brightens and lets out a soft halo, peach at its edge
+   where it meets the page. Holding full, the light drifts slowly so the
+   circle stays alive. On the exhale the light gathers back to the center
+   and goes out.
+   Only transform and opacity animate on the light, so it stays smooth.
+   session.js passes each phase's length as --phase-dur: the inline
+   transition it sets on the circle doesn't reach a pseudo-element. */
+:root {
+  /* Breath-like easing: slow in, slow out, symmetric */
+  --ease-breath: cubic-bezier(0.37, 0, 0.63, 1);
+}
 #breathing-circle {
+  isolation: isolate;
   opacity: 1;
-  background-color: rgba(169, 208, 226, 0.22);
-  background-image: radial-gradient(
-    circle at 36% 30%,
-    rgba(255, 255, 255, 0.85) 0%,
-    rgba(255, 255, 255, 0.2) 38%,
-    transparent 70%
+  background: transparent;
+  border: 1px solid rgba(62, 113, 137, 0.38);
+  box-shadow: none;
+  /* Beats the UI easing session.js writes inline, light theme only */
+  transition-timing-function: var(--ease-breath) !important;
+}
+#breathing-circle::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    closest-side,
+    rgba(127, 184, 211, 0.72) 0%,
+    rgba(150, 198, 222, 0.45) 45%,
+    rgba(169, 208, 226, 0.16) 78%,
+    transparent 100%
   );
-  border: 1px solid rgba(62, 113, 137, 0.22);
-  box-shadow: 0 10px 40px -12px rgba(62, 113, 137, 0.25);
+  opacity: 0;
+  transform: scale(0.2);
   transition:
-    transform var(--transition),
-    opacity var(--transition),
-    background-color var(--transition),
-    border-color var(--transition),
-    box-shadow var(--transition);
+    transform var(--phase-dur, 1.2s) var(--ease-breath),
+    opacity var(--phase-dur, 1.2s) var(--ease-breath);
+}
+#breathing-circle.active::before {
+  opacity: 1;
+  transform: scale(1);
+}
+/* While a session runs the light floats a little (translate composes
+   with the transform the phases animate) */
+.container.session #breathing-circle::before {
+  animation: light-drift 9s ease-in-out infinite;
+}
+@keyframes light-drift {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  33% {
+    translate: 2.5% -2%;
+  }
+  66% {
+    translate: -2% 1.5%;
+  }
 }
 #breathing-circle:hover:not(.active):not(.collapsed) {
   opacity: 1;
-  background-color: rgba(169, 208, 226, 0.35);
+  border-color: rgba(62, 113, 137, 0.6);
 }
-/* Exhaled: back to the resting color, so each inhale starts from it */
 #breathing-circle.collapsed {
   opacity: 1;
-  background-color: rgba(169, 208, 226, 0.22);
-  border-color: rgba(62, 113, 137, 0.22);
-  box-shadow: 0 6px 24px -10px rgba(62, 113, 137, 0.2);
+  border-color: rgba(62, 113, 137, 0.38);
+  box-shadow: none;
 }
 #breathing-circle.active {
-  /* The sky of the background's top-left corner, a step stronger and
-     still see-through: it fills with air, not with paint */
-  background-color: rgba(127, 184, 211, 0.62);
-  /* Same highlight as the other states: a gradient can't animate, so a
-     different one here would jump when the exhale starts */
-  border-color: rgba(255, 255, 255, 0.6);
+  border-color: rgba(255, 255, 255, 0.85);
   box-shadow:
-    0 0 0 12px rgba(169, 208, 226, 0.18),
-    0 0 60px 24px rgba(169, 208, 226, 0.45),
-    0 0 110px 60px rgba(241, 217, 196, 0.35);
+    0 0 36px 4px rgba(169, 208, 226, 0.45),
+    0 0 90px 30px rgba(241, 217, 196, 0.4);
 }
+/* Deep blue: ≥ 4.5:1 on the page and on the light */
 #breath-text,
 #phase-timer {
   opacity: 1;
-  color: var(--color-accent-hover);
-  transition: color var(--transition);
+  color: #183a49;
 }
-/* Deep blue on the sky fill: ≥ 5:1 */
-#breathing-circle.active #breath-text,
-#breathing-circle.active #phase-timer {
-  color: #1f4454;
+@media (prefers-reduced-motion: reduce) {
+  .container.session #breathing-circle::before {
+    animation: none;
+  }
 }
 
 /* The tutorial's next button reuses --tut-title for its text */

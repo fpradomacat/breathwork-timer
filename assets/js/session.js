@@ -250,8 +250,18 @@ function _runCycle() {
 
     const phase = phases[idx++];
     breathText.innerText = phase.label;
+    // The new phase word fades in instead of snapping
+    // (from 0 up to whatever opacity the stylesheet gives it)
+    breathText.animate?.([{ opacity: 0, offset: 0 }], {
+      duration: 500,
+      easing: 'ease-out',
+    });
     navigator.vibrate?.(40);
-    if (phase.transition) breathingCircle.style.transition = phase.transition;
+    if (phase.transition) {
+      breathingCircle.style.transition = phase.transition;
+      // For layers the inline transition can't reach (theme-light.css)
+      breathingCircle.style.setProperty('--phase-dur', `${phase.dur}s`);
+    }
     if (phase.state) setCircleState(phase.state);
     _waitPhase(phase.dur, _nextPhase);
   }
@@ -304,6 +314,7 @@ export async function startTimer() {
   breathText.innerText = '';
   phaseTimerEl.innerText = '';
   breathingCircle.style.transition = '';
+  breathingCircle.style.removeProperty('--phase-dur');
   setCircleState('collapsed');
   container.classList.add('session');
   setTimeout(() => container.classList.add('session-hide-last'), TRANSITION_MS);
@@ -373,6 +384,7 @@ export async function stopTimer(limitMsg) {
   phaseTimerEl.innerText = '';
   breathText.innerText = '';
   breathingCircle.style.transition = '';
+  breathingCircle.style.removeProperty('--phase-dur');
   setCircleState('idle');
   container.classList.remove('session-hide-last');
   container.classList.remove('session');
