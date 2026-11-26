@@ -97,9 +97,84 @@ html #tut-card {
   --tut-choice-active-border: var(--color-accent);
 }
 
-/* Circle label: full opacity so it stays legible on the light circle */
-#breath-text {
+/* ── Text hierarchy ──
+   Main values in charcoal; labels in a muted grey a step darker than the
+   landing's (small text over the colored aura needs the extra margin:
+   ≈ 6.8:1 on cream, ≈ 4.6:1 at the deepest point of the sky blob). */
+:root {
+  --text-secondary: #2f3b40;
+  --text-muted: #4b585d;
+  --color-text-muted: #4b585d;
+}
+.author-tag,
+.seo-link {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+.sound-toggle-label {
+  font-size: 0.72rem;
+}
+/* Quieter outlines: the pills and sound rings were heavier than the text */
+:root {
+  --btn-secondary-border: rgba(62, 113, 137, 0.35);
+  --btn-secondary-border-hover: var(--color-accent);
+}
+
+/* ── Breathing circle ──
+   Idle / exhaled: a clear glass bubble. Inhaled (.active): fills with the
+   accent blue-green. The fill is background-color (transitions smoothly);
+   the radial gradient on top is only the light highlight. */
+#breathing-circle {
   opacity: 1;
+  background-color: rgba(169, 208, 226, 0.22);
+  background-image: radial-gradient(
+    circle at 36% 30%,
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(255, 255, 255, 0.2) 38%,
+    transparent 70%
+  );
+  border: 1px solid rgba(62, 113, 137, 0.22);
+  box-shadow: 0 10px 40px -12px rgba(62, 113, 137, 0.25);
+  transition:
+    transform var(--transition),
+    opacity var(--transition),
+    background-color var(--transition),
+    border-color var(--transition),
+    box-shadow var(--transition);
+}
+#breathing-circle:hover:not(.active):not(.collapsed) {
+  opacity: 1;
+  background-color: rgba(169, 208, 226, 0.35);
+}
+#breathing-circle.collapsed {
+  opacity: 1;
+  background-color: rgba(169, 208, 226, 0.12);
+  border-color: rgba(62, 113, 137, 0.18);
+  box-shadow: 0 6px 24px -10px rgba(62, 113, 137, 0.2);
+}
+#breathing-circle.active {
+  background-color: #3d7d8c;
+  /* softer highlight, so the white text keeps ≥ 4.5:1 at the center */
+  background-image: radial-gradient(
+    circle at 32% 26%,
+    rgba(255, 255, 255, 0.4) 0%,
+    transparent 30%
+  );
+  border-color: transparent;
+  box-shadow:
+    0 0 0 10px rgba(61, 125, 140, 0.12),
+    0 0 50px 20px rgba(169, 208, 226, 0.55),
+    0 0 90px 50px rgba(241, 217, 196, 0.45);
+}
+#breath-text,
+#phase-timer {
+  opacity: 1;
+  color: var(--color-accent-hover);
+  transition: color var(--transition);
+}
+#breathing-circle.active #breath-text,
+#breathing-circle.active #phase-timer {
+  color: #fff;
 }
 
 /* The tutorial's next button reuses --tut-title for its text */
