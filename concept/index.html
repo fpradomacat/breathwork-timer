@@ -843,12 +843,15 @@
       .card-wrap {
         position: relative;
         isolation: isolate; /* keeps the info button under the dialogs */
+        /* the card and its info button rise in together */
+        animation: rise 1.2s var(--ease-out) backwards;
         flex: 0 0 196px;
         display: flex;
         scroll-snap-align: center;
       }
       .card-wrap .card {
         flex: 1 1 auto;
+        animation: none;
       }
       .info-btn {
         position: absolute;
@@ -1509,6 +1512,7 @@
           info.textContent = 'i';
           info.setAttribute('aria-label', T().info(L(tq, 'name')));
           info.addEventListener('click', () => openInfo(tq));
+          wrap.style.animationDelay = b.style.animationDelay;
           wrap.append(b, info);
           cardsEl.appendChild(wrap);
         });
