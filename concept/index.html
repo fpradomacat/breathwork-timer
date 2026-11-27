@@ -1058,6 +1058,28 @@
       .info details p {
         margin: 10px 0 4px;
       }
+
+      /* ── Check-in before the session ────────────────────────────── */
+      .overlay .sheet .note:empty {
+        display: none;
+      }
+      .quiet-link {
+        margin-top: 16px;
+        padding: 4px;
+        border: 0;
+        background: none;
+        font-size: 0.76rem;
+        color: var(--ink-soft);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        cursor: pointer;
+      }
+      .quiet-link:hover {
+        color: var(--accent);
+      }
+      .quiet-link[hidden] {
+        display: none;
+      }
     </style>
   </head>
   <body>
@@ -1180,14 +1202,16 @@
       <div class="sheet">
         <h2 class="small" id="notice-title" data-t="warnTitle"></h2>
         <p class="note" id="notice-text"></p>
+        <div class="mood" id="checkin"></div>
         <div class="row">
-          <button class="btn" id="notice-go" data-t="warnGo"></button>
+          <button class="btn" id="notice-go"></button>
           <button
             class="btn ghost"
             id="notice-cancel"
             data-t="warnCancel"
           ></button>
         </div>
+        <button class="quiet-link" id="checkin-off" data-t="checkOff"></button>
       </div>
     </div>
 
@@ -1315,6 +1339,10 @@
           moodQ: '¿Cómo te sentís ahora?',
           moodEnds: ['Peor', 'Mucho mejor'],
           moodThanks: 'Gracias. Queda guardado en tu práctica.',
+          moodDelta: (a, b) =>
+            `Empezaste en ${a} y terminás en ${b}. Queda guardado en tu práctica.`,
+          checkSkip: 'Saltar',
+          checkOff: 'No preguntar antes de empezar',
           streak: (n) =>
             n > 1 ? `${n} días seguidos` : 'Primer día de tu racha',
           reminder: 'Agregá un recordatorio diario →',
@@ -1371,6 +1399,10 @@
           moodQ: 'How do you feel now?',
           moodEnds: ['Worse', 'Much better'],
           moodThanks: 'Thanks. It is saved in your practice.',
+          moodDelta: (a, b) =>
+            `You started at ${a} and end at ${b}. It is saved in your practice.`,
+          checkSkip: 'Skip',
+          checkOff: 'Don’t ask before starting',
           streak: (n) =>
             n > 1 ? `${n} days in a row` : 'Day one of your streak',
           reminder: 'Add a daily reminder →',
@@ -1672,21 +1704,69 @@
         sound.ctx ? sound.ctx.currentTime : performance.now() / 1000;
 
       const warned = new Set(store.get('concept.warned', []));
+      /* A 1–5 "how do you feel?" scale; onPick(value, button) */
+      function moodScale(box, onPick) {
+        box.innerHTML = `<fieldset><legend>${T().moodQ}</legend><div class="dots"></div>
+          <div class="ends" aria-hidden="true"><span>${T().moodEnds[0]}</span><span>${T().moodEnds[1]}</span></div>
+          <p class="thanks" aria-live="polite"></p></fieldset>`;
+        const dots = box.querySelector('.dots');
+        for (let v = 1; v <= 5; v++) {
+          const b = document.createElement('button');
+          b.textContent = v;
+          b.setAttribute('aria-pressed', 'false');
+          b.addEventListener('click', () => {
+            dots
+              .querySelectorAll('button')
+              .forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+            onPick(v);
+          });
+          dots.appendChild(b);
+        }
+      }
+
+      /* At most one dialog between the tap and the session: "how do you
+         feel?" (one tap answers and starts), with the safety note inside it
+         the first time a technique has one */
+      let checkIn = store.get('concept.checkIn', true);
       function requestStart() {
         if (S.running) return;
         const warn = L(tech, 'warn');
-        if (warn && !warned.has(tech.soundDir)) {
-          $('#notice-text').textContent = warn;
-          openOverlay('#notice', '#notice-go');
-          return;
-        }
-        start();
+        const needsNote = warn && !warned.has(tech.soundDir);
+        S.moodBefore = null;
+        if (!checkIn && !needsNote) return start();
+        $('#notice-text').textContent = needsNote ? warn : '';
+        const box = $('#checkin');
+        box.innerHTML = '';
+        if (checkIn)
+          moodScale(box, (v) => {
+            S.moodBefore = v;
+            // a beat to see the choice, then breathe
+            setTimeout(confirmStart, 350);
+          });
+        $('#notice-go').textContent =
+          checkIn && !needsNote ? T().checkSkip : T().warnGo;
+        $('#checkin-off').hidden = !checkIn;
+        openOverlay('#notice', '#notice-go');
       }
-      $('#notice-go').addEventListener('click', () => {
-        warned.add(tech.soundDir);
-        store.set('concept.warned', [...warned]);
+      function confirmStart() {
+        if (!$('#notice').classList.contains('open')) return;
+        const warn = L(tech, 'warn');
+        if (warn) {
+          warned.add(tech.soundDir);
+          store.set('concept.warned', [...warned]);
+        }
         closeOverlay('#notice');
         start();
+      }
+      $('#notice-go').addEventListener('click', confirmStart);
+      $('#checkin-off').addEventListener('click', () => {
+        checkIn = false;
+        store.set('concept.checkIn', false);
+        $('#checkin').innerHTML = '';
+        $('#checkin-off').hidden = true;
+        $('#notice-go').textContent = T().warnGo;
+        if (!$('#notice-text').textContent) confirmStart();
+        else $('#notice-go').focus();
       });
       $('#notice-cancel').addEventListener('click', () => {
         closeOverlay('#notice');
@@ -1725,6 +1805,7 @@
                 secs: Math.round(S.elapsed),
                 cycles: S.cycles,
                 technique: tech.soundDir,
+                moodBefore: S.moodBefore,
               })
             : null;
         if (!silent && (fromLimit || S.elapsed >= 20))
@@ -1835,25 +1916,13 @@
         const mood = $('#mood');
         mood.innerHTML = '';
         if (entry) {
-          mood.innerHTML = `<fieldset><legend>${T().moodQ}</legend><div class="dots"></div>
-            <div class="ends" aria-hidden="true"><span>${T().moodEnds[0]}</span><span>${T().moodEnds[1]}</span></div>
-            <p class="thanks" aria-live="polite"></p></fieldset>`;
-          const dots = mood.querySelector('.dots');
-          for (let v = 1; v <= 5; v++) {
-            const b = document.createElement('button');
-            b.textContent = v;
-            b.setAttribute('aria-pressed', 'false');
-            b.addEventListener('click', () => {
-              setMoodAfter(entry.id, v);
-              dots
-                .querySelectorAll('button')
-                .forEach((x) =>
-                  x.setAttribute('aria-pressed', String(x === b)),
-                );
-              mood.querySelector('.thanks').textContent = T().moodThanks;
-            });
-            dots.appendChild(b);
-          }
+          moodScale(mood, (v) => {
+            setMoodAfter(entry.id, v);
+            const before = entry.moodBefore;
+            mood.querySelector('.thanks').textContent = before
+              ? T().moodDelta(before, v)
+              : T().moodThanks;
+          });
         }
         // next steps: a reminder once it's becoming a habit, and the way to the coach
         const links = [];
