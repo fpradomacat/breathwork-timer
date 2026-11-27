@@ -1080,6 +1080,26 @@
       .quiet-link[hidden] {
         display: none;
       }
+
+      /* ── Entrance: everything on the first screen rises in ─────── */
+      .wordmark small {
+        animation: rise 1.2s var(--ease-out) 0.45s backwards;
+      }
+      .actions > .pill {
+        animation: rise 1.2s var(--ease-out) backwards;
+      }
+      .actions > .pill:nth-of-type(1) {
+        animation-delay: 0.3s;
+      }
+      .actions > .pill:nth-of-type(2) {
+        animation-delay: 0.38s;
+      }
+      .actions > .pill:nth-of-type(3) {
+        animation-delay: 0.46s;
+      }
+      .eyebrow {
+        animation: rise 1.2s var(--ease-out) 0.15s backwards;
+      }
     </style>
   </head>
   <body>
@@ -2044,7 +2064,31 @@
           this.music.loop = true;
           ctx.createMediaElementSource(this.music).connect(this.ch.music);
           if (this.prefs.music) this.music.play().catch(() => {});
+          // Lock screen / notification controls act on the music element.
+          // The app never pauses it itself (muting only lowers its gain),
+          // so a pause is always the person's: stop everything, and show
+          // the music as off.
+          this.music.addEventListener('pause', () => this.externalPause());
+          if ('mediaSession' in navigator) {
+            const ms = navigator.mediaSession;
+            try {
+              ms.metadata = new MediaMetadata({
+                title: 'Neyen',
+                artist: T().tagline,
+              });
+              ms.setActionHandler('pause', () => this.music.pause());
+              ms.setActionHandler('stop', () => this.music.pause());
+              ms.setActionHandler('play', () => this.set('music', true));
+            } catch {}
+          }
           this.preload();
+        },
+        externalPause() {
+          if (S.running) stop();
+          if (this.prefs.music) {
+            this.set('music', false);
+            renderChannels();
+          }
         },
         level(k) {
           return this.prefs[k] ? CH_LEVEL[k] : 0;
@@ -2059,7 +2103,8 @@
             this.ctx.currentTime,
             0.12,
           );
-          if (k === 'music') on ? this.music.play().catch(() => {}) : null;
+          if (k === 'music' && on && this.music.paused)
+            this.music.play().catch(() => {});
           if (k === 'voice' && on && this.session)
             this.session.voiceKeep = true;
           syncEq();
