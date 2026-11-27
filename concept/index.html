@@ -1798,6 +1798,12 @@
         closeOverlay('#summary');
         sound.ensure(); // inside the tap: mobile browsers need the gesture
         S.running = true;
+        // The session runs on its own timer, not on the drawing: the browser
+        // stops drawing with the screen locked, and the session (its phases,
+        // its time limit) has to keep going. Hidden pages get fewer timer
+        // calls, which is fine: tick() works from the clock, not from counts.
+        clearInterval(S.timer);
+        S.timer = setInterval(tick, 250);
         S.cycles = 0;
         S.phase = -1;
         S.t0 = now() + COUNTDOWN;
@@ -1811,6 +1817,7 @@
       function stop(fromLimit = false, silent = false) {
         if (!S.running) return;
         S.running = false;
+        clearInterval(S.timer);
         document.body.classList.remove('in-session');
         orb.setAttribute('aria-label', T().start);
         setCount(null);
@@ -2215,6 +2222,14 @@
         },
       };
 
+      // The generated breath follows the circle, frame by frame. With the
+      // screen locked there are no frames, so it would hold one level: fade
+      // it out; the cues and the voice keep guiding.
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden && sound.air)
+          sound.air.gain.setTargetAtTime(0, sound.ctx.currentTime, 0.3);
+      });
+
       /* Sound panel */
       const panel = $('#sound-panel');
       const soundBtn = $('#sound');
@@ -2389,6 +2404,13 @@
         tint: Math.random(),
       }));
 
+      /* ── Budget: the aura drifts slowly, so it needs neither full
+         resolution nor every frame. The ring, the motes and the text
+         still move at the screen's own rate. */
+      const AURA_SCALE = 0.5;
+      const AURA_FPS = 30;
+      let auraLast = -Infinity;
+
       /* ── Sizing ────────────────────────────────────────────────────── */
       let W = 0,
         H = 0,
@@ -2398,7 +2420,9 @@
         W = innerWidth;
         H = innerHeight;
         dpr = Math.min(devicePixelRatio || 1, 2);
-        renderScale = Math.min(dpr, 1.5) * 0.7; // the aura is soft: render it below full res
+        // The aura is soft: half a pixel per CSS pixel looks the same and is
+        // about 4× less work than full res on a phone
+        renderScale = AURA_SCALE;
         canvas.width = Math.round(W * renderScale);
         canvas.height = Math.round(H * renderScale);
         mc.width = Math.round(W * dpr);
@@ -2427,7 +2451,7 @@
         const dt = Math.min((t - last) / 1000, 0.05);
         last = t;
         time += dt * (reduced ? 0.15 : 1);
-        tick();
+        tick(); // smooth while drawing; the timer covers the locked screen
 
         const prev = S.shown;
         S.shown +=
@@ -2450,7 +2474,9 @@
           cy = r.top + r.height / 2;
         const R = (r.width / 2) * S.scale;
 
-        if (prog) {
+        // −2 ms of slack, so a 60 Hz screen draws every other frame
+        if (prog && t - auraLast >= 1000 / AURA_FPS - 2) {
+          auraLast = t;
           const intro = Math.min((t - tStart) / 1800, 1);
           gl.uniform2f(U.uRes, canvas.width, canvas.height);
           gl.uniform1f(U.uTime, time);
