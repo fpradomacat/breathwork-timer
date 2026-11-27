@@ -8,7 +8,7 @@
     />
     <meta name="theme-color" content="#faf6f0" />
     <meta name="robots" content="noindex" />
-    <title>Neyen · Concepto «Lente»</title>
+    <title>Neyen · el arte de respirar</title>
     <style>
       /* ─────────────────────────────────────────────────────────────
          Neyen · concept "Lente"
@@ -37,7 +37,8 @@
         --ease-breath: cubic-bezier(0.37, 0, 0.63, 1);
         --glass: rgba(255, 253, 249, 0.42);
         --glass-border: rgba(255, 255, 255, 0.65);
-        --orb: min(72vw, 330px);
+        /* the circle gives way first on short screens */
+        --orb: min(72vw, 330px, max(150px, calc(100svh - 400px)));
       }
       * {
         box-sizing: border-box;
@@ -133,6 +134,7 @@
         color: var(--ink);
       }
       .wordmark b {
+        white-space: nowrap;
         font-family: var(--serif);
         font-weight: 400;
         font-size: 1.55rem;
@@ -403,7 +405,7 @@
         --mx: 50%;
         --my: 0%;
         position: relative;
-        flex: 1 0 180px;
+        flex: 0 0 196px;
         scroll-snap-align: center;
         display: grid;
         gap: 6px;
@@ -660,12 +662,25 @@
         white-space: nowrap;
       }
 
-      @media (max-height: 700px) {
-        :root {
-          --orb: min(62vw, 260px);
+      @media (max-width: 560px) {
+        .wordmark small {
+          display: none;
         }
+        .wordmark b {
+          font-size: 1.25rem;
+          letter-spacing: 0.26em;
+        }
+        .card {
+          flex-basis: 172px;
+          padding: 12px 14px 10px;
+        }
+      }
+      @media (max-height: 700px) {
         .card svg {
-          height: 26px;
+          height: 24px;
+        }
+        .stage {
+          gap: 12px;
         }
       }
       @media (prefers-reduced-motion: reduce) {
@@ -679,6 +694,129 @@
           display: none;
         }
       }
+
+      /* ── Sound panel ─────────────────────────────────────────────── */
+      .actions {
+        position: relative;
+      }
+      .popover {
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
+        z-index: 5;
+        width: 270px;
+        padding: 16px 18px 18px;
+        border-radius: 22px;
+        border: 1px solid var(--glass-border);
+        background: rgba(255, 253, 249, 0.72);
+        -webkit-backdrop-filter: blur(24px) saturate(1.5);
+        backdrop-filter: blur(24px) saturate(1.5);
+        box-shadow: 0 24px 60px -24px rgba(34, 48, 58, 0.45);
+        transform-origin: top right;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-6px) scale(0.97);
+        filter: blur(6px);
+        transition:
+          opacity 0.45s var(--ease-out),
+          transform 0.45s var(--ease-out),
+          filter 0.45s var(--ease-out),
+          visibility 0s 0.45s;
+      }
+      .popover.open {
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        filter: none;
+        transition:
+          opacity 0.45s var(--ease-out),
+          transform 0.45s var(--ease-out),
+          filter 0.45s var(--ease-out);
+      }
+      .popover h3 {
+        margin: 0 0 10px;
+        font-family: var(--serif);
+        font-weight: 400;
+        font-size: 1.1rem;
+      }
+      .switch-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: 9px 0;
+        border: 0;
+        border-bottom: 1px solid rgba(34, 48, 58, 0.08);
+        background: none;
+        font-size: 0.9rem;
+        text-align: left;
+      }
+      .switch-row small {
+        display: block;
+        font-size: 0.72rem;
+        color: var(--ink-soft);
+      }
+      .switch {
+        position: relative;
+        flex: none;
+        width: 40px;
+        height: 24px;
+        border-radius: 999px;
+        background: rgba(34, 48, 58, 0.16);
+        transition: background 0.35s;
+      }
+      .switch::after {
+        content: '';
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 2px 6px rgba(34, 48, 58, 0.25);
+        transition: transform 0.45s var(--ease-out);
+      }
+      [aria-checked='true'] .switch {
+        background: var(--accent);
+      }
+      [aria-checked='true'] .switch::after {
+        transform: translateX(16px);
+      }
+      .volume {
+        display: grid;
+        gap: 8px;
+        margin-top: 14px;
+        font-size: 0.78rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--ink-soft);
+      }
+      .volume input {
+        width: 100%;
+        accent-color: var(--accent);
+      }
+
+      /* ── Safety note ─────────────────────────────────────────────── */
+      .card .warn {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        font-size: 0.72rem;
+        line-height: 1.35;
+        color: #8a4b26;
+      }
+      .overlay .sheet h2.small {
+        font-size: 1.5rem;
+      }
+      .overlay .sheet .note {
+        margin: 0 0 22px;
+        line-height: 1.55;
+        letter-spacing: 0;
+        color: var(--ink);
+        text-align: left;
+      }
     </style>
   </head>
   <body>
@@ -687,19 +825,34 @@
 
     <div class="app">
       <header class="chrome">
-        <a
-          class="wordmark"
-          href="../light.html"
-          aria-label="Neyen, volver a la app"
-        >
+        <a class="wordmark" href="../light.html" data-t-label="back">
           <b id="wordmark">Neyen</b>
-          <small>el arte de respirar</small>
+          <small data-t="tagline"></small>
         </a>
         <div class="actions">
-          <button class="pill" id="sound" aria-pressed="false">
+          <button class="pill" id="lang" lang="en"></button>
+          <button
+            class="pill"
+            id="sound"
+            aria-expanded="false"
+            aria-controls="sound-panel"
+          >
             <span class="eq" aria-hidden="true"><i></i><i></i><i></i></span>
-            Sonido
+            <span data-t="sound"></span>
           </button>
+          <div
+            class="popover"
+            id="sound-panel"
+            role="group"
+            aria-labelledby="sound-title"
+          >
+            <h3 id="sound-title" data-t="sound"></h3>
+            <div id="channels"></div>
+            <label class="volume">
+              <span data-t="volume"></span>
+              <input type="range" id="volume" min="0" max="1" step="0.01" />
+            </label>
+          </div>
         </div>
       </header>
 
@@ -725,16 +878,20 @@
             <span class="count" id="count" aria-hidden="true"></span>
           </span>
         </button>
-        <div class="meta chrome" id="meta"></div>
       </main>
 
-      <section class="dock chrome" aria-label="Técnica y duración">
-        <div class="cards" id="cards" role="group" aria-label="Técnicas"></div>
+      <section class="dock chrome" data-t-label="dock">
+        <div
+          class="cards"
+          id="cards"
+          role="group"
+          data-t-label="techniques"
+        ></div>
         <div
           class="segmented"
           id="durations"
           role="group"
-          aria-label="Duración"
+          data-t-label="duration"
         >
           <span class="thumb" id="thumb"></span>
         </div>
@@ -744,160 +901,266 @@
     <div class="session-meta" aria-hidden="true">
       <div class="meta">
         <span><b id="s-time">00:00</b></span
-        ><span>ciclo <b id="s-cycle">1</b></span>
+        ><span><span data-t="cycle"></span> <b id="s-cycle">1</b></span>
       </div>
     </div>
-    <p class="sr-only">
-      Tocá el círculo o pulsá la barra espaciadora para empezar o terminar.
-    </p>
+    <p class="sr-only" data-t="srHint"></p>
+
+    <!-- Safety note: shown once per technique, before its first session -->
+    <div
+      class="summary overlay"
+      id="notice"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="notice-title"
+    >
+      <div class="sheet">
+        <h2 class="small" id="notice-title" data-t="warnTitle"></h2>
+        <p class="note" id="notice-text"></p>
+        <div class="row">
+          <button class="btn" id="notice-go" data-t="warnGo"></button>
+          <button
+            class="btn ghost"
+            id="notice-cancel"
+            data-t="warnCancel"
+          ></button>
+        </div>
+      </div>
+    </div>
 
     <div
-      class="summary"
+      class="summary overlay"
       id="summary"
       role="dialog"
       aria-modal="true"
       aria-labelledby="sum-title"
     >
       <div class="sheet">
-        <h2 id="sum-title">Bien hecho.</h2>
+        <h2 id="sum-title"></h2>
         <p id="sum-text"></p>
         <div class="row">
-          <button class="btn" id="again">Otra vez</button>
-          <button class="btn ghost" id="close">Cerrar</button>
+          <button class="btn" id="again" data-t="again"></button>
+          <button class="btn ghost" id="close" data-t="close"></button>
         </div>
       </div>
     </div>
 
-    <script>
-      (() => {
-        'use strict';
-        const $ = (s) => document.querySelector(s);
-        const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    <script type="module">
+      // Techniques come from the app itself: one source for names, rhythms,
+      // safety notes and sound folders.
+      import { PRESETS, GOALS } from '../assets/js/presets.js';
 
-        /* ── Techniques (same rhythms as the app) ─────────────────── */
-        const TECHNIQUES = [
-          {
-            id: 'coherence',
-            goal: 'Calma',
-            name: 'Coherencia cardíaca',
-            t: [5, 0, 5, 0],
-          },
-          {
-            id: 'box',
-            goal: 'Foco',
-            name: 'Respiración cuadrada',
-            t: [4, 4, 4, 4],
-          },
-          {
-            id: '478',
-            goal: 'Sueño',
-            name: '4-7-8 relajante',
-            t: [4, 7, 8, 0],
-          },
-          {
-            id: 'fire',
-            goal: 'Energía',
-            name: 'Respiración de fuego',
-            t: [1, 0, 1, 0],
-          },
-        ];
-        const DURATIONS = [
-          { label: '∞', min: 0 },
-          { label: '3 min', min: 3 },
-          { label: '5 min', min: 5 },
-          { label: '10 min', min: 10 },
-        ];
-        const PHASES = [
-          { label: 'Inhalá', from: 0, to: 1 },
-          { label: 'Sostené', from: 1, to: 1 },
-          { label: 'Exhalá', from: 1, to: 0 },
-          { label: 'Pausa', from: 0, to: 0 },
-        ];
-        let tech = TECHNIQUES[0];
-        let duration = DURATIONS[0];
+      const $ = (s) => document.querySelector(s);
+      const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const store = {
+        get(k, d) {
+          try {
+            const v = localStorage.getItem(`neyen.${k}`);
+            return v == null ? d : JSON.parse(v);
+          } catch {
+            return d;
+          }
+        },
+        set(k, v) {
+          try {
+            localStorage.setItem(`neyen.${k}`, JSON.stringify(v));
+          } catch {}
+        },
+      };
 
-        /* ── Type helpers: words that arrive letter by letter ──────── */
-        function splitInto(el, text, step = 38, delay = 0) {
-          el.textContent = '';
-          [...text].forEach((ch, i) => {
-            const s = document.createElement('span');
-            s.className = 'l';
-            s.textContent = ch;
-            s.style.animationDelay = `${delay + i * step}ms`;
-            el.appendChild(s);
-          });
-        }
-        const phaseEl = $('#phase');
-        const countEl = $('#count');
-        let phaseText = '';
-        let phaseSwap = 0;
-        function setPhase(text, hint = false) {
-          if (text === phaseText) return;
-          phaseText = text;
-          clearTimeout(phaseSwap);
-          const apply = () => {
-            phaseEl.classList.remove('out');
-            phaseEl.classList.toggle('hint', hint);
-            splitInto(phaseEl, text, hint ? 18 : 42);
-          };
-          if (phaseEl.textContent) {
-            phaseEl.classList.add('out');
-            phaseSwap = setTimeout(apply, 240);
-          } else apply();
-        }
-        let countText = '';
-        function setCount(n) {
-          const t = n == null ? '' : String(n);
-          if (t === countText) return;
-          countText = t;
-          countEl.innerHTML = t ? `<span>${t}</span>` : '';
-        }
+      /* ── Language ──────────────────────────────────────────────────── */
+      const STR = {
+        es: {
+          title: 'Neyen · el arte de respirar',
+          tagline: 'el arte de respirar',
+          back: 'Neyen, volver a la app',
+          tap: 'Tocá para empezar',
+          getReady: 'Preparate',
+          phases: ['Inhalá', 'Sostené', 'Exhalá', 'Pausa'],
+          sound: 'Sonido',
+          volume: 'Volumen',
+          channels: {
+            voice: ['Voz guía', 'Los primeros ciclos'],
+            cues: ['Avisos de fase', 'Marcan cada cambio'],
+            breath: ['Respiración', 'El aire que entra y sale'],
+            music: ['Música', 'De fondo, siempre'],
+          },
+          goals: {
+            calm: 'Calma',
+            focus: 'Foco',
+            sleep: 'Sueño',
+            energy: 'Energía',
+          },
+          infinite: 'Sin límite',
+          cycle: 'ciclo',
+          cycles: (n) => `${n} ${n === 1 ? 'ciclo' : 'ciclos'}`,
+          done: 'Bien hecho.',
+          again: 'Otra vez',
+          close: 'Cerrar',
+          warnTitle: 'Antes de empezar',
+          warnGo: 'Entendido, empezar',
+          warnCancel: 'Ahora no',
+          start: 'Empezar',
+          stop: 'Terminar la sesión',
+          dock: 'Técnica y duración',
+          techniques: 'Técnicas',
+          duration: 'Duración',
+          srHint:
+            'Tocá el círculo o pulsá la barra espaciadora para empezar o terminar.',
+          other: 'EN',
+          otherLabel: 'English',
+        },
+        en: {
+          title: 'Neyen · the art of breathing',
+          tagline: 'the art of breathing',
+          back: 'Neyen, back to the app',
+          tap: 'Tap to begin',
+          getReady: 'Get ready',
+          phases: ['Breathe in', 'Hold', 'Breathe out', 'Rest'],
+          sound: 'Sound',
+          volume: 'Volume',
+          channels: {
+            voice: ['Voice guide', 'The first cycles'],
+            cues: ['Phase cues', 'Mark every change'],
+            breath: ['Breathing', 'The air coming in and out'],
+            music: ['Music', 'In the background'],
+          },
+          goals: {
+            calm: 'Calm',
+            focus: 'Focus',
+            sleep: 'Sleep',
+            energy: 'Energy',
+          },
+          infinite: 'No limit',
+          cycle: 'cycle',
+          cycles: (n) => `${n} ${n === 1 ? 'cycle' : 'cycles'}`,
+          done: 'Well done.',
+          again: 'Again',
+          close: 'Close',
+          warnTitle: 'Before you start',
+          warnGo: 'Got it, start',
+          warnCancel: 'Not now',
+          start: 'Start',
+          stop: 'End the session',
+          dock: 'Technique and duration',
+          techniques: 'Techniques',
+          duration: 'Duration',
+          srHint: 'Tap the circle or press the space bar to start or stop.',
+          other: 'ES',
+          otherLabel: 'Español',
+        },
+      };
+      let lang =
+        store.get('lang', null) ??
+        ((navigator.language || 'es').startsWith('es') ? 'es' : 'en');
+      if (!STR[lang]) lang = 'es';
+      const T = () => STR[lang];
+      const L = (p, field) => p[`${field}${lang === 'es' ? 'Es' : 'En'}`];
 
-        /* ── Dock: technique cards with a live rhythm diagram ─────── */
-        function rhythmPath([a, b, c, d]) {
-          const total = a + b + c + d;
-          const W = 120,
-            top = 6,
-            bot = 32;
-          const x = (s) => (s / total) * W;
-          let t = 0;
-          let p = `M0 ${bot}`;
-          const curve = (dur, y0, y1) => {
-            const x0 = x(t),
-              x1 = x(t + dur);
-            const k = (x1 - x0) * 0.42;
-            p += ` C${(x0 + k).toFixed(1)} ${y0} ${(x1 - k).toFixed(1)} ${y1} ${x1.toFixed(1)} ${y1}`;
-            t += dur;
-          };
-          const flat = (dur, y) => {
-            t += dur;
-            p += ` L${x(t).toFixed(1)} ${y}`;
-          };
-          if (a) curve(a, bot, top);
-          if (b) flat(b, top);
-          if (c) curve(c, top, bot);
-          if (d) flat(d, bot);
-          return p;
-        }
-        const cardsEl = $('#cards');
+      /* ── Techniques, in the app's goal order ───────────────────────── */
+      const TECHNIQUES = GOALS.flatMap((g) =>
+        PRESETS.filter((p) => p.goal === g.id),
+      );
+      const DURATIONS = [0, 3, 5, 10];
+      const PHASE_SHAPE = [
+        { from: 0, to: 1 },
+        { from: 1, to: 1 },
+        { from: 1, to: 0 },
+        { from: 0, to: 0 },
+      ];
+      let tech =
+        TECHNIQUES.find(
+          (p) => p.soundDir === store.get('concept.tech', 'coherent'),
+        ) ?? TECHNIQUES[0];
+      let duration = store.get('concept.duration', 0);
+      if (!DURATIONS.includes(duration)) duration = 0;
+
+      /* ── Type: words that arrive letter by letter ──────────────────── */
+      function splitInto(el, text, step = 38, delay = 0) {
+        el.textContent = '';
+        [...text].forEach((ch, i) => {
+          const s = document.createElement('span');
+          s.className = 'l';
+          s.textContent = ch;
+          s.style.animationDelay = `${delay + i * step}ms`;
+          el.appendChild(s);
+        });
+      }
+      const phaseEl = $('#phase');
+      const countEl = $('#count');
+      let phaseText = '';
+      let phaseSwap = 0;
+      function setPhase(text, hint = false) {
+        if (text === phaseText) return;
+        phaseText = text;
+        clearTimeout(phaseSwap);
+        const apply = () => {
+          phaseEl.classList.remove('out');
+          phaseEl.classList.toggle('hint', hint);
+          splitInto(phaseEl, text, hint ? 18 : 42);
+        };
+        if (phaseEl.textContent) {
+          phaseEl.classList.add('out');
+          phaseSwap = setTimeout(apply, 240);
+        } else apply();
+      }
+      let countText = '';
+      function setCount(n) {
+        const t = n == null ? '' : String(n);
+        if (t === countText) return;
+        countText = t;
+        countEl.innerHTML = t ? `<span>${t}</span>` : '';
+      }
+
+      /* ── Dock: technique cards with a live rhythm diagram ──────────── */
+      function rhythmPath([a, b, c, d]) {
+        const total = a + b + c + d;
+        const W = 120,
+          top = 6,
+          bot = 32;
+        const x = (s) => (s / total) * W;
+        let t = 0;
+        let p = `M0 ${bot}`;
+        const curve = (dur, y0, y1) => {
+          const x0 = x(t),
+            x1 = x(t + dur);
+          const k = (x1 - x0) * 0.42;
+          p += ` C${(x0 + k).toFixed(1)} ${y0} ${(x1 - k).toFixed(1)} ${y1} ${x1.toFixed(1)} ${y1}`;
+          t += dur;
+        };
+        const flat = (dur, y) => {
+          t += dur;
+          p += ` L${x(t).toFixed(1)} ${y}`;
+        };
+        if (a) curve(a, bot, top);
+        if (b) flat(b, top);
+        if (c) curve(c, top, bot);
+        if (d) flat(d, bot);
+        return p;
+      }
+      const firstSentence = (s) => (s.match(/^[^.]+\./) || [s])[0];
+      const cardsEl = $('#cards');
+      function renderCards() {
+        cardsEl.innerHTML = '';
         TECHNIQUES.forEach((tq, i) => {
           const b = document.createElement('button');
           b.className = 'card';
           b.style.animationDelay = `${0.25 + i * 0.09}s`;
-          b.dataset.id = tq.id;
+          b.dataset.id = tq.soundDir;
           b.setAttribute('aria-pressed', String(tq === tech));
-          const total = tq.t.reduce((s, v) => s + v, 0);
-          const pid = `rp-${tq.id}`;
+          const total = tq.timing.reduce((s, v) => s + v, 0);
+          const pid = `rp-${tq.soundDir}`;
+          const warn = L(tq, 'warn');
           b.innerHTML = `
-            <span class="goal">${tq.goal}</span>
-            <span class="name">${tq.name}</span>
+            <span class="goal">${T().goals[tq.goal]}</span>
+            <span class="name">${L(tq, 'name')}</span>
             <svg viewBox="0 0 120 38" aria-hidden="true">
-              <path id="${pid}" d="${rhythmPath(tq.t)}"/>
+              <path id="${pid}" d="${rhythmPath(tq.timing)}"/>
               <circle r="3"><animateMotion dur="${Math.max(total, 2.4)}s" repeatCount="indefinite"><mpath href="#${pid}"/></animateMotion></circle>
             </svg>
-            <span class="timing">${tq.t.join(' · ')}</span>`;
+            <span class="timing">${tq.timing.join(' · ')}</span>
+            ${warn ? `<span class="warn">⚠ ${firstSentence(warn)}</span>` : ''}`;
           b.addEventListener('click', () => chooseTechnique(tq));
-          // tilt + sheen follow the pointer
           b.addEventListener('pointermove', (e) => {
             if (reduced) return;
             const r = b.getBoundingClientRect();
@@ -916,15 +1179,25 @@
           });
           cardsEl.appendChild(b);
         });
+        // the chosen technique in view in the scrolling row
+        const on = cardsEl.querySelector('[aria-pressed="true"]');
+        if (on)
+          cardsEl.scrollLeft =
+            on.offsetLeft - (cardsEl.clientWidth - on.offsetWidth) / 2;
+      }
 
-        const durEl = $('#durations');
-        const thumb = $('#thumb');
-        DURATIONS.forEach((d) => {
+      const durEl = $('#durations');
+      const thumb = $('#thumb');
+      function renderDurations() {
+        durEl.querySelectorAll('button').forEach((b) => b.remove());
+        DURATIONS.forEach((min) => {
           const b = document.createElement('button');
-          b.textContent = d.label;
-          b.setAttribute('aria-pressed', String(d === duration));
+          b.textContent = min ? `${min} min` : '∞';
+          if (!min) b.setAttribute('aria-label', T().infinite);
+          b.setAttribute('aria-pressed', String(min === duration));
           b.addEventListener('click', () => {
-            duration = d;
+            duration = min;
+            store.set('concept.duration', min);
             durEl
               .querySelectorAll('button')
               .forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
@@ -932,21 +1205,18 @@
           });
           durEl.appendChild(b);
         });
-        function moveThumb() {
-          const b = durEl.querySelector('[aria-pressed="true"]');
-          thumb.style.width = `${b.offsetWidth}px`;
-          thumb.style.transform = `translateX(${b.offsetLeft}px)`;
-        }
+      }
+      function moveThumb() {
+        const b = durEl.querySelector('[aria-pressed="true"]');
+        if (!b) return;
+        thumb.style.width = `${b.offsetWidth}px`;
+        thumb.style.transform = `translateX(${b.offsetLeft}px)`;
+      }
 
-        const eyebrow = $('#eyebrow');
-        function chooseTechnique(tq) {
-          tech = tq;
-          cardsEl
-            .querySelectorAll('.card')
-            .forEach((c) =>
-              c.setAttribute('aria-pressed', String(c.dataset.id === tq.id)),
-            );
-          eyebrow.innerHTML = `${tq.goal} · <em>${tq.name}</em>`;
+      const eyebrow = $('#eyebrow');
+      function renderEyebrow(animate) {
+        eyebrow.innerHTML = `${T().goals[tech.goal]} · <em>${L(tech, 'name')}</em>`;
+        if (animate)
           eyebrow.animate(
             [
               { opacity: 0, filter: 'blur(6px)' },
@@ -957,469 +1227,731 @@
               easing: 'cubic-bezier(.16,1,.3,1)',
             },
           );
-          drawTicks();
-          pulse();
-        }
-
-        /* Ring ticks at each phase boundary of the cycle */
-        function drawTicks() {
-          const g = $('#ticks');
-          g.innerHTML = '';
-          const total = tech.t.reduce((s, v) => s + v, 0);
-          let acc = 0;
-          tech.t.forEach((v) => {
-            if (!v) return;
-            const a = (acc / total) * Math.PI * 2 - Math.PI / 2;
-            const c = document.createElementNS(
-              'http://www.w3.org/2000/svg',
-              'circle',
-            );
-            c.setAttribute('class', 'tick');
-            c.setAttribute('r', '1.6');
-            c.setAttribute('cx', (100 + 99 * Math.cos(a)).toFixed(2));
-            c.setAttribute('cy', (100 + 99 * Math.sin(a)).toFixed(2));
-            g.appendChild(c);
-            acc += v;
-          });
-        }
-
-        /* ── Breath engine ─────────────────────────────────────────── */
-        const ease = (t) =>
-          0.5 - 0.5 * Math.cos(Math.PI * Math.min(Math.max(t, 0), 1));
-        const S = {
-          running: false,
-          startedAt: 0, // when the first inhale starts (after the countdown)
-          breath: 0, // 0 empty … 1 full (target)
-          shown: 0, // smoothed breath, what is drawn
-          scale: 0.86,
-          cycles: 0,
-          elapsed: 0,
-          velocity: 0,
-        };
-        const COUNTDOWN = 3;
-        const orb = $('#orb');
-        const ring = orb.querySelector('.ring');
-        const ringBase = ring.querySelector('.base');
-        const trail = $('#trail');
-        const comet = $('#comet');
-
-        function start() {
-          if (S.running) return;
-          closeSummary();
-          S.running = true;
-          S.cycles = 0;
-          S.startedAt = performance.now() + COUNTDOWN * 1000;
-          document.body.classList.add('in-session');
-          orb.setAttribute('aria-label', 'Terminar la sesión');
-          pulse();
-          audio.ensure();
-        }
-        function stop(fromLimit = false) {
-          if (!S.running) return;
-          S.running = false;
-          document.body.classList.remove('in-session');
-          orb.setAttribute('aria-label', 'Empezar');
-          setCount(null);
-          setPhase('Tocá para empezar', true);
-          pulse();
-          const secs = Math.max(0, S.elapsed);
-          if (fromLimit || secs >= 20) openSummary(secs);
-        }
-        orb.addEventListener('click', () => (S.running ? stop() : start()));
-        document.addEventListener('keydown', (e) => {
-          if (e.key === 'Escape') {
-            if ($('#summary').classList.contains('open')) closeSummary();
-            else stop();
-          }
-          if (e.code === 'Space' && e.target === document.body) {
-            e.preventDefault();
-            S.running ? stop() : start();
-          }
-        });
-
-        function tick(now) {
-          if (!S.running) {
-            S.breath = 0;
-            S.elapsed = 0;
-            return;
-          }
-          const sinceStart = (now - S.startedAt) / 1000;
-          if (sinceStart < 0) {
-            // countdown: settle to empty, count 3-2-1
-            S.breath = 0;
-            setPhase('Preparate');
-            setCount(Math.ceil(-sinceStart));
-            setProgress(0);
-            return;
-          }
-          S.elapsed = sinceStart;
-          const total = tech.t.reduce((s, v) => s + v, 0);
-          const inCycle = sinceStart % total;
-          S.cycles = Math.floor(sinceStart / total);
-          let acc = 0;
-          for (let i = 0; i < 4; i++) {
-            const dur = tech.t[i];
-            if (!dur) continue;
-            if (inCycle < acc + dur) {
-              const p = (inCycle - acc) / dur;
-              const ph = PHASES[i];
-              S.breath = ph.from + (ph.to - ph.from) * ease(p);
-              setPhase(ph.label);
-              setCount(dur >= 2 ? Math.ceil(dur - (inCycle - acc)) : null);
-              break;
-            }
-            acc += dur;
-          }
-          setProgress(inCycle / total);
-          $('#s-time').textContent = fmt(sinceStart);
-          $('#s-cycle').textContent = S.cycles + 1;
-          if (duration.min && sinceStart >= duration.min * 60) stop(true);
-        }
-        function setProgress(p) {
-          trail.style.strokeDasharray = `${p} 1`;
-          const a = p * Math.PI * 2 - Math.PI / 2;
-          comet.setAttribute('cx', (100 + 99 * Math.cos(a)).toFixed(2));
-          comet.setAttribute('cy', (100 + 99 * Math.sin(a)).toFixed(2));
-        }
-        const fmt = (s) =>
-          `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
-
-        /* ── Summary ───────────────────────────────────────────────── */
-        function openSummary(secs) {
-          $('#sum-text').textContent =
-            `${fmt(secs)} · ${S.cycles} ${S.cycles === 1 ? 'ciclo' : 'ciclos'} · ${tech.name}`;
-          splitInto($('#sum-title'), 'Bien hecho.', 45, 250);
-          $('#summary').classList.add('open');
-          setTimeout(() => $('#again').focus(), 50);
-        }
-        function closeSummary() {
-          $('#summary').classList.remove('open');
-        }
-        $('#again').addEventListener('click', start);
-        $('#close').addEventListener('click', () => {
-          closeSummary();
-          orb.focus();
-        });
-
-        /* ── Sound: a soft drone that breathes, plus air ───────────── */
-        const audio = {
-          on: false,
-          ctx: null,
-          ensure() {
-            if (!this.on || this.ctx) return;
-            const ctx = (this.ctx = new (window.AudioContext ||
-              window.webkitAudioContext)());
-            const master = (this.master = ctx.createGain());
-            master.gain.value = 0;
-            master.connect(ctx.destination);
-            const lp = (this.lp = ctx.createBiquadFilter());
-            lp.type = 'lowpass';
-            lp.frequency.value = 400;
-            lp.Q.value = 0.6;
-            lp.connect(master);
-            [110, 164.81, 220.6, 329.63].forEach((f, i) => {
-              const o = ctx.createOscillator();
-              o.type = i === 3 ? 'triangle' : 'sine';
-              o.frequency.value = f;
-              const g = ctx.createGain();
-              g.gain.value = [0.5, 0.32, 0.22, 0.05][i];
-              o.connect(g).connect(lp);
-              o.start();
-            });
-            // air: filtered noise, louder while the breath moves
-            const buf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
-            const data = buf.getChannelData(0);
-            for (let i = 0; i < data.length; i++)
-              data[i] = Math.random() * 2 - 1;
-            const n = ctx.createBufferSource();
-            n.buffer = buf;
-            n.loop = true;
-            const bp = ctx.createBiquadFilter();
-            bp.type = 'bandpass';
-            bp.frequency.value = 900;
-            bp.Q.value = 0.7;
-            const air = (this.air = ctx.createGain());
-            air.gain.value = 0;
-            n.connect(bp).connect(air).connect(ctx.destination);
-            n.start();
-          },
-          update(b, v) {
-            if (!this.ctx) return;
-            const t = this.ctx.currentTime;
-            this.master.gain.setTargetAtTime(
-              this.on ? 0.035 + 0.035 * b : 0,
-              t,
-              0.3,
-            );
-            this.lp.frequency.setTargetAtTime(320 + 1100 * b, t, 0.2);
-            this.air.gain.setTargetAtTime(
-              this.on && S.running ? Math.min(Math.abs(v) * 0.05, 0.03) : 0,
-              t,
-              0.15,
-            );
-          },
-        };
-        $('#sound').addEventListener('click', (e) => {
-          audio.on = !audio.on;
-          e.currentTarget.setAttribute('aria-pressed', String(audio.on));
-          document.body.classList.toggle('sound-on', audio.on);
-          audio.ensure();
-          audio.ctx?.resume();
-        });
-
-        /* ── WebGL aurora + lens ───────────────────────────────────── */
-        const canvas = $('#aurora');
-        const gl = canvas.getContext('webgl', {
-          antialias: false,
-          alpha: false,
-        });
-        let prog, U;
-        const VERT = `attribute vec2 p; void main(){ gl_Position = vec4(p,0.,1.); }`;
-        const FRAG = `
-          precision highp float;
-          uniform vec2 uRes; uniform float uTime, uBreath, uIntro, uPulse;
-          uniform vec3 uOrb; uniform vec2 uMouse;
-          const vec3 CREAM = vec3(.980,.965,.941);
-          const vec3 SKY = vec3(.663,.816,.886);
-          const vec3 SKY_DEEP = vec3(.45,.69,.80);
-          const vec3 PEACH = vec3(.945,.835,.745);
-          const vec3 MINT = vec3(.79,.90,.86);
-          float hash(vec2 p){ p = fract(p*vec2(123.34,456.21)); p += dot(p,p+45.32); return fract(p.x*p.y); }
-          float noise(vec2 p){
-            vec2 i = floor(p), f = fract(p); vec2 u = f*f*(3.-2.*f);
-            return mix(mix(hash(i),hash(i+vec2(1,0)),u.x), mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),u.x), u.y);
-          }
-          float fbm(vec2 p){
-            float v = 0., a = .5; mat2 m = mat2(1.6,1.2,-1.2,1.6);
-            for(int i=0;i<4;i++){ v += a*noise(p); p = m*p; a *= .5; }
-            return v;
-          }
-          // The landing's aura, alive: domain-warped noise mapped onto
-          // sky (top-left) → cream → peach (bottom-right), a breath of mint
-          vec3 field(vec2 frag){
-            vec2 uv = frag/uRes;
-            vec2 p = (frag - .5*uRes)/uRes.y + uMouse*.035;
-            float t = uTime;
-            vec2 q = vec2(fbm(p*1.2 + vec2(0., t*.030)), fbm(p*1.2 + vec2(5.2,1.3) - t*.025));
-            vec2 r = vec2(fbm(p*1.4 + 1.8*q + vec2(1.7,9.2) + t*.020), fbm(p*1.4 + 1.8*q + vec2(8.3,2.8) - t*.020));
-            float f = fbm(p*.9 + 1.4*r);
-            float tz = clamp(.56 + (uv.x - uv.y)*.62 + (f - .5)*1.0, 0., 1.);
-            vec3 col = CREAM;
-            col = mix(col, SKY, (1. - smoothstep(.06, .46, tz))*(.7 + .3*q.x));
-            col = mix(col, PEACH, smoothstep(.62, 1., tz)*.85);
-            col = mix(col, MINT, smoothstep(.55, .85, r.y)*.22*(1. - abs(tz - .5)*2.));
-            col = mix(col, SKY_DEEP, smoothstep(.62, .9, f)*(1. - smoothstep(0., .5, tz))*.45);
-            return col;
-          }
-          vec3 sat(vec3 c, float s){ return mix(vec3(dot(c, vec3(.299,.587,.114))), c, s); }
-          void main(){
-            vec2 frag = gl_FragCoord.xy;
-            vec2 c = uOrb.xy; float R = uOrb.z;
-            vec2 dv = frag - c; float d = length(dv)/R;
-            float inside = 1. - smoothstep(.985, 1., d);
-            vec3 col;
-            if (d < 1.02 && uBreath > .002) {
-              // the lens: magnify the light inside, split it at the rim
-              float k = mix(1., .78 + .2*d*d, uBreath);
-              float ca = .03*uBreath*d*d*d;
-              vec3 a = field(c + dv*(k + ca));
-              vec3 b = field(c + dv*k);
-              vec3 e = field(c + dv*(k - ca));
-              vec3 lens = sat(vec3(a.r, b.g, e.b), 1. + .45*uBreath);
-              lens = mix(lens, lens*vec3(.96,1.,1.03), .5*uBreath);
-              vec3 bg = d > .97 ? field(frag) : lens;
-              col = mix(bg, lens, inside);
-            } else {
-              col = field(frag);
-            }
-            col += vec3(1.)*.09*uBreath*smoothstep(.86, 1., d)*inside;           // light gathering at the rim
-            float halo = exp(-max(d - 1., 0.)*5.)*(1. - inside);
-            col = mix(col, vec3(1., .985, .96), .18*uBreath*halo);               // soft bloom outside
-            if (uPulse >= 0.) {                                                  // a ripple on start / end
-              float w = exp(-pow((d - (1. + uPulse*2.4))*2.2, 2.))*(1. - clamp(uPulse/1.8, 0., 1.));
-              col = mix(col, vec3(1.), w*.32);
-            }
-            col = mix(CREAM, col, uIntro);
-            col += (hash(frag + fract(uTime)*100.) - .5)*.014;                    // grain: no banding
-            gl_FragColor = vec4(col, 1.);
-          }`;
-        function compile(type, src) {
-          const s = gl.createShader(type);
-          gl.shaderSource(s, src);
-          gl.compileShader(s);
-          if (!gl.getShaderParameter(s, gl.COMPILE_STATUS))
-            throw new Error(gl.getShaderInfoLog(s));
-          return s;
-        }
-        try {
-          if (!gl) throw new Error('no webgl');
-          prog = gl.createProgram();
-          gl.attachShader(prog, compile(gl.VERTEX_SHADER, VERT));
-          gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, FRAG));
-          gl.linkProgram(prog);
-          if (!gl.getProgramParameter(prog, gl.LINK_STATUS))
-            throw new Error(gl.getProgramInfoLog(prog));
-          gl.useProgram(prog);
-          const buf = gl.createBuffer();
-          gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-          gl.bufferData(
-            gl.ARRAY_BUFFER,
-            new Float32Array([-1, -1, 3, -1, -1, 3]),
-            gl.STATIC_DRAW,
+      }
+      function chooseTechnique(tq) {
+        if (tq === tech) return;
+        const wasRunning = S.running;
+        if (wasRunning) stop(false, true);
+        tech = tq;
+        store.set('concept.tech', tq.soundDir);
+        cardsEl
+          .querySelectorAll('.card')
+          .forEach((c) =>
+            c.setAttribute(
+              'aria-pressed',
+              String(c.dataset.id === tq.soundDir),
+            ),
           );
-          const loc = gl.getAttribLocation(prog, 'p');
-          gl.enableVertexAttribArray(loc);
-          gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-          U = {};
-          [
-            'uRes',
-            'uTime',
-            'uBreath',
-            'uIntro',
-            'uPulse',
-            'uOrb',
-            'uMouse',
-          ].forEach((n) => (U[n] = gl.getUniformLocation(prog, n)));
-        } catch (err) {
-          console.warn('Aurora fallback:', err.message);
-          document.documentElement.classList.add('no-gl');
-          prog = null;
-        }
+        renderEyebrow(true);
+        drawTicks();
+        sound.preload();
+        pulse();
+      }
 
-        /* ── Motes: dust in the light ──────────────────────────────── */
-        const mc = $('#motes');
-        const mx = mc.getContext('2d');
-        const MOTES = Array.from({ length: 90 }, () => ({
-          a: Math.random() * Math.PI * 2,
-          w: (Math.random() * 0.06 + 0.015) * (Math.random() < 0.5 ? -1 : 1),
-          s: Math.random(),
-          z: Math.random() * 1.6 + 0.6,
-          ph: Math.random() * Math.PI * 2,
-          tint: Math.random(),
-        }));
-
-        /* ── Sizing ────────────────────────────────────────────────── */
-        let W = 0,
-          H = 0,
-          renderScale = 1,
-          dpr = 1;
-        function resize() {
-          W = innerWidth;
-          H = innerHeight;
-          dpr = Math.min(devicePixelRatio || 1, 2);
-          renderScale = Math.min(dpr, 1.5) * 0.7; // the aura is soft: render it below full res
-          canvas.width = Math.round(W * renderScale);
-          canvas.height = Math.round(H * renderScale);
-          mc.width = Math.round(W * dpr);
-          mc.height = Math.round(H * dpr);
-          if (prog) gl.viewport(0, 0, canvas.width, canvas.height);
-          moveThumb();
-        }
-        addEventListener('resize', resize);
-
-        /* Pointer: the light leans gently toward it */
-        const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
-        addEventListener('pointermove', (e) => {
-          mouse.tx = (e.clientX / W - 0.5) * 2;
-          mouse.ty = (0.5 - e.clientY / H) * 2;
+      function drawTicks() {
+        const g = $('#ticks');
+        g.innerHTML = '';
+        const total = tech.timing.reduce((s, v) => s + v, 0);
+        let acc = 0;
+        tech.timing.forEach((v) => {
+          if (!v) return;
+          const a = (acc / total) * Math.PI * 2 - Math.PI / 2;
+          const c = document.createElementNS(
+            'http://www.w3.org/2000/svg',
+            'circle',
+          );
+          c.setAttribute('class', 'tick');
+          c.setAttribute('r', '1.6');
+          c.setAttribute('cx', (100 + 99 * Math.cos(a)).toFixed(2));
+          c.setAttribute('cy', (100 + 99 * Math.sin(a)).toFixed(2));
+          g.appendChild(c);
+          acc += v;
         });
+      }
 
-        let pulseAt = -1;
-        function pulse() {
-          pulseAt = performance.now();
-        }
-
-        /* ── Frame ─────────────────────────────────────────────────── */
-        const t0 = performance.now();
-        let last = t0,
-          time = 0;
-        function frame(now) {
-          const dt = Math.min((now - last) / 1000, 0.05);
-          last = now;
-          time += dt * (reduced ? 0.15 : 1);
-          tick(now);
-
-          // smoothing: tight while breathing, lazy at rest
-          const prev = S.shown;
-          S.shown +=
-            (S.breath - S.shown) * (1 - Math.exp(-dt * (S.running ? 14 : 3)));
-          S.velocity = (S.shown - prev) / Math.max(dt, 1e-3);
-          const idle = S.running ? 0 : Math.sin(now / 1600) * 0.012; // alive at rest
-          const target = S.running ? 0.72 + 0.4 * S.shown : 0.86 + idle;
-          S.scale +=
-            (target - S.scale) * (1 - Math.exp(-dt * (S.running ? 14 : 4)));
-          ring.style.setProperty('--s', S.scale.toFixed(4));
-          const b = S.shown;
-          const mix = (x, y) => Math.round(x + (y - x) * b);
-          ringBase.style.stroke = `rgba(${mix(62, 255)},${mix(113, 255)},${mix(137, 255)},${(0.42 + 0.45 * b).toFixed(3)})`;
-
-          mouse.x += (mouse.tx - mouse.x) * 0.04;
-          mouse.y += (mouse.ty - mouse.y) * 0.04;
-
-          const r = orb.getBoundingClientRect();
-          const cx = r.left + r.width / 2,
-            cy = r.top + r.height / 2;
-          const R = (r.width / 2) * S.scale;
-
-          if (prog) {
-            const intro = Math.min((now - t0) / 1800, 1);
-            gl.uniform2f(U.uRes, canvas.width, canvas.height);
-            gl.uniform1f(U.uTime, time);
-            gl.uniform1f(U.uBreath, b);
-            gl.uniform1f(U.uIntro, 1 - Math.pow(1 - intro, 3));
-            gl.uniform1f(U.uPulse, pulseAt < 0 ? -1 : (now - pulseAt) / 1000);
-            gl.uniform3f(
-              U.uOrb,
-              cx * renderScale,
-              (H - cy) * renderScale,
-              R * renderScale,
-            );
-            gl.uniform2f(U.uMouse, mouse.x, mouse.y);
-            gl.drawArrays(gl.TRIANGLES, 0, 3);
-          }
-
-          // motes: drawn toward the rim on the inhale, released on the exhale
-          if (!reduced) {
-            mx.setTransform(dpr, 0, 0, dpr, 0, 0);
-            mx.clearRect(0, 0, W, H);
-            const vis = S.running ? 1 : 0.35;
-            for (const m of MOTES) {
-              m.a += m.w * dt * (1 + b * 0.8);
-              const spread = 1.12 + m.s * 1.6 * (1 - 0.72 * b);
-              const wob = Math.sin(now / 1000 + m.ph) * 6;
-              const d = R * spread + wob;
-              const x = cx + Math.cos(m.a) * d,
-                y = cy + Math.sin(m.a) * d;
-              const al =
-                (0.25 + 0.5 * (0.5 + 0.5 * Math.sin(now / 900 + m.ph))) *
-                vis *
-                (1 - m.s * 0.5);
-              const tint =
-                m.tint < 0.5
-                  ? '255,255,255'
-                  : m.tint < 0.8
-                    ? '200,228,240'
-                    : '250,222,200';
-              mx.beginPath();
-              mx.fillStyle = `rgba(${tint},${al.toFixed(3)})`;
-              mx.arc(x, y, m.z, 0, Math.PI * 2);
-              mx.fill();
-            }
-          }
-
-          audio.update(b, S.velocity);
-          requestAnimationFrame(frame);
-        }
-
-        /* ── Boot ──────────────────────────────────────────────────── */
-        splitInto($('#wordmark'), 'Neyen', 90, 300);
-        chooseTechnique(tech);
-        pulseAt = -1; // no ripple on load
-        setPhase('Tocá para empezar', true);
-        resize();
+      /* ── Translate the static text ─────────────────────────────────── */
+      function applyLang() {
+        document.documentElement.lang = lang;
+        document.title = T().title;
+        document
+          .querySelectorAll('[data-t]')
+          .forEach((el) => (el.textContent = T()[el.dataset.t]));
+        document
+          .querySelectorAll('[data-t-label]')
+          .forEach((el) =>
+            el.setAttribute('aria-label', T()[el.dataset.tLabel]),
+          );
+        const lb = $('#lang');
+        lb.textContent = T().other;
+        lb.setAttribute('aria-label', T().otherLabel);
+        lb.lang = lang === 'es' ? 'en' : 'es';
+        orb.setAttribute('aria-label', S.running ? T().stop : T().start);
+        renderCards();
+        renderDurations();
+        renderEyebrow(false);
+        renderChannels();
         requestAnimationFrame(moveThumb);
+        if (!S.running) {
+          phaseText = '';
+          setPhase(T().tap, true);
+        }
+      }
+      $('#lang').addEventListener('click', () => {
+        lang = lang === 'es' ? 'en' : 'es';
+        store.set('lang', lang);
+        applyLang();
+        sound.preload(); // the voice guide follows the language
+      });
+
+      /* ── Breath engine ──────────────────────────────────────────────
+         One clock: the AudioContext's, so the voice and cue tracks and
+         the circle can never drift apart. */
+      const ease = (t) =>
+        0.5 - 0.5 * Math.cos(Math.PI * Math.min(Math.max(t, 0), 1));
+      const S = {
+        running: false,
+        t0: 0,
+        breath: 0,
+        shown: 0,
+        scale: 0.86,
+        cycles: 0,
+        elapsed: 0,
+        velocity: 0,
+        phase: -1,
+      };
+      const COUNTDOWN = 3;
+      const orb = $('#orb');
+      const ring = orb.querySelector('.ring');
+      const ringBase = ring.querySelector('.base');
+      const trail = $('#trail');
+      const comet = $('#comet');
+      const now = () =>
+        sound.ctx ? sound.ctx.currentTime : performance.now() / 1000;
+
+      const warned = new Set(store.get('concept.warned', []));
+      function requestStart() {
+        if (S.running) return;
+        const warn = L(tech, 'warn');
+        if (warn && !warned.has(tech.soundDir)) {
+          $('#notice-text').textContent = warn;
+          openOverlay('#notice', '#notice-go');
+          return;
+        }
+        start();
+      }
+      $('#notice-go').addEventListener('click', () => {
+        warned.add(tech.soundDir);
+        store.set('concept.warned', [...warned]);
+        closeOverlay('#notice');
+        start();
+      });
+      $('#notice-cancel').addEventListener('click', () => {
+        closeOverlay('#notice');
+        orb.focus();
+      });
+
+      function start() {
+        if (S.running) return;
+        closeOverlay('#summary');
+        sound.ensure(); // inside the tap: mobile browsers need the gesture
+        S.running = true;
+        S.cycles = 0;
+        S.phase = -1;
+        S.t0 = now() + COUNTDOWN;
+        document.body.classList.add('in-session');
+        orb.setAttribute('aria-label', T().stop);
+        pulse();
+        sound.startSession(S.t0);
+        wakeLock.on();
+      }
+      function stop(fromLimit = false, silent = false) {
+        if (!S.running) return;
+        S.running = false;
+        document.body.classList.remove('in-session');
+        orb.setAttribute('aria-label', T().start);
+        setCount(null);
+        setPhase(T().tap, true);
+        sound.stopSession();
+        wakeLock.off();
+        pulse();
+        if (!silent && (fromLimit || S.elapsed >= 20)) openSummary(S.elapsed);
+      }
+      orb.addEventListener('click', () =>
+        S.running ? stop() : requestStart(),
+      );
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          if (panel.classList.contains('open')) return togglePanel(false);
+          if ($('#notice').classList.contains('open'))
+            return closeOverlay('#notice');
+          if ($('#summary').classList.contains('open'))
+            return closeOverlay('#summary');
+          stop();
+        }
+        if (e.code === 'Space' && e.target === document.body) {
+          e.preventDefault();
+          S.running ? stop() : requestStart();
+        }
+      });
+
+      function tick() {
+        if (!S.running) {
+          S.breath = 0;
+          return;
+        }
+        const since = now() - S.t0;
+        if (since < 0) {
+          S.breath = 0;
+          S.elapsed = 0;
+          setPhase(T().getReady);
+          setCount(Math.ceil(-since));
+          setProgress(0);
+          return;
+        }
+        S.elapsed = since;
+        const total = tech.timing.reduce((s, v) => s + v, 0);
+        const inCycle = since % total;
+        S.cycles = Math.floor(since / total);
+        let acc = 0;
+        for (let i = 0; i < 4; i++) {
+          const dur = tech.timing[i];
+          if (!dur) continue;
+          if (inCycle < acc + dur) {
+            const ph = PHASE_SHAPE[i];
+            S.breath =
+              ph.from + (ph.to - ph.from) * ease((inCycle - acc) / dur);
+            if (S.phase !== i) {
+              S.phase = i;
+              navigator.vibrate?.(30);
+            }
+            setPhase(T().phases[i]);
+            setCount(dur >= 2 ? Math.ceil(dur - (inCycle - acc)) : null);
+            break;
+          }
+          acc += dur;
+        }
+        setProgress(inCycle / total);
+        $('#s-time').textContent = fmt(since);
+        $('#s-cycle').textContent = S.cycles + 1;
+        if (duration && since >= duration * 60) stop(true);
+        if (tech.autoLimitCycles && S.cycles >= tech.autoLimitCycles)
+          stop(true);
+      }
+      function setProgress(p) {
+        trail.style.strokeDasharray = `${p} 1`;
+        const a = p * Math.PI * 2 - Math.PI / 2;
+        comet.setAttribute('cx', (100 + 99 * Math.cos(a)).toFixed(2));
+        comet.setAttribute('cy', (100 + 99 * Math.sin(a)).toFixed(2));
+      }
+      const fmt = (s) =>
+        `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+
+      /* Keep the screen on during a session */
+      const wakeLock = {
+        lock: null,
+        async on() {
+          try {
+            this.lock = await navigator.wakeLock?.request('screen');
+          } catch {}
+        },
+        off() {
+          this.lock?.release().catch(() => {});
+          this.lock = null;
+        },
+      };
+
+      /* ── Overlays (summary, safety note) ───────────────────────────── */
+      function openOverlay(sel, focusSel) {
+        $(sel).classList.add('open');
+        setTimeout(() => $(focusSel)?.focus(), 50);
+      }
+      function closeOverlay(sel) {
+        $(sel).classList.remove('open');
+      }
+      function openSummary(secs) {
+        $('#sum-text').textContent =
+          `${fmt(secs)} · ${T().cycles(S.cycles)} · ${L(tech, 'name')}`;
+        splitInto($('#sum-title'), T().done, 45, 250);
+        openOverlay('#summary', '#again');
+      }
+      $('#again').addEventListener('click', requestStart);
+      $('#close').addEventListener('click', () => {
+        closeOverlay('#summary');
+        orb.focus();
+      });
+
+      /* ── Sound ──────────────────────────────────────────────────────
+         Four channels:
+         - voice: the app's voice guide (<dir>-voice-<lang>.mp3), first
+           helperCycles cycles; turned on later, it stays on
+         - cues:  the app's phase cues (<dir>-breathing.mp3)
+         - breath: generated air — filtered noise that follows the circle,
+           brighter breathing in, darker breathing out
+         - music: the app's ambient track, in the background
+         The two tracks are exactly one cycle long and are scheduled on the
+         AudioContext clock, cycle by cycle, a few seconds ahead. */
+      const CH_DEFAULT = { voice: true, cues: true, breath: true, music: true };
+      const CH_LEVEL = { voice: 0.55, cues: 0.5, breath: 1, music: 0.35 };
+      const sound = {
+        ctx: null,
+        prefs: { ...CH_DEFAULT, ...store.get('concept.sound', {}) },
+        vol: store.get('concept.volume', 0.8),
+        buffers: new Map(),
+        session: null,
+        music: null,
+        ensure() {
+          if (this.ctx) return this.ctx.resume?.();
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (!AC) return;
+          const ctx = (this.ctx = new AC());
+          this.master = ctx.createGain();
+          this.master.gain.value = this.vol;
+          this.master.connect(ctx.destination);
+          this.ch = {};
+          for (const k of Object.keys(CH_DEFAULT)) {
+            const g = ctx.createGain();
+            g.gain.value = this.level(k);
+            g.connect(this.master);
+            this.ch[k] = g;
+          }
+          // generated breath: looped noise → band-pass → air gain
+          const buf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+          const data = buf.getChannelData(0);
+          for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+          const n = ctx.createBufferSource();
+          n.buffer = buf;
+          n.loop = true;
+          this.airFilter = ctx.createBiquadFilter();
+          this.airFilter.type = 'bandpass';
+          this.airFilter.frequency.value = 900;
+          this.airFilter.Q.value = 0.7;
+          this.air = ctx.createGain();
+          this.air.gain.value = 0;
+          n.connect(this.airFilter).connect(this.air).connect(this.ch.breath);
+          n.start();
+          // ambient music through the music channel
+          this.music = new Audio('../assets/sounds/background-music.mp3');
+          this.music.loop = true;
+          ctx.createMediaElementSource(this.music).connect(this.ch.music);
+          if (this.prefs.music) this.music.play().catch(() => {});
+          this.preload();
+        },
+        level(k) {
+          return this.prefs[k] ? CH_LEVEL[k] : 0;
+        },
+        set(k, on) {
+          this.prefs[k] = on;
+          store.set('concept.sound', this.prefs);
+          this.ensure();
+          if (!this.ctx) return;
+          this.ch[k].gain.setTargetAtTime(
+            this.level(k),
+            this.ctx.currentTime,
+            0.12,
+          );
+          if (k === 'music') on ? this.music.play().catch(() => {}) : null;
+          if (k === 'voice' && on && this.session)
+            this.session.voiceKeep = true;
+          syncEq();
+        },
+        setVolume(v) {
+          this.vol = v;
+          store.set('concept.volume', v);
+          if (this.ctx)
+            this.master.gain.setTargetAtTime(v, this.ctx.currentTime, 0.05);
+        },
+        url(kind) {
+          const d = tech.soundDir;
+          return kind === 'voice'
+            ? `../assets/sounds/${d}/${d}-voice-${lang}.mp3`
+            : `../assets/sounds/${d}/${d}-breathing.mp3`;
+        },
+        async load(url) {
+          if (!this.ctx) return null;
+          if (!this.buffers.has(url))
+            this.buffers.set(
+              url,
+              fetch(url)
+                .then((r) => r.arrayBuffer())
+                .then((b) => this.ctx.decodeAudioData(b))
+                .catch(() => null),
+            );
+          return this.buffers.get(url);
+        },
+        preload() {
+          this.load(this.url('voice'));
+          this.load(this.url('cues'));
+        },
+        startSession(t0) {
+          if (!this.ctx) return;
+          const bus = this.ctx.createGain();
+          bus.connect(this.master);
+          const s = (this.session = {
+            t0,
+            bus,
+            next: 0,
+            voiceKeep: false,
+            sources: [],
+          });
+          s.cycleDur = tech.timing.reduce((a, b) => a + b, 0);
+          s.helper = tech.helperCycles ?? 3;
+          const urls = { voice: this.url('voice'), cues: this.url('cues') };
+          const run = async () => {
+            if (this.session !== s) return;
+            const [voice, cues] = await Promise.all([
+              this.load(urls.voice),
+              this.load(urls.cues),
+            ]);
+            const t = this.ctx.currentTime;
+            while (s.t0 + s.next * s.cycleDur < t + 3) {
+              const at = s.t0 + s.next * s.cycleDur;
+              if (at + s.cycleDur > t) {
+                const off = Math.max(0, t - at);
+                if (cues) this.play(s, cues, 'cues', at, off);
+                if (voice && (s.next < s.helper || s.voiceKeep))
+                  this.play(s, voice, 'voice', at, off);
+              }
+              s.next++;
+            }
+          };
+          run();
+          s.timer = setInterval(run, 250);
+        },
+        play(s, buffer, chan, at, offset) {
+          const src = this.ctx.createBufferSource();
+          src.buffer = buffer;
+          const g = this.ctx.createGain();
+          src.connect(g).connect(this.ch[chan]);
+          src.start(
+            Math.max(at, this.ctx.currentTime),
+            offset,
+            Math.max(0.01, s.cycleDur - offset),
+          );
+          s.sources.push(src);
+          src.onended = () => (s.sources = s.sources.filter((x) => x !== src));
+        },
+        stopSession() {
+          const s = this.session;
+          if (!s) return;
+          this.session = null;
+          clearInterval(s.timer);
+          const t = this.ctx.currentTime;
+          // fade everything scheduled, then let it go
+          for (const src of s.sources) {
+            try {
+              src.stop(t + 0.5);
+            } catch {}
+          }
+          for (const k of ['voice', 'cues']) {
+            this.ch[k].gain.setTargetAtTime(0, t, 0.12);
+            this.ch[k].gain.setTargetAtTime(this.level(k), t + 0.6, 0.05);
+          }
+        },
+        frame(b, v) {
+          if (!this.ctx) return;
+          const t = this.ctx.currentTime;
+          const moving = S.running ? Math.min(Math.abs(v) * 0.09, 0.09) : 0;
+          this.air.gain.setTargetAtTime(moving, t, 0.12);
+          this.airFilter.frequency.setTargetAtTime(
+            v >= 0 ? 750 + 600 * b : 480 + 380 * b,
+            t,
+            0.15,
+          );
+        },
+      };
+
+      /* Sound panel */
+      const panel = $('#sound-panel');
+      const soundBtn = $('#sound');
+      function renderChannels() {
+        const wrap = $('#channels');
+        wrap.innerHTML = '';
+        for (const k of Object.keys(CH_DEFAULT)) {
+          const [label, sub] = T().channels[k];
+          const b = document.createElement('button');
+          b.className = 'switch-row';
+          b.setAttribute('role', 'switch');
+          b.setAttribute('aria-checked', String(sound.prefs[k]));
+          b.innerHTML = `<span>${label}<small>${sub}</small></span><span class="switch" aria-hidden="true"></span>`;
+          b.addEventListener('click', () => {
+            const on = b.getAttribute('aria-checked') !== 'true';
+            b.setAttribute('aria-checked', String(on));
+            sound.set(k, on);
+          });
+          wrap.appendChild(b);
+        }
+        $('#volume').value = sound.vol;
+      }
+      $('#volume').addEventListener('input', (e) => {
+        sound.ensure();
+        sound.setVolume(+e.target.value);
+      });
+      function togglePanel(open = !panel.classList.contains('open')) {
+        panel.classList.toggle('open', open);
+        soundBtn.setAttribute('aria-expanded', String(open));
+        if (open) sound.ensure();
+      }
+      soundBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        togglePanel();
+      });
+      document.addEventListener('click', (e) => {
+        if (panel.classList.contains('open') && !panel.contains(e.target))
+          togglePanel(false);
+      });
+      function syncEq() {
+        document.body.classList.toggle(
+          'sound-on',
+          Object.values(sound.prefs).some(Boolean) && sound.vol > 0,
+        );
+      }
+
+      /* ── WebGL aurora + lens ───────────────────────────────────────── */
+      const canvas = $('#aurora');
+      const gl = canvas.getContext('webgl', { antialias: false, alpha: false });
+      let prog, U;
+      const VERT = `attribute vec2 p; void main(){ gl_Position = vec4(p,0.,1.); }`;
+      const FRAG = `
+        precision highp float;
+        uniform vec2 uRes; uniform float uTime, uBreath, uIntro, uPulse;
+        uniform vec3 uOrb; uniform vec2 uMouse;
+        const vec3 CREAM = vec3(.980,.965,.941);
+        const vec3 SKY = vec3(.663,.816,.886);
+        const vec3 SKY_DEEP = vec3(.45,.69,.80);
+        const vec3 PEACH = vec3(.945,.835,.745);
+        const vec3 MINT = vec3(.79,.90,.86);
+        float hash(vec2 p){ p = fract(p*vec2(123.34,456.21)); p += dot(p,p+45.32); return fract(p.x*p.y); }
+        float noise(vec2 p){
+          vec2 i = floor(p), f = fract(p); vec2 u = f*f*(3.-2.*f);
+          return mix(mix(hash(i),hash(i+vec2(1,0)),u.x), mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),u.x), u.y);
+        }
+        float fbm(vec2 p){
+          float v = 0., a = .5; mat2 m = mat2(1.6,1.2,-1.2,1.6);
+          for(int i=0;i<4;i++){ v += a*noise(p); p = m*p; a *= .5; }
+          return v;
+        }
+        // The landing's aura, alive: domain-warped noise mapped onto
+        // sky (top-left) → cream → peach (bottom-right), a breath of mint
+        vec3 field(vec2 frag){
+          vec2 uv = frag/uRes;
+          vec2 p = (frag - .5*uRes)/uRes.y + uMouse*.035;
+          float t = uTime;
+          vec2 q = vec2(fbm(p*1.2 + vec2(0., t*.030)), fbm(p*1.2 + vec2(5.2,1.3) - t*.025));
+          vec2 r = vec2(fbm(p*1.4 + 1.8*q + vec2(1.7,9.2) + t*.020), fbm(p*1.4 + 1.8*q + vec2(8.3,2.8) - t*.020));
+          float f = fbm(p*.9 + 1.4*r);
+          float tz = clamp(.56 + (uv.x - uv.y)*.62 + (f - .5)*1.0, 0., 1.);
+          vec3 col = CREAM;
+          col = mix(col, SKY, (1. - smoothstep(.06, .46, tz))*(.7 + .3*q.x));
+          col = mix(col, PEACH, smoothstep(.62, 1., tz)*.85);
+          col = mix(col, MINT, smoothstep(.55, .85, r.y)*.22*(1. - abs(tz - .5)*2.));
+          col = mix(col, SKY_DEEP, smoothstep(.62, .9, f)*(1. - smoothstep(0., .5, tz))*.45);
+          return col;
+        }
+        vec3 sat(vec3 c, float s){ return mix(vec3(dot(c, vec3(.299,.587,.114))), c, s); }
+        void main(){
+          vec2 frag = gl_FragCoord.xy;
+          vec2 c = uOrb.xy; float R = uOrb.z;
+          vec2 dv = frag - c; float d = length(dv)/R;
+          float inside = 1. - smoothstep(.985, 1., d);
+          vec3 col;
+          if (d < 1.02 && uBreath > .002) {
+            // the lens: magnify the light inside, split it at the rim
+            float k = mix(1., .78 + .2*d*d, uBreath);
+            float ca = .03*uBreath*d*d*d;
+            vec3 a = field(c + dv*(k + ca));
+            vec3 b = field(c + dv*k);
+            vec3 e = field(c + dv*(k - ca));
+            vec3 lens = sat(vec3(a.r, b.g, e.b), 1. + .45*uBreath);
+            lens = mix(lens, lens*vec3(.96,1.,1.03), .5*uBreath);
+            vec3 bg = d > .97 ? field(frag) : lens;
+            col = mix(bg, lens, inside);
+          } else {
+            col = field(frag);
+          }
+          col += vec3(1.)*.09*uBreath*smoothstep(.86, 1., d)*inside;
+          float halo = exp(-max(d - 1., 0.)*5.)*(1. - inside);
+          col = mix(col, vec3(1., .985, .96), .18*uBreath*halo);
+          if (uPulse >= 0.) {
+            float w = exp(-pow((d - (1. + uPulse*2.4))*2.2, 2.))*(1. - clamp(uPulse/1.8, 0., 1.));
+            col = mix(col, vec3(1.), w*.32);
+          }
+          col = mix(CREAM, col, uIntro);
+          col += (hash(frag + fract(uTime)*100.) - .5)*.014;
+          gl_FragColor = vec4(col, 1.);
+        }`;
+      function compile(type, src) {
+        const s = gl.createShader(type);
+        gl.shaderSource(s, src);
+        gl.compileShader(s);
+        if (!gl.getShaderParameter(s, gl.COMPILE_STATUS))
+          throw new Error(gl.getShaderInfoLog(s));
+        return s;
+      }
+      try {
+        if (!gl) throw new Error('no webgl');
+        prog = gl.createProgram();
+        gl.attachShader(prog, compile(gl.VERTEX_SHADER, VERT));
+        gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, FRAG));
+        gl.linkProgram(prog);
+        if (!gl.getProgramParameter(prog, gl.LINK_STATUS))
+          throw new Error(gl.getProgramInfoLog(prog));
+        gl.useProgram(prog);
+        const buf = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+        gl.bufferData(
+          gl.ARRAY_BUFFER,
+          new Float32Array([-1, -1, 3, -1, -1, 3]),
+          gl.STATIC_DRAW,
+        );
+        const loc = gl.getAttribLocation(prog, 'p');
+        gl.enableVertexAttribArray(loc);
+        gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+        U = {};
+        [
+          'uRes',
+          'uTime',
+          'uBreath',
+          'uIntro',
+          'uPulse',
+          'uOrb',
+          'uMouse',
+        ].forEach((n) => (U[n] = gl.getUniformLocation(prog, n)));
+      } catch (err) {
+        console.warn('Aurora fallback:', err.message);
+        document.documentElement.classList.add('no-gl');
+        prog = null;
+      }
+
+      /* ── Motes: dust in the light ──────────────────────────────────── */
+      const mc = $('#motes');
+      const mx = mc.getContext('2d');
+      const MOTES = Array.from({ length: 90 }, () => ({
+        a: Math.random() * Math.PI * 2,
+        w: (Math.random() * 0.06 + 0.015) * (Math.random() < 0.5 ? -1 : 1),
+        s: Math.random(),
+        z: Math.random() * 1.6 + 0.6,
+        ph: Math.random() * Math.PI * 2,
+        tint: Math.random(),
+      }));
+
+      /* ── Sizing ────────────────────────────────────────────────────── */
+      let W = 0,
+        H = 0,
+        renderScale = 1,
+        dpr = 1;
+      function resize() {
+        W = innerWidth;
+        H = innerHeight;
+        dpr = Math.min(devicePixelRatio || 1, 2);
+        renderScale = Math.min(dpr, 1.5) * 0.7; // the aura is soft: render it below full res
+        canvas.width = Math.round(W * renderScale);
+        canvas.height = Math.round(H * renderScale);
+        mc.width = Math.round(W * dpr);
+        mc.height = Math.round(H * dpr);
+        if (prog) gl.viewport(0, 0, canvas.width, canvas.height);
+        moveThumb();
+      }
+      addEventListener('resize', resize);
+
+      const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
+      addEventListener('pointermove', (e) => {
+        mouse.tx = (e.clientX / W - 0.5) * 2;
+        mouse.ty = (0.5 - e.clientY / H) * 2;
+      });
+
+      let pulseAt = -1;
+      function pulse() {
+        pulseAt = performance.now();
+      }
+
+      /* ── Frame ─────────────────────────────────────────────────────── */
+      const tStart = performance.now();
+      let last = tStart,
+        time = 0;
+      function frame(t) {
+        const dt = Math.min((t - last) / 1000, 0.05);
+        last = t;
+        time += dt * (reduced ? 0.15 : 1);
+        tick();
+
+        const prev = S.shown;
+        S.shown +=
+          (S.breath - S.shown) * (1 - Math.exp(-dt * (S.running ? 14 : 3)));
+        S.velocity = (S.shown - prev) / Math.max(dt, 1e-3);
+        const idle = S.running ? 0 : Math.sin(t / 1600) * 0.012;
+        const target = S.running ? 0.72 + 0.4 * S.shown : 0.86 + idle;
+        S.scale +=
+          (target - S.scale) * (1 - Math.exp(-dt * (S.running ? 14 : 4)));
+        ring.style.setProperty('--s', S.scale.toFixed(4));
+        const b = S.shown;
+        const lerp = (x, y) => Math.round(x + (y - x) * b);
+        ringBase.style.stroke = `rgba(${lerp(62, 255)},${lerp(113, 255)},${lerp(137, 255)},${(0.42 + 0.45 * b).toFixed(3)})`;
+
+        mouse.x += (mouse.tx - mouse.x) * 0.04;
+        mouse.y += (mouse.ty - mouse.y) * 0.04;
+
+        const r = orb.getBoundingClientRect();
+        const cx = r.left + r.width / 2,
+          cy = r.top + r.height / 2;
+        const R = (r.width / 2) * S.scale;
+
+        if (prog) {
+          const intro = Math.min((t - tStart) / 1800, 1);
+          gl.uniform2f(U.uRes, canvas.width, canvas.height);
+          gl.uniform1f(U.uTime, time);
+          gl.uniform1f(U.uBreath, b);
+          gl.uniform1f(U.uIntro, 1 - Math.pow(1 - intro, 3));
+          gl.uniform1f(U.uPulse, pulseAt < 0 ? -1 : (t - pulseAt) / 1000);
+          gl.uniform3f(
+            U.uOrb,
+            cx * renderScale,
+            (H - cy) * renderScale,
+            R * renderScale,
+          );
+          gl.uniform2f(U.uMouse, mouse.x, mouse.y);
+          gl.drawArrays(gl.TRIANGLES, 0, 3);
+        }
+
+        if (!reduced) {
+          mx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          mx.clearRect(0, 0, W, H);
+          const vis = S.running ? 1 : 0.35;
+          for (const m of MOTES) {
+            m.a += m.w * dt * (1 + b * 0.8);
+            const spread = 1.12 + m.s * 1.6 * (1 - 0.72 * b);
+            const wob = Math.sin(t / 1000 + m.ph) * 6;
+            const d = R * spread + wob;
+            const x = cx + Math.cos(m.a) * d,
+              y = cy + Math.sin(m.a) * d;
+            const al =
+              (0.25 + 0.5 * (0.5 + 0.5 * Math.sin(t / 900 + m.ph))) *
+              vis *
+              (1 - m.s * 0.5);
+            const tint =
+              m.tint < 0.5
+                ? '255,255,255'
+                : m.tint < 0.8
+                  ? '200,228,240'
+                  : '250,222,200';
+            mx.beginPath();
+            mx.fillStyle = `rgba(${tint},${al.toFixed(3)})`;
+            mx.arc(x, y, m.z, 0, Math.PI * 2);
+            mx.fill();
+          }
+        }
+
+        sound.frame(b, S.velocity);
         requestAnimationFrame(frame);
-      })();
+      }
+
+      /* ── Boot ──────────────────────────────────────────────────────── */
+      splitInto($('#wordmark'), 'Neyen', 90, 300);
+      applyLang();
+      drawTicks();
+      syncEq();
+      resize();
+      requestAnimationFrame(moveThumb);
+      requestAnimationFrame(frame);
     </script>
   </body>
 </html>
