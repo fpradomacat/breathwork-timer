@@ -46,11 +46,14 @@
       html,
       body {
         margin: 0;
-        height: 100%;
         background: var(--cream);
         color: var(--ink);
         font-family: var(--sans);
         -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+      }
+      /* The page scrolls to the reading below; a session freezes it */
+      body.in-session {
         overflow: hidden;
       }
       button {
@@ -93,7 +96,8 @@
       /* ── Layout ──────────────────────────────────────────────────── */
       .app {
         position: relative;
-        height: 100%;
+        height: 100vh;
+        height: 100svh;
         display: grid;
         grid-template-rows: auto 1fr auto;
         padding: max(18px, env(safe-area-inset-top)) 20px
@@ -314,8 +318,11 @@
       .phase {
         min-height: 1.3em;
         font-family: var(--serif);
-        font-size: clamp(1.5rem, 6vw, 2rem);
-        letter-spacing: 0.08em;
+        /* sized from the circle, so the longest word ("Breathe out") fits
+           even when the circle is at its smallest */
+        font-size: clamp(1rem, calc(var(--orb) * 0.1), 1.9rem);
+        letter-spacing: 0.06em;
+        white-space: nowrap;
         color: var(--ink);
       }
       .phase.hint {
@@ -817,6 +824,237 @@
         color: var(--ink);
         text-align: left;
       }
+
+      /* ── Link down to the reading ────────────────────────────────── */
+      .more {
+        justify-self: center;
+        margin-top: 4px;
+        font-size: 0.8rem;
+        letter-spacing: 0.04em;
+        color: var(--ink-soft);
+        text-decoration: none;
+        transition: color 0.3s;
+      }
+      .more:hover {
+        color: var(--accent);
+      }
+
+      /* ── Cards: an info button beside each ──────────────────────── */
+      .card-wrap {
+        position: relative;
+        isolation: isolate; /* keeps the info button under the dialogs */
+        flex: 0 0 196px;
+        display: flex;
+        scroll-snap-align: center;
+      }
+      .card-wrap .card {
+        flex: 1 1 auto;
+      }
+      .info-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 1;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 1px solid rgba(62, 113, 137, 0.3);
+        background: rgba(255, 253, 249, 0.6);
+        font-family: var(--serif);
+        font-style: italic;
+        font-size: 0.95rem;
+        color: var(--accent);
+        cursor: pointer;
+        transition:
+          background 0.3s,
+          transform 0.4s var(--ease-out);
+      }
+      .info-btn:hover {
+        background: #fff;
+        transform: scale(1.08);
+      }
+
+      /* ── Overlays with longer text ──────────────────────────────── */
+      .overlay .sheet.text {
+        max-height: 86svh;
+        overflow-y: auto;
+        text-align: left;
+      }
+      .overlay .sheet.text p {
+        margin: 0 0 14px;
+        line-height: 1.6;
+        letter-spacing: 0;
+        color: var(--ink);
+      }
+      .overlay .sheet.text .timing {
+        margin: -4px 0 16px;
+        font-size: 0.78rem;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+      }
+      .overlay .sheet.text .warn {
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: rgba(241, 217, 196, 0.45);
+        color: #6e3c1f;
+      }
+
+      /* ── Summary: mood, streak, next steps ──────────────────────── */
+      .mood fieldset {
+        margin: 0 0 22px;
+        padding: 0;
+        border: 0;
+      }
+      .mood legend {
+        margin: 0 auto 10px;
+        font-size: 0.9rem;
+        color: var(--ink);
+      }
+      .mood .dots {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+      }
+      .mood .dots button {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 1px solid rgba(62, 113, 137, 0.4);
+        background: rgba(255, 255, 255, 0.5);
+        font-size: 0.8rem;
+        color: var(--ink-soft);
+        cursor: pointer;
+        transition:
+          background 0.3s,
+          transform 0.4s var(--ease-out),
+          color 0.3s;
+      }
+      .mood .dots button:hover {
+        transform: scale(1.1);
+      }
+      .mood .dots button[aria-pressed='true'] {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+      .mood .ends {
+        display: flex;
+        justify-content: space-between;
+        width: 214px;
+        margin: 6px auto 0;
+        font-size: 0.7rem;
+        color: var(--ink-soft);
+      }
+      .mood .thanks {
+        min-height: 1.2em;
+        margin: 8px 0 0 !important;
+        font-size: 0.78rem;
+        color: var(--accent) !important;
+      }
+      .sum-links {
+        display: grid;
+        gap: 8px;
+        margin-top: 20px;
+        padding-top: 16px;
+        border-top: 1px solid rgba(34, 48, 58, 0.08);
+        font-size: 0.86rem;
+      }
+      .sum-links a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .sum-links a:hover {
+        text-decoration: underline;
+      }
+      .overlay .sheet .streak {
+        margin: -12px 0 20px;
+        font-size: 0.76rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+      .overlay .sheet .streak:empty {
+        display: none;
+      }
+
+      /* ── Help ───────────────────────────────────────────────────── */
+      .popover p {
+        margin: 0 0 10px;
+        font-size: 0.88rem;
+        line-height: 1.55;
+      }
+      .popover kbd {
+        padding: 1px 6px;
+        border-radius: 6px;
+        border: 1px solid rgba(34, 48, 58, 0.18);
+        background: #fff;
+        font-family: var(--sans);
+        font-size: 0.76rem;
+      }
+
+      /* ── Reading: what Neyen is, the techniques, FAQ, author ────── */
+      .info {
+        position: relative;
+        width: min(100% - 32px, 680px);
+        margin: 0 auto 64px;
+        padding: 36px clamp(20px, 5vw, 48px) 40px;
+        border-radius: 28px;
+        border: 1px solid var(--glass-border);
+        background: rgba(255, 253, 249, 0.7);
+        -webkit-backdrop-filter: blur(24px) saturate(1.3);
+        backdrop-filter: blur(24px) saturate(1.3);
+        box-shadow: 0 30px 70px -40px rgba(34, 48, 58, 0.4);
+        line-height: 1.7;
+      }
+      .info h2 {
+        margin: 36px 0 12px;
+        font-family: var(--serif);
+        font-weight: 400;
+        font-size: 1.6rem;
+        line-height: 1.25;
+      }
+      .info h2:first-child {
+        margin-top: 0;
+      }
+      .info h3 {
+        margin: 0 0 6px;
+        font-family: var(--serif);
+        font-weight: 400;
+        font-size: 1.2rem;
+      }
+      .info p {
+        margin: 0 0 12px;
+      }
+      .info a {
+        color: var(--accent);
+      }
+      .info .seo-technique {
+        margin: 16px 0;
+        padding: 18px 20px 8px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.55);
+      }
+      .info .seo-timing {
+        margin-left: 10px;
+        font-family: var(--sans);
+        font-size: 0.78rem;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+      }
+      .info .seo-warn {
+        color: #6e3c1f;
+      }
+      .info details {
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(34, 48, 58, 0.08);
+      }
+      .info summary {
+        cursor: pointer;
+        font-weight: 500;
+      }
+      .info details p {
+        margin: 10px 0 4px;
+      }
     </style>
   </head>
   <body>
@@ -831,6 +1069,24 @@
         </a>
         <div class="actions">
           <button class="pill" id="lang" lang="en"></button>
+          <button
+            class="pill"
+            id="help"
+            aria-expanded="false"
+            aria-controls="help-panel"
+            data-t-label="helpTitle"
+          >
+            ?
+          </button>
+          <div
+            class="popover"
+            id="help-panel"
+            role="group"
+            aria-labelledby="help-title"
+          >
+            <h3 id="help-title" data-t="helpTitle"></h3>
+            <div id="help-text"></div>
+          </div>
           <button
             class="pill"
             id="sound"
@@ -895,8 +1151,12 @@
         >
           <span class="thumb" id="thumb"></span>
         </div>
+        <a class="more" href="#info" data-t="more"></a>
       </section>
     </div>
+
+    <!-- The reading under the app: same copy as the app, from seo-content.js -->
+    <article class="info" id="info"></article>
 
     <div class="session-meta" aria-hidden="true">
       <div class="meta">
@@ -938,9 +1198,30 @@
       <div class="sheet">
         <h2 id="sum-title"></h2>
         <p id="sum-text"></p>
+        <p class="streak" id="sum-streak"></p>
+        <div class="mood" id="mood"></div>
         <div class="row">
           <button class="btn" id="again" data-t="again"></button>
           <button class="btn ghost" id="close" data-t="close"></button>
+        </div>
+        <div class="sum-links" id="sum-links"></div>
+      </div>
+    </div>
+
+    <!-- About one technique -->
+    <div
+      class="summary overlay"
+      id="info-sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="info-title"
+    >
+      <div class="sheet text">
+        <h2 class="small" id="info-title"></h2>
+        <div id="info-body"></div>
+        <div class="row">
+          <button class="btn" id="info-go" data-t="infoGo"></button>
+          <button class="btn ghost" id="info-close" data-t="close"></button>
         </div>
       </div>
     </div>
@@ -949,6 +1230,15 @@
       // Techniques come from the app itself: one source for names, rhythms,
       // safety notes and sound folders.
       import { PRESETS, GOALS } from '../assets/js/presets.js';
+      // …and so do the practice history, the reminder and the reading
+      import {
+        addSession,
+        setMoodAfter,
+        getStats,
+        MIN_RECORDED_SECS,
+      } from '../assets/js/history.js';
+      import { googleCalendarUrl } from '../assets/js/reminder-ics.js';
+      import { SEO, AUTHOR, renderSeo } from '../assets/js/seo-content.js';
 
       const $ = (s) => document.querySelector(s);
       const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1009,6 +1299,23 @@
             'Tocá el círculo o pulsá la barra espaciadora para empezar o terminar.',
           other: 'EN',
           otherLabel: 'English',
+          more: 'Qué es Neyen, las técnicas y preguntas ↓',
+          helpTitle: 'Cómo funciona',
+          help: [
+            'Elegí una técnica abajo. Tocá el círculo y seguilo: crece cuando inhalás, se achica cuando exhalás.',
+            'Una voz te acompaña los primeros ciclos. Si preferís silencio, apagala en Sonido.',
+            'Tocá el círculo otra vez para terminar.',
+          ],
+          keys: '<kbd>Espacio</kbd> empezar o terminar · <kbd>Esc</kbd> salir',
+          info: (n) => `Sobre ${n}`,
+          infoGo: 'Empezar con esta',
+          moodQ: '¿Cómo te sentís ahora?',
+          moodEnds: ['Peor', 'Mucho mejor'],
+          moodThanks: 'Gracias. Queda guardado en tu práctica.',
+          streak: (n) =>
+            n > 1 ? `${n} días seguidos` : 'Primer día de tu racha',
+          reminder: 'Agregá un recordatorio diario →',
+          coach: '¿Querés ir más profundo? Sesiones 1:1 →',
         },
         en: {
           title: 'Neyen · the art of breathing',
@@ -1048,6 +1355,23 @@
           srHint: 'Tap the circle or press the space bar to start or stop.',
           other: 'ES',
           otherLabel: 'Español',
+          more: 'What Neyen is, the techniques and FAQ ↓',
+          helpTitle: 'How it works',
+          help: [
+            'Choose a technique below. Tap the circle and follow it: it grows as you breathe in and shrinks as you breathe out.',
+            'A voice guides you through the first cycles. For silence, turn it off in Sound.',
+            'Tap the circle again to finish.',
+          ],
+          keys: '<kbd>Space</kbd> start or stop · <kbd>Esc</kbd> exit',
+          info: (n) => `About ${n}`,
+          infoGo: 'Start with this one',
+          moodQ: 'How do you feel now?',
+          moodEnds: ['Worse', 'Much better'],
+          moodThanks: 'Thanks. It is saved in your practice.',
+          streak: (n) =>
+            n > 1 ? `${n} days in a row` : 'Day one of your streak',
+          reminder: 'Add a daily reminder →',
+          coach: 'Want to go deeper? 1:1 sessions →',
         },
       };
       let lang =
@@ -1177,13 +1501,23 @@
             b.style.setProperty('--rx', '0deg');
             b.style.setProperty('--ry', '0deg');
           });
-          cardsEl.appendChild(b);
+          // the info button sits beside the card, never inside it
+          const wrap = document.createElement('div');
+          wrap.className = 'card-wrap';
+          const info = document.createElement('button');
+          info.className = 'info-btn';
+          info.textContent = 'i';
+          info.setAttribute('aria-label', T().info(L(tq, 'name')));
+          info.addEventListener('click', () => openInfo(tq));
+          wrap.append(b, info);
+          cardsEl.appendChild(wrap);
         });
         // the chosen technique in view in the scrolling row
         const on = cardsEl.querySelector('[aria-pressed="true"]');
         if (on)
           cardsEl.scrollLeft =
-            on.offsetLeft - (cardsEl.clientWidth - on.offsetWidth) / 2;
+            on.parentElement.offsetLeft -
+            (cardsEl.clientWidth - on.offsetWidth) / 2;
       }
 
       const durEl = $('#durations');
@@ -1290,6 +1624,11 @@
         renderDurations();
         renderEyebrow(false);
         renderChannels();
+        $('#help-text').innerHTML =
+          T()
+            .help.map((p) => `<p>${p}</p>`)
+            .join('') + `<p>${T().keys}</p>`;
+        $('#info').innerHTML = renderSeo(lang);
         requestAnimationFrame(moveThumb);
         if (!S.running) {
           phaseText = '';
@@ -1358,6 +1697,7 @@
         S.cycles = 0;
         S.phase = -1;
         S.t0 = now() + COUNTDOWN;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         document.body.classList.add('in-session');
         orb.setAttribute('aria-label', T().stop);
         pulse();
@@ -1374,7 +1714,17 @@
         sound.stopSession();
         wakeLock.off();
         pulse();
-        if (!silent && (fromLimit || S.elapsed >= 20)) openSummary(S.elapsed);
+        // recorded in the app's own history: same streak, same list
+        const entry =
+          S.elapsed >= MIN_RECORDED_SECS
+            ? addSession({
+                secs: Math.round(S.elapsed),
+                cycles: S.cycles,
+                technique: tech.soundDir,
+              })
+            : null;
+        if (!silent && (fromLimit || S.elapsed >= 20))
+          openSummary(S.elapsed, entry);
       }
       orb.addEventListener('click', () =>
         S.running ? stop() : requestStart(),
@@ -1382,6 +1732,9 @@
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
           if (panel.classList.contains('open')) return togglePanel(false);
+          if (helpPanel.classList.contains('open')) return toggleHelp(false);
+          if ($('#info-sheet').classList.contains('open'))
+            return closeOverlay('#info-sheet');
           if ($('#notice').classList.contains('open'))
             return closeOverlay('#notice');
           if ($('#summary').classList.contains('open'))
@@ -1468,12 +1821,96 @@
       function closeOverlay(sel) {
         $(sel).classList.remove('open');
       }
-      function openSummary(secs) {
+      function openSummary(secs, entry) {
         $('#sum-text').textContent =
           `${fmt(secs)} · ${T().cycles(S.cycles)} · ${L(tech, 'name')}`;
         splitInto($('#sum-title'), T().done, 45, 250);
+        const stats = getStats();
+        $('#sum-streak').textContent = entry ? T().streak(stats.streak) : '';
+        // "how do you feel?": one tap, saved with the session
+        const mood = $('#mood');
+        mood.innerHTML = '';
+        if (entry) {
+          mood.innerHTML = `<fieldset><legend>${T().moodQ}</legend><div class="dots"></div>
+            <div class="ends" aria-hidden="true"><span>${T().moodEnds[0]}</span><span>${T().moodEnds[1]}</span></div>
+            <p class="thanks" aria-live="polite"></p></fieldset>`;
+          const dots = mood.querySelector('.dots');
+          for (let v = 1; v <= 5; v++) {
+            const b = document.createElement('button');
+            b.textContent = v;
+            b.setAttribute('aria-pressed', 'false');
+            b.addEventListener('click', () => {
+              setMoodAfter(entry.id, v);
+              dots
+                .querySelectorAll('button')
+                .forEach((x) =>
+                  x.setAttribute('aria-pressed', String(x === b)),
+                );
+              mood.querySelector('.thanks').textContent = T().moodThanks;
+            });
+            dots.appendChild(b);
+          }
+        }
+        // next steps: a reminder once it's becoming a habit, and the way to the coach
+        const links = [];
+        if (entry && stats.sessions >= 2) {
+          const time = store.get('reminder', null)?.time || '08:00';
+          links.push(
+            `<a href="${googleCalendarUrl({ time, lang })}" target="_blank" rel="noopener">${T().reminder}</a>`,
+          );
+        }
+        links.push(
+          `<a href="${AUTHOR.web}" target="_blank" rel="noopener">${T().coach}</a>`,
+        );
+        $('#sum-links').innerHTML = links.join('');
         openOverlay('#summary', '#again');
       }
+
+      /* About one technique: description, how, when, the full note */
+      let infoTech = null;
+      function openInfo(tq) {
+        infoTech = tq;
+        const extra = SEO[lang].techniques[tq.soundDir] || {};
+        const warn = L(tq, 'warn');
+        $('#info-title').textContent = L(tq, 'name');
+        $('#info-body').innerHTML = `
+          <p class="timing">${T().goals[tq.goal] || ''} · ${tq.timing.join(' · ')}</p>
+          <p>${L(tq, 'desc')}</p>
+          ${extra.how ? `<p>${extra.how}</p>` : ''}
+          ${extra.when ? `<p>${extra.when}</p>` : ''}
+          ${warn ? `<p class="warn">⚠ ${warn}</p>` : ''}`;
+        openOverlay('#info-sheet', '#info-go');
+      }
+      $('#info-go').addEventListener('click', () => {
+        closeOverlay('#info-sheet');
+        chooseTechnique(infoTech);
+        // the note was just read in full: it counts as seen
+        warned.add(infoTech.soundDir);
+        store.set('concept.warned', [...warned]);
+        requestStart();
+      });
+      $('#info-close').addEventListener('click', () =>
+        closeOverlay('#info-sheet'),
+      );
+
+      /* Help popover */
+      const helpPanel = $('#help-panel');
+      const helpBtn = $('#help');
+      function toggleHelp(open = !helpPanel.classList.contains('open')) {
+        helpPanel.classList.toggle('open', open);
+        helpBtn.setAttribute('aria-expanded', String(open));
+      }
+      helpBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleHelp();
+      });
+      document.addEventListener('click', (e) => {
+        if (
+          helpPanel.classList.contains('open') &&
+          !helpPanel.contains(e.target)
+        )
+          toggleHelp(false);
+      });
       $('#again').addEventListener('click', requestStart);
       $('#close').addEventListener('click', () => {
         closeOverlay('#summary');
